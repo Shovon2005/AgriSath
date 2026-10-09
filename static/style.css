@@ -1,0 +1,1325 @@
+/* =========================================================
+   AGRI AI - PRECISION AGRICULTURE
+   COMPLETE CSS FOR INDEX + RESULT PAGE
+   ========================================================= */
+
+/* ---------- GLOBAL ---------- */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(135deg, #f3faf5, #ffffff 50%, #eef8f1);
+    color: #173b28;
+    min-height: 100vh;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+button,
+input,
+select {
+    font-family: inherit;
+}
+
+.container {
+    width: 92%;
+    max-width: 1200px;
+    margin: auto;
+}
+
+
+/* =========================================================
+   NAVBAR
+   ========================================================= */
+
+.navbar {
+    width: 100%;
+    padding: 18px 5%;
+    background: rgba(255, 255, 255, 0.95);
+    border-bottom: 1px solid #dceee2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 22px;
+    font-weight: 800;
+    color: #176b3a;
+}
+
+.logo-icon {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, #218c4b, #65b97d);
+    color: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 6px 15px rgba(33, 140, 75, 0.2);
+}
+
+.ai-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #edf9f1;
+    border: 1px solid #ccebd6;
+    color: #217241;
+    padding: 8px 14px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.ai-status::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: #28a745;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.12);
+}
+
+
+/* =========================================================
+   HERO SECTION - INDEX PAGE
+   ========================================================= */
+
+.hero {
+    min-height: 420px;
+    padding: 70px 5%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 50px;
+    max-width: 1300px;
+    margin: auto;
+}
+
+.hero-content {
+    flex: 1;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #e8f7ed;
+    color: #217241;
+    border: 1px solid #ccebd6;
+    padding: 9px 15px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.hero h1 {
+    font-size: clamp(38px, 5vw, 65px);
+    line-height: 1.08;
+    color: #123d25;
+    margin-bottom: 20px;
+    letter-spacing: -2px;
+}
+
+.hero h1 span {
+    color: #218c4b;
+}
+
+.hero p {
+    color: #607568;
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 650px;
+}
+
+.hero-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.hero-feature {
+    background: white;
+    border: 1px solid #dceee2;
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #386049;
+    box-shadow: 0 5px 15px rgba(24, 82, 45, 0.05);
+}
+
+.hero-feature i {
+    color: #218c4b;
+    margin-right: 5px;
+}
+
+.hero-visual {
+    flex: 0 0 350px;
+    display: flex;
+    justify-content: center;
+}
+
+.plant-card {
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #e5f8eb, #c7ebd1 55%, #a7dcb7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow:
+        0 25px 60px rgba(42, 126, 68, 0.15),
+        inset 0 0 50px rgba(255, 255, 255, 0.7);
+}
+
+.plant-card i {
+    font-size: 110px;
+    color: #23864a;
+}
+
+.plant-card::before {
+    content: "";
+    width: 50px;
+    height: 50px;
+    background: #ffffff;
+    border-radius: 50%;
+    position: absolute;
+    top: 35px;
+    right: 45px;
+    opacity: 0.65;
+}
+
+.plant-card::after {
+    content: "";
+    width: 25px;
+    height: 25px;
+    background: #ffffff;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 50px;
+    left: 45px;
+    opacity: 0.7;
+}
+
+
+/* =========================================================
+   INDEX FORM SECTION
+   ========================================================= */
+
+.form-section {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid #dceee2;
+    border-radius: 24px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 15px 45px rgba(22, 77, 42, 0.07);
+}
+
+.section-heading {
+    margin-bottom: 25px;
+}
+
+.section-heading h2 {
+    font-size: 28px;
+    color: #173b28;
+    margin-bottom: 8px;
+}
+
+.section-heading p {
+    color: #718177;
+    font-size: 14px;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #176b3a;
+    font-size: 20px;
+    margin-bottom: 22px;
+}
+
+.title-icon {
+    width: 40px;
+    height: 40px;
+    background: #e8f7ed;
+    color: #218c4b;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-group label {
+    color: #385646;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.input-group input,
+.input-group select {
+    width: 100%;
+    height: 48px;
+    border: 1px solid #d4e5da;
+    border-radius: 11px;
+    background: #fbfdfc;
+    padding: 0 14px;
+    color: #203f2c;
+    outline: none;
+    transition: 0.25s;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+    border-color: #43a765;
+    box-shadow: 0 0 0 4px rgba(67, 167, 101, 0.1);
+    background: white;
+}
+
+.input-group input::placeholder {
+    color: #a1aaa4;
+}
+
+
+/* ---------- Predict Button ---------- */
+
+.predict-area {
+    text-align: center;
+    padding: 35px 0 10px;
+}
+
+.predict-btn {
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, #218c4b, #2da55a);
+    color: white;
+    padding: 16px 35px;
+    border-radius: 13px;
+    font-size: 16px;
+    font-weight: 700;
+    min-width: 250px;
+    box-shadow: 0 12px 25px rgba(33, 140, 75, 0.22);
+    transition: all 0.25s ease;
+}
+
+.predict-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 17px 30px rgba(33, 140, 75, 0.3);
+}
+
+.predict-btn:active {
+    transform: translateY(0);
+}
+
+.predict-btn i {
+    margin-right: 8px;
+}
+
+
+/* =========================================================
+   AGRIAI - RESULT PAGE MODERN DASHBOARD
+   IMPORTANT:
+   This CSS matches the ACTUAL result.html classes.
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   RESULT PAGE BACKGROUND
+   --------------------------------------------------------- */
+
+.results-container {
+    width: 92%;
+    max-width: 1250px;
+    margin: 0 auto;
+    padding: 10px 0 60px;
+}
+
+
+/* ---------------------------------------------------------
+   RESULT HERO
+   --------------------------------------------------------- */
+
+.result-hero {
+    padding: 65px 20px 35px;
+    text-align: center;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(91, 181, 113, 0.10), transparent 30%),
+        radial-gradient(circle at 80% 30%, rgba(62, 160, 91, 0.08), transparent 30%);
+}
+
+.result-hero-content {
+    max-width: 850px;
+    margin: auto;
+}
+
+.result-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: 30px;
+    background: #eaf8ee;
+    border: 1px solid #ccebd6;
+    color: #218c4b;
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+
+.result-hero h1 {
+    font-size: clamp(38px, 5vw, 58px);
+    line-height: 1.1;
+    color: #123d25;
+    letter-spacing: -1.5px;
+    margin-bottom: 18px;
+}
+
+.result-hero h1 span {
+    color: #218c4b;
+}
+
+.result-hero p {
+    max-width: 700px;
+    margin: auto;
+    color: #6c7c72;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+
+/* ---------------------------------------------------------
+   MAIN CROP RESULT
+   --------------------------------------------------------- */
+
+.crop-result-card {
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    align-items: center;
+    gap: 25px;
+
+    background: linear-gradient(135deg, #ffffff, #f3fbf5);
+    border: 1px solid #d2ead9;
+    border-radius: 24px;
+
+    padding: 28px 32px;
+    margin-bottom: 25px;
+
+    box-shadow: 0 15px 45px rgba(25, 95, 48, 0.08);
+
+    position: relative;
+    overflow: hidden;
+}
+
+.crop-result-card::before {
+    content: "";
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: rgba(92, 181, 113, 0.08);
+    right: -90px;
+    top: -100px;
+}
+
+.crop-icon {
+    width: 82px;
+    height: 82px;
+    border-radius: 22px;
+
+    background: linear-gradient(135deg, #218c4b, #55b66f);
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 34px;
+
+    box-shadow: 0 12px 25px rgba(33, 140, 75, 0.22);
+    position: relative;
+    z-index: 2;
+}
+
+.crop-result-info {
+    position: relative;
+    z-index: 2;
+}
+
+.result-label {
+    display: block;
+    color: #7b8b82;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.3px;
+    margin-bottom: 6px;
+}
+
+.crop-result-info h2 {
+    font-size: 34px;
+    color: #176b3a;
+    text-transform: capitalize;
+    margin-bottom: 6px;
+}
+
+.crop-result-info p {
+    color: #718177;
+    font-size: 12px;
+}
+
+.crop-result-info p i {
+    color: #218c4b;
+    margin-right: 5px;
+}
+
+.confidence-box {
+    position: relative;
+    z-index: 2;
+    min-width: 170px;
+
+    background: #edf9f1;
+    border: 1px solid #ccebd6;
+
+    padding: 15px 20px;
+    border-radius: 15px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.confidence-box span {
+    color: #809087;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.confidence-box strong {
+    color: #218c4b;
+    font-size: 14px;
+}
+
+.confidence-box strong i {
+    margin-right: 5px;
+}
+
+
+/* ---------------------------------------------------------
+   SUMMARY CARDS
+   --------------------------------------------------------- */
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 25px;
+}
+
+.summary-card {
+    background: white;
+    border: 1px solid #dceee2;
+    border-radius: 18px;
+    padding: 20px;
+
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    box-shadow: 0 8px 25px rgba(23, 75, 42, 0.05);
+
+    transition: all 0.25s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 32px rgba(23, 75, 42, 0.10);
+}
+
+.summary-icon {
+    width: 50px;
+    height: 50px;
+    flex-shrink: 0;
+
+    border-radius: 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 20px;
+}
+
+.summary-card span {
+    display: block;
+    font-size: 9px;
+    color: #89958e;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    margin-bottom: 5px;
+}
+
+.summary-card h3 {
+    font-size: 16px;
+    color: #315441;
+}
+
+.soil-icon {
+    background: #eaf7ed;
+    color: #218c4b;
+}
+
+.water-icon {
+    background: #e9f6fb;
+    color: #2585ad;
+}
+
+.risk-icon {
+    background: #fff3df;
+    color: #d28a1c;
+}
+
+.ai-icon {
+    background: #f1ebfa;
+    color: #7652b5;
+}
+
+
+/* ---------------------------------------------------------
+   TWO COLUMN LAYOUT
+   --------------------------------------------------------- */
+
+.result-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    align-items: start;
+}
+
+.result-columns > div {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+
+/* ---------------------------------------------------------
+   RESULT CARD
+   --------------------------------------------------------- */
+
+.result-card {
+    background: #ffffff;
+    border: 1px solid #dceee2;
+    border-radius: 20px;
+    padding: 25px;
+
+    box-shadow: 0 8px 30px rgba(23, 75, 42, 0.055);
+
+    transition: all 0.25s ease;
+}
+
+.result-card:hover {
+    box-shadow: 0 15px 38px rgba(23, 75, 42, 0.09);
+}
+
+
+/* ---------------------------------------------------------
+   CARD HEADER
+   --------------------------------------------------------- */
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin-bottom: 20px;
+}
+
+.header-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+
+    background: #eaf7ed;
+    color: #218c4b;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.card-header h3 {
+    color: #214b32;
+    font-size: 18px;
+    margin-bottom: 4px;
+}
+
+.card-header p {
+    color: #89968e;
+    font-size: 11px;
+}
+
+
+/* ---------------------------------------------------------
+   SPECIAL HEADER COLORS
+   --------------------------------------------------------- */
+
+.water-header {
+    background: #e8f6fb;
+    color: #2585ad;
+}
+
+.fertilizer-header {
+    background: #faf2df;
+    color: #aa7a1d;
+}
+
+.ai-header {
+    background: #f1ebfa;
+    color: #7652b5;
+}
+
+.probability-header {
+    background: #e9f5ed;
+    color: #218c4b;
+}
+
+.risk-header {
+    background: #fff2dc;
+    color: #d18a20;
+}
+
+
+/* ---------------------------------------------------------
+   SOIL STATUS
+   --------------------------------------------------------- */
+
+.status-banner {
+    background: linear-gradient(135deg, #edf9f1, #f8fcf9);
+    border: 1px solid #cfe9d7;
+    border-radius: 16px;
+
+    padding: 19px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 16px;
+}
+
+.status-banner span {
+    display: block;
+    color: #7f8d85;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.status-banner strong {
+    color: #218c4b;
+    font-size: 23px;
+}
+
+.status-banner > i {
+    width: 46px;
+    height: 46px;
+
+    border-radius: 50%;
+
+    background: #dff4e5;
+    color: #218c4b;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* ---------------------------------------------------------
+   RECOMMENDATIONS
+   --------------------------------------------------------- */
+
+.recommendation-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.recommendation-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+
+    padding: 13px 14px;
+
+    background: #f8fbf9;
+    border: 1px solid #e3eee6;
+
+    border-radius: 11px;
+
+    color: #526359;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.recommendation-item i {
+    color: #218c4b;
+    margin-top: 2px;
+}
+
+.fertilizer-item {
+    background: #fffdf7;
+    border-color: #eee4c9;
+}
+
+.fertilizer-item i {
+    color: #aa7a1d;
+}
+
+
+/* ---------------------------------------------------------
+   IRRIGATION
+   --------------------------------------------------------- */
+
+.irrigation-box {
+    background: linear-gradient(135deg, #f2faff, #ffffff);
+    border: 1px solid #d8edf5;
+    border-radius: 17px;
+    padding: 20px;
+}
+
+.irrigation-priority {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 20px;
+}
+
+.irrigation-priority span {
+    color: #84928a;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.irrigation-priority strong {
+    padding: 7px 15px;
+    border-radius: 30px;
+
+    background: #e5f7ec;
+    color: #218c4b;
+
+    font-size: 11px;
+}
+
+.irrigation-message {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.irrigation-message > i {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    background: #dff3fb;
+    color: #2585ad;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 19px;
+}
+
+.irrigation-message p {
+    color: #53675c;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+
+/* ---------------------------------------------------------
+   EXPLAINABLE AI
+   --------------------------------------------------------- */
+
+.explain-card {
+    background:
+        linear-gradient(180deg, #ffffff 0%, #fcfaff 100%);
+}
+
+.feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.feature-row {
+    display: grid;
+    grid-template-columns: 125px 1fr 55px;
+    align-items: center;
+    gap: 12px;
+}
+
+.feature-name span {
+    color: #53655a;
+    font-size: 11px;
+    font-weight: 700;
+
+    display: block;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.feature-bar {
+    height: 9px;
+    background: #eeeaf5;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.feature-progress {
+    height: 100%;
+    min-width: 4px;
+
+    background: linear-gradient(90deg, #7652b5, #aa8bdb);
+
+    border-radius: 20px;
+
+    transition: width 0.7s ease;
+}
+
+.feature-row > strong {
+    color: #7652b5;
+    font-size: 12px;
+    text-align: right;
+}
+
+.explain-note {
+    margin-top: 20px;
+
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+
+    padding: 12px 14px;
+
+    background: #f7f3fc;
+    border: 1px solid #e8def5;
+
+    border-radius: 11px;
+
+    color: #756a82;
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.explain-note i {
+    color: #7652b5;
+    margin-top: 2px;
+}
+
+
+/* ---------------------------------------------------------
+   CROP PROBABILITIES
+   --------------------------------------------------------- */
+
+.probability-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.probability-row {
+    display: grid;
+    grid-template-columns: 105px 1fr 52px;
+    align-items: center;
+    gap: 12px;
+}
+
+.crop-name span {
+    display: block;
+
+    color: #3e5748;
+    font-size: 12px;
+    font-weight: 700;
+
+    text-transform: capitalize;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.probability-bar {
+    height: 9px;
+    background: #e7eee9;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.probability-progress {
+    height: 100%;
+    min-width: 4px;
+
+    background: linear-gradient(90deg, #218c4b, #6bc080);
+
+    border-radius: 20px;
+}
+
+.probability-row > strong {
+    color: #218c4b;
+    font-size: 12px;
+    text-align: right;
+}
+
+
+/* ---------------------------------------------------------
+   RISK
+   --------------------------------------------------------- */
+
+.risk-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.risk-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 14px;
+
+    background: #fff9ee;
+    border: 1px solid #f0e1c3;
+
+    border-radius: 13px;
+
+    color: #735e32;
+    font-size: 12px;
+}
+
+.risk-item i {
+    width: 35px;
+    height: 35px;
+
+    flex-shrink: 0;
+
+    border-radius: 10px;
+
+    background: #fff0cf;
+    color: #d18a20;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* ---------------------------------------------------------
+   FARM INPUT SUMMARY
+   --------------------------------------------------------- */
+
+.input-summary {
+    margin-top: 22px;
+}
+
+.input-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 11px;
+}
+
+.input-summary-item {
+    padding: 14px;
+
+    background: #f9fbfa;
+    border: 1px solid #e2ece5;
+
+    border-radius: 12px;
+
+    transition: all 0.2s ease;
+}
+
+.input-summary-item:hover {
+    background: #f0f8f3;
+    border-color: #cde4d4;
+}
+
+.input-summary-item span {
+    display: block;
+
+    color: #8a968f;
+    font-size: 9px;
+    font-weight: 700;
+
+    text-transform: uppercase;
+
+    margin-bottom: 6px;
+}
+
+.input-summary-item strong {
+    display: block;
+
+    color: #315441;
+    font-size: 14px;
+
+    text-transform: capitalize;
+}
+
+
+/* ---------------------------------------------------------
+   ACTION BUTTONS
+   --------------------------------------------------------- */
+
+.result-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+
+    margin: 30px 0 10px;
+}
+
+.new-prediction,
+.print-report {
+    min-width: 190px;
+
+    padding: 13px 20px;
+
+    border-radius: 11px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: all 0.25s ease;
+}
+
+.new-prediction {
+    background: #218c4b;
+    color: white;
+
+    box-shadow: 0 8px 20px rgba(33, 140, 75, 0.20);
+}
+
+.new-prediction:hover {
+    background: #176b3a;
+    transform: translateY(-2px);
+}
+
+.print-report {
+    background: white;
+    color: #315b43;
+
+    border: 1px solid #cfe2d5;
+}
+
+.print-report:hover {
+    background: #f1f8f3;
+    transform: translateY(-2px);
+}
+
+
+/* ---------------------------------------------------------
+   RESULT PAGE FOOTER
+   --------------------------------------------------------- */
+
+body:has(.results-container) footer {
+    margin-top: 20px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1050px) {
+
+    .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .input-summary-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .crop-result-card {
+        grid-template-columns: 80px 1fr;
+    }
+
+    .confidence-box {
+        grid-column: 2;
+        width: fit-content;
+    }
+}
+
+
+@media (max-width: 800px) {
+
+    .result-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .input-summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .result-hero {
+        padding-top: 45px;
+    }
+
+    .result-hero h1 {
+        font-size: 40px;
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    .results-container {
+        width: 94%;
+    }
+
+    .result-hero {
+        padding: 35px 15px 25px;
+    }
+
+    .result-hero h1 {
+        font-size: 32px;
+    }
+
+    .result-hero p {
+        font-size: 13px;
+    }
+
+    .crop-result-card {
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        padding: 25px 18px;
+    }
+
+    .crop-result-info h2 {
+        font-size: 29px;
+    }
+
+    .confidence-box {
+        width: 100%;
+        align-items: center;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .result-card {
+        padding: 19px;
+    }
+
+    .feature-row {
+        grid-template-columns: 90px 1fr 45px;
+        gap: 8px;
+    }
+
+    .probability-row {
+        grid-template-columns: 85px 1fr 45px;
+        gap: 8px;
+    }
+
+    .input-summary-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .result-actions {
+        flex-direction: column;
+    }
+
+    .new-prediction,
+    .print-report {
+        width: 100%;
+    }
+}
+
+
+/* =========================================================
+   PRINT
+   ========================================================= */
+
+@media print {
+
+    .navbar,
+    .result-actions,
+    footer {
+        display: none !important;
+    }
+
+    body {
+        background: white !important;
+    }
+
+    .result-card,
+    .crop-result-card,
+    .summary-card {
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+
+    .result-hero {
+        padding-top: 15px;
+    }
+}

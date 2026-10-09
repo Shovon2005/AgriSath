@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AgriAI | Prediction Results</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+
+<header class="navbar">
+
+    <div class="logo">
+
+        <div class="logo-icon">
+            <i class="fa-solid fa-seedling"></i>
+        </div>
+
+        <div>
+            <h2>AgriAI</h2>
+            <span>Precision Agriculture</span>
+        </div>
+
+    </div>
+
+    <div class="ai-status">
+        <span class="status-dot"></span>
+        AI Analysis Complete
+    </div>
+
+</header>
+
+
+<!-- ================= RESULT HERO ================= -->
+
+<section class="result-hero">
+
+    <div class="result-hero-content">
+
+        <div class="result-badge">
+            <i class="fa-solid fa-circle-check"></i>
+            Prediction Successfully Generated
+        </div>
+
+        <h1>
+            Your Farm's
+            <span>AI Recommendation</span>
+        </h1>
+
+        <p>
+            Based on the soil, environmental and farm-management
+            parameters you provided, our AI model generated the
+            following agricultural recommendations.
+        </p>
+
+    </div>
+
+</section>
+
+
+<!-- ================= MAIN ================= -->
+
+<main class="results-container">
+
+
+    <!-- ================= CROP RESULT ================= -->
+
+    <section class="crop-result-card">
+
+        <div class="crop-icon">
+
+            <i class="fa-solid fa-wheat-awn"></i>
+
+        </div>
+
+        <div class="crop-result-info">
+
+            <span class="result-label">
+                RECOMMENDED CROP
+            </span>
+
+            <h2>{{ crop }}</h2>
+
+            <p>
+                <i class="fa-solid fa-robot"></i>
+                Recommended by the trained Random Forest AI model
+            </p>
+
+        </div>
+
+        <div class="confidence-box">
+
+            <span>AI DECISION</span>
+
+            <strong>
+                <i class="fa-solid fa-check"></i>
+                Recommended
+            </strong>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= SUMMARY CARDS ================= -->
+
+    <section class="summary-grid">
+
+
+        <!-- SOIL -->
+
+        <div class="summary-card">
+
+            <div class="summary-icon soil-icon">
+                <i class="fa-solid fa-mountain"></i>
+            </div>
+
+            <div>
+
+                <span>SOIL STATUS</span>
+
+                <h3>{{ soil.status }}</h3>
+
+            </div>
+
+        </div>
+
+
+        <!-- IRRIGATION -->
+
+        <div class="summary-card">
+
+            <div class="summary-icon water-icon">
+                <i class="fa-solid fa-droplet"></i>
+            </div>
+
+            <div>
+
+                <span>IRRIGATION</span>
+
+                <h3>{{ irrigation.priority }}</h3>
+
+            </div>
+
+        </div>
+
+
+        <!-- RISK -->
+
+        <div class="summary-card">
+
+            <div class="summary-icon risk-icon">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+
+            <div>
+
+                <span>RISK MONITORING</span>
+
+                <h3>
+                    {% if risks|length > 1 %}
+                        Attention
+                    {% else %}
+                        Normal
+                    {% endif %}
+                </h3>
+
+            </div>
+
+        </div>
+
+
+        <!-- AI -->
+
+        <div class="summary-card">
+
+            <div class="summary-icon ai-icon">
+                <i class="fa-solid fa-brain"></i>
+            </div>
+
+            <div>
+
+                <span>AI ENGINE</span>
+
+                <h3>Random Forest</h3>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= TWO COLUMN ================= -->
+
+    <section class="result-columns">
+
+
+        <!-- LEFT -->
+
+        <div>
+
+
+            <!-- SOIL ASSESSMENT -->
+
+            <div class="result-card">
+
+                <div class="card-header">
+
+                    <div class="header-icon">
+                        <i class="fa-solid fa-seedling"></i>
+                    </div>
+
+                    <div>
+                        <h3>Soil Assessment</h3>
+                        <p>Analysis of your soil condition</p>
+                    </div>
+
+                </div>
+
+
+                <div class="status-banner">
+
+                    <div>
+
+                        <span>OVERALL SOIL CONDITION</span>
+
+                        <strong>
+                            {{ soil.status }}
+                        </strong>
+
+                    </div>
+
+                    <i class="fa-solid fa-leaf"></i>
+
+                </div>
+
+
+                <div class="recommendation-list">
+
+                    {% for issue in soil.issues %}
+
+                    <div class="recommendation-item">
+
+                        <i class="fa-solid fa-circle-check"></i>
+
+                        <span>{{ issue }}</span>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <!-- IRRIGATION -->
+
+            <div class="result-card">
+
+                <div class="card-header">
+
+                    <div class="header-icon water-header">
+                        <i class="fa-solid fa-water"></i>
+                    </div>
+
+                    <div>
+                        <h3>Smart Irrigation</h3>
+                        <p>Water management recommendation</p>
+                    </div>
+
+                </div>
+
+
+                <div class="irrigation-box">
+
+                    <div class="irrigation-priority">
+
+                        <span>PRIORITY</span>
+
+                        <strong>
+                            {{ irrigation.priority }}
+                        </strong>
+
+                    </div>
+
+                    <div class="irrigation-message">
+
+                        <i class="fa-solid fa-droplet"></i>
+
+                        <p>
+                            {{ irrigation.message }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- FERTILIZER -->
+
+            <div class="result-card">
+
+                <div class="card-header">
+
+                    <div class="header-icon fertilizer-header">
+                        <i class="fa-solid fa-flask"></i>
+                    </div>
+
+                    <div>
+                        <h3>Fertilizer Recommendation</h3>
+                        <p>NPK-based assessment</p>
+                    </div>
+
+                </div>
+
+
+                <div class="recommendation-list">
+
+                    {% for item in fertilizer %}
+
+                    <div class="recommendation-item fertilizer-item">
+
+                        <i class="fa-solid fa-circle-check"></i>
+
+                        <span>{{ item }}</span>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RIGHT -->
+
+        <div>
+
+
+            <!-- EXPLAINABLE AI -->
+
+            <div class="result-card explain-card">
+
+                <div class="card-header">
+
+                    <div class="header-icon ai-header">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+
+                    <div>
+                        <h3>Explainable AI</h3>
+                        <p>Features influencing the prediction</p>
+                    </div>
+
+                </div>
+
+
+                <div class="feature-list">
+
+                    {% for feature in important_features %}
+
+                    <div class="feature-row">
+
+                        <div class="feature-name">
+
+                            <span>
+                                {{ feature.feature }}
+                            </span>
+
+                        </div>
+
+                        <div class="feature-bar">
+
+                            <div
+                                class="feature-progress"
+                                style="width: {{ (feature.importance * 100)|round(1) }}%;">
+                            </div>
+
+                        </div>
+
+                        <strong>
+                            {{ (feature.importance * 100)|round(1) }}%
+                        </strong>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <div class="explain-note">
+
+                    <i class="fa-solid fa-circle-info"></i>
+
+                    Higher importance indicates that the feature
+                    had greater influence on the Random Forest model.
+
+                </div>
+
+            </div>
+
+
+            <!-- CROP PROBABILITIES -->
+
+            <div class="result-card">
+
+                <div class="card-header">
+
+                    <div class="header-icon probability-header">
+                        <i class="fa-solid fa-chart-column"></i>
+                    </div>
+
+                    <div>
+                        <h3>Top Crop Predictions</h3>
+                        <p>Model probability distribution</p>
+                    </div>
+
+                </div>
+
+
+                <div class="probability-list">
+
+                    {% for item in probabilities %}
+
+                    <div class="probability-row">
+
+                        <div class="crop-name">
+
+                            <span>
+                                {{ item.crop }}
+                            </span>
+
+                        </div>
+
+                        <div class="probability-bar">
+
+                            <div
+                                class="probability-progress"
+                                style="width: {{ (item.probability * 100)|round(1) }}%;">
+                            </div>
+
+                        </div>
+
+                        <strong>
+                            {{ (item.probability * 100)|round(1) }}%
+                        </strong>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <!-- RISK -->
+
+            <div class="result-card">
+
+                <div class="card-header">
+
+                    <div class="header-icon risk-header">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+
+                    <div>
+                        <h3>Risk Assessment</h3>
+                        <p>Environmental monitoring indicators</p>
+                    </div>
+
+                </div>
+
+
+                <div class="risk-list">
+
+                    {% for risk in risks %}
+
+                    <div class="risk-item">
+
+                        <i class="fa-solid fa-shield-halved"></i>
+
+                        <span>{{ risk }}</span>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= INPUT SUMMARY ================= -->
+
+    <section class="result-card input-summary">
+
+        <div class="card-header">
+
+            <div class="header-icon">
+                <i class="fa-solid fa-sliders"></i>
+            </div>
+
+            <div>
+                <h3>Farm Input Summary</h3>
+                <p>Parameters used for this prediction</p>
+            </div>
+
+        </div>
+
+
+        <div class="input-summary-grid">
+
+            {% for key, value in input_data.items() %}
+
+            <div class="input-summary-item">
+
+                <span>{{ key|replace("_", " ")|title }}</span>
+
+                <strong>{{ value }}</strong>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= ACTIONS ================= -->
+
+    <div class="result-actions">
+
+        <a href="/" class="new-prediction">
+
+            <i class="fa-solid fa-rotate-left"></i>
+
+            New Prediction
+
+        </a>
+
+
+        <button onclick="window.print()" class="print-report">
+
+            <i class="fa-solid fa-file-pdf"></i>
+
+            Print / Save Report
+
+        </button>
+
+    </div>
+
+
+</main>
+
+
+<!-- ================= FOOTER ================= -->
+
+<footer>
+
+    <div>
+        <i class="fa-solid fa-seedling"></i>
+        AgriAI
+    </div>
+
+    <p>
+        Explainable AI-Driven Intelligent Decision Support Framework
+        for Precision Agriculture
+    </p>
+
+    <span>
+        © 2026 AgriAI
+    </span>
+
+</footer>
+
+</body>
+
+</html>
