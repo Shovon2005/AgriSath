@@ -8,12 +8,13 @@ from agrisathi.core.validator import validate_farm_input
 from agrisathi.ml.predictor import get_predictor
 from agrisathi.advisory.engine import generate_full_advisory
 from agrisathi.reports.pdf_generator import generate_pdf_advisory_report
-from agrisathi.web.routes.views import DEMO_PRESETS
+from agrisathi.data.scenarios import get_scenario_parameters_map
 
 
 def main():
     print("=== Generating Sample PDF Advisory Report ===")
-    sample_payload = DEMO_PRESETS["rice"]
+    scenarios = get_scenario_parameters_map()
+    sample_payload = scenarios.get("rice", {})
 
     sanitized = validate_farm_input(sample_payload)
     predictor = get_predictor()

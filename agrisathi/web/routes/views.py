@@ -15,67 +15,33 @@ from agrisathi.data.history import (
     get_recent_predictions,
     get_prediction_by_id,
 )
+from agrisathi.data.scenarios import (
+    get_farm_scenarios,
+    get_scenario_parameters_map,
+    get_farm_scenario,
+)
 from agrisathi.utils.logger import get_logger
 
 logger = get_logger("agrisathi.views")
 views_bp = Blueprint("views", __name__)
 
-# Sample presets for 1-click testing
-DEMO_PRESETS = {
-    "rice": {
-        "N": 90, "P": 42, "K": 43, "temperature": 21.0, "humidity": 82.0, "ph": 6.5,
-        "rainfall": 202.0, "soil_moisture": 30.0, "soil_type": "Clay",
-        "sunlight_exposure": 8.5, "wind_speed": 10.0, "co2_concentration": 435.0,
-        "organic_matter": 3.2, "irrigation_frequency": 4, "crop_density": 12.0,
-        "pest_pressure": 55.0, "fertilizer_usage": 180.0, "growth_stage": "Vegetative",
-        "urban_area_proximity": 15.0, "water_source_type": "Canal", "frost_risk": 5.0,
-        "water_usage_efficiency": 1.2, "farm_area": 2.5, "farm_area_unit": "hectare",
-        "electrical_conductivity": 0.5, "organic_carbon": 0.85, "location": "West Bengal, India",
-        "season": "Kharif", "expected_rainfall_24h": 0.0
-    },
-    "chickpea": {
-        "N": 40, "P": 60, "K": 80, "temperature": 18.0, "humidity": 25.0, "ph": 7.2,
-        "rainfall": 40.0, "soil_moisture": 12.0, "soil_type": "Sandy",
-        "sunlight_exposure": 10.0, "wind_speed": 5.0, "co2_concentration": 390.0,
-        "organic_matter": 2.0, "irrigation_frequency": 1, "crop_density": 10.0,
-        "pest_pressure": 15.0, "fertilizer_usage": 60.0, "growth_stage": "Seedling",
-        "urban_area_proximity": 30.0, "water_source_type": "Groundwater", "frost_risk": 2.0,
-        "water_usage_efficiency": 3.8, "farm_area": 4.0, "farm_area_unit": "acre",
-        "electrical_conductivity": 0.4, "organic_carbon": 0.60, "location": "Madhya Pradesh, India",
-        "season": "Rabi", "expected_rainfall_24h": 0.0
-    },
-    "cotton": {
-        "N": 120, "P": 50, "K": 30, "temperature": 28.0, "humidity": 65.0, "ph": 7.5,
-        "rainfall": 80.0, "soil_moisture": 22.0, "soil_type": "Clay",
-        "sunlight_exposure": 9.0, "wind_speed": 4.0, "co2_concentration": 410.0,
-        "organic_matter": 3.5, "irrigation_frequency": 2, "crop_density": 14.0,
-        "pest_pressure": 45.0, "fertilizer_usage": 120.0, "growth_stage": "Vegetative",
-        "urban_area_proximity": 20.0, "water_source_type": "Canal", "frost_risk": 0.0,
-        "water_usage_efficiency": 2.2, "farm_area": 1.5, "farm_area_unit": "hectare",
-        "electrical_conductivity": 0.7, "organic_carbon": 0.90, "location": "Gujarat, India",
-        "season": "Kharif", "expected_rainfall_24h": 0.0
-    },
-    "alert": {
-        "N": 20, "P": 15, "K": 10, "temperature": 39.5, "humidity": 88.0, "ph": 4.5,
-        "rainfall": 15.0, "soil_moisture": 9.0, "soil_type": "Sandy",
-        "sunlight_exposure": 11.5, "wind_speed": 16.5, "co2_concentration": 420.0,
-        "organic_matter": 0.9, "irrigation_frequency": 1, "crop_density": 8.0,
-        "pest_pressure": 92.0, "fertilizer_usage": 50.0, "growth_stage": "Flowering",
-        "urban_area_proximity": 3.0, "water_source_type": "Groundwater", "frost_risk": 75.0,
-        "water_usage_efficiency": 1.0, "farm_area": 2.0, "farm_area_unit": "hectare",
-        "electrical_conductivity": 4.5, "organic_carbon": 0.30, "location": "Arid Zone",
-        "season": "Whole Year", "expected_rainfall_24h": 0.0
-    }
-}
-
+# Dynamic scenarios proxy
+DEMO_PRESETS = get_scenario_parameters_map()
 
 
 @views_bp.route("/")
 def home():
-    """Render farm parameter input form."""
+    """Render farm parameter input form with dynamic scenarios."""
+    scenarios = get_farm_scenarios()
     preset_key = request.args.get("demo", "").lower()
-    demo_data = DEMO_PRESETS.get(preset_key, {})
-    return render_template("index.html", demo_data=demo_data, active_preset=preset_key)
+    active_scenario = scenarios.get(preset_key)
+    demo_data = active_scenario.get("parameters", {}) if active_scenario else {}
+    return render_template(
+        "index.html",
+        demo_data=demo_data,
+        active_preset=preset_key,
+        scenarios=scenarios,
+    )
 
 
 @views_bp.route("/predict", methods=["GET", "POST"])

@@ -143,16 +143,24 @@
 
         </div>
 
-        <!-- 1-Click Demo Presets -->
+        <!-- Dynamic Farm Scenario Presets -->
         <div style="margin: 15px auto 30px; text-align: center; background: #f1f8e9; padding: 16px 20px; border-radius: 12px; border: 1px solid #c8e6c9; max-width: 900px;">
             <div style="font-weight: 600; color: #2e7d32; margin-bottom: 8px;">
                 <i class="fa-solid fa-wand-magic-sparkles"></i> Quick Farm Scenario Presets:
             </div>
             <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-                <a href="/?demo=rice" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid #81c784; border-radius: 20px; color: #1b5e20; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == 'rice' %}background: #c8e6c9;{% endif %}">🌾 Wetland Rice</a>
-                <a href="/?demo=chickpea" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid #81c784; border-radius: 20px; color: #1b5e20; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == 'chickpea' %}background: #c8e6c9;{% endif %}">🥜 Semi-Arid Chickpea</a>
-                <a href="/?demo=cotton" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid #81c784; border-radius: 20px; color: #1b5e20; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == 'cotton' %}background: #c8e6c9;{% endif %}">🌿 Commercial Cotton</a>
-                <a href="/?demo=alert" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid #ef9a9a; border-radius: 20px; color: #c62828; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == 'alert' %}background: #ffcdd2;{% endif %}">⚠️ Multi-Risk Alert</a>
+                {% if scenarios %}
+                    {% for key, sc in scenarios.items() %}
+                    <a href="/?demo={{ key }}" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid {% if 'alert' in key %}#ef9a9a{% else %}#81c784{% endif %}; border-radius: 20px; color: {% if 'alert' in key %}#c62828{% else %}#1b5e20{% endif %}; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == key %}background: {% if 'alert' in key %}#ffcdd2{% else %}#c8e6c9{% endif %};{% endif %}">
+                        {{ sc.title }}
+                    </a>
+                    {% endfor %}
+                {% else %}
+                    <a href="/?demo=rice" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid #81c784; border-radius: 20px; color: #1b5e20; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == 'rice' %}background: #c8e6c9;{% endif %}">🌾 Wetland Rice</a>
+                    <a href="/?demo=chickpea" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid #81c784; border-radius: 20px; color: #1b5e20; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == 'chickpea' %}background: #c8e6c9;{% endif %}">🥜 Semi-Arid Chickpea</a>
+                    <a href="/?demo=cotton" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid #81c784; border-radius: 20px; color: #1b5e20; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == 'cotton' %}background: #c8e6c9;{% endif %}">🌿 Commercial Cotton</a>
+                    <a href="/?demo=alert" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid #ef9a9a; border-radius: 20px; color: #c62828; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == 'alert' %}background: #ffcdd2;{% endif %}">⚠️ Multi-Risk Alert</a>
+                {% endif %}
             </div>
         </div>
 
