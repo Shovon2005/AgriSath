@@ -5,8 +5,11 @@ Eliminates static hardcoded scenario dictionaries from web views.
 """
 
 import json
+import re
 from typing import Dict, Any, Optional
 from agrisathi.config import Config
+from agrisathi.core.exceptions import ValidationError
+from agrisathi.core.validator import validate_farm_input
 from agrisathi.utils.logger import get_logger
 
 logger = get_logger("agrisathi.data.scenarios")
@@ -122,24 +125,65 @@ def get_farm_scenario(key: str) -> Optional[Dict[str, Any]]:
 
 
 def save_farm_scenario(key: str, scenario_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Dynamically save or update a farm scenario in the persistent JSON store."""
+    """
+    Dynamically validate, sanitize, and save/update a farm scenario in the persistent JSON store.
+    Enforces valid key format and agronomic parameter schemas.
+    """
     global _SCENARIOS_CACHE
-    scenarios = get_farm_scenarios()
+    if not isinstance(key, str) or not key.strip():
+        raise ValidationError("Scenario key must be a non-empty string.")
+
     clean_key = key.strip().lower()
+    if not re.match(r"^[a-z0-9_\-]+$", clean_key):
+        raise ValidationError(
+            f"Invalid scenario key '{clean_key}'. Key may only contain alphanumeric characters, underscores, and hyphens."
+        )
 
-    if "parameters" not in scenario_data:
-        # Wrap if parameters are given at top level
-        scenario_data = {
-            "key": clean_key,
-            "title": scenario_data.get("title", f"🌱 {clean_key.title()} Scenario"),
-            "category": scenario_data.get("category", "Custom"),
-            "parameters": scenario_data,
-        }
+    scenarios = get_farm_scenarios()
 
-    scenarios[clean_key] = scenario_data
+    raw_params = scenario_data.get("parameters") if isinstance(scenario_data.get("parameters"), dict) else scenario_data
+
+    # Validate parameters to ensure valid agronomic ranges
+    sanitized_params = validate_farm_input(raw_params, allow_defaults=True)
+
+    # Clean display labels from storage payload to keep JSON concise
+    clean_params = {k: v for k, v in sanitized_params.items() if not k.endswith("_label")}
+
+    title = str(scenario_data.get("title") or f"🌱 {clean_key.title()} Scenario").strip()
+    category = str(scenario_data.get("category") or "Custom").strip()
+
+    entry = {
+        "key": clean_key,
+        "title": title,
+        "category": category,
+        "parameters": clean_params,
+    }
+
+    scenarios[clean_key] = entry
     path = Config.SCENARIOS_PATH
     with open(path, "w", encoding="utf-8") as f:
         json.dump({"version": "1.0", "scenarios": scenarios}, f, indent=2)
 
     _SCENARIOS_CACHE = scenarios
-    return scenario_data
+    return entry
+
+
+def delete_farm_scenario(key: str) -> bool:
+    """
+    Dynamically remove a farm scenario from the persistent store.
+    Returns True if removed, False if scenario did not exist.
+    """
+    global _SCENARIOS_CACHE
+    clean_key = str(key or "").strip().lower()
+    scenarios = get_farm_scenarios()
+
+    if clean_key not in scenarios:
+        return False
+
+    del scenarios[clean_key]
+    path = Config.SCENARIOS_PATH
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump({"version": "1.0", "scenarios": scenarios}, f, indent=2)
+
+    _SCENARIOS_CACHE = scenarios
+    return True

@@ -54,6 +54,26 @@ def get_regional_weather_baselines() -> Dict[str, Any]:
     return _BASELINES_CACHE
 
 
+def update_weather_baselines(new_baselines: Dict[str, Any]) -> Dict[str, Any]:
+    """Dynamically update regional weather baselines and persist to configuration JSON."""
+    global _BASELINES_CACHE
+    current_baselines = get_regional_weather_baselines()
+    current_baselines.update(new_baselines)
+
+    path = Config.REGIONAL_WEATHER_PATH
+    payload = {
+        "version": "1.0",
+        "description": "Agro-climatic regional baseline normals for offline fallback & baseline reference",
+        "regions": current_baselines,
+    }
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2)
+
+    _BASELINES_CACHE = current_baselines
+    reload_weather_baselines()
+    return _BASELINES_CACHE
+
+
 # Exported dictionary for backward-compatibility
 DEFAULT_REGIONAL_PRESETS: Dict[str, Any] = dict(_DEFAULT_FALLBACK_PRESETS)
 reload_weather_baselines()

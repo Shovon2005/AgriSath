@@ -14,6 +14,7 @@ from agrisathi.advisory.profiles import (
     get_crop_profile,
     update_crop_profile,
     get_agronomic_rules,
+    update_agronomic_rules,
     reload_agronomic_rules,
 )
 from agrisathi.advisory.engine import generate_full_advisory
@@ -21,12 +22,14 @@ from agrisathi.reports.pdf_generator import generate_pdf_advisory_report
 from agrisathi.utils.weather import (
     fetch_weather_data,
     get_regional_weather_baselines,
+    update_weather_baselines,
     reload_weather_baselines,
 )
 from agrisathi.data.scenarios import (
     get_farm_scenarios,
     get_farm_scenario,
     save_farm_scenario,
+    delete_farm_scenario,
     reload_farm_scenarios,
 )
 from agrisathi.data.history import (
@@ -110,6 +113,21 @@ def list_rules():
     }), 200
 
 
+@api_bp.route("/rules", methods=["POST", "PUT"])
+def update_rules():
+    """Dynamically update agronomic rules and conversion factors."""
+    payload = request.get_json(silent=True)
+    if not payload or not isinstance(payload, dict):
+        return jsonify({"error": "Bad Request", "message": "Missing or invalid JSON body."}), 400
+
+    updated = update_agronomic_rules(payload)
+    return jsonify({
+        "status": "success",
+        "message": "Dynamic agronomic rules updated successfully.",
+        "rules": updated,
+    }), 200
+
+
 @api_bp.route("/rules/reload", methods=["POST"])
 def reload_rules():
     """Reload dynamic agronomic rules from configuration storage."""
@@ -151,14 +169,37 @@ def get_scenario(key: str):
 def add_or_update_scenario():
     """Dynamically save a new or modified farm scenario preset."""
     payload = request.get_json(silent=True)
-    if not payload or "key" not in payload:
+    if not payload or not isinstance(payload, dict) or "key" not in payload:
         return jsonify({"error": "Bad Request", "message": "Missing 'key' or payload."}), 400
 
-    saved = save_farm_scenario(payload["key"], payload)
+    try:
+        saved = save_farm_scenario(payload["key"], payload)
+        return jsonify({
+            "status": "success",
+            "scenario": saved,
+        }), 201
+    except ValidationError as e:
+        return jsonify({
+            "error": "Validation Error",
+            "message": e.message,
+            "details": e.details,
+        }), 422
+
+
+@api_bp.route("/scenarios/<key>", methods=["DELETE"])
+def remove_scenario(key: str):
+    """Dynamically remove a farm scenario."""
+    deleted = delete_farm_scenario(key)
+    if not deleted:
+        return jsonify({
+            "error": "Not Found",
+            "message": f"Scenario '{key}' not found or could not be deleted.",
+        }), 404
+
     return jsonify({
         "status": "success",
-        "scenario": saved,
-    }), 201
+        "message": f"Scenario '{key}' deleted successfully.",
+    }), 200
 
 
 @api_bp.route("/predict", methods=["POST"])
@@ -309,6 +350,32 @@ def list_weather_baselines():
     return jsonify({
         "status": "success",
         "count": len(baselines),
+        "baselines": baselines,
+    }), 200
+
+
+@api_bp.route("/weather/baselines", methods=["POST", "PUT"])
+def update_baselines():
+    """Dynamically update or register regional agro-climatic weather baselines."""
+    payload = request.get_json(silent=True)
+    if not payload or not isinstance(payload, dict):
+        return jsonify({"error": "Bad Request", "message": "Missing or invalid JSON body."}), 400
+
+    updated = update_weather_baselines(payload)
+    return jsonify({
+        "status": "success",
+        "message": "Regional weather baselines updated successfully.",
+        "baselines": updated,
+    }), 200
+
+
+@api_bp.route("/weather/baselines/reload", methods=["POST"])
+def reload_baselines():
+    """Reload regional agro-climatic weather baselines from configuration storage."""
+    baselines = reload_weather_baselines()
+    return jsonify({
+        "status": "success",
+        "message": "Regional weather baselines reloaded successfully.",
         "baselines": baselines,
     }), 200
 
