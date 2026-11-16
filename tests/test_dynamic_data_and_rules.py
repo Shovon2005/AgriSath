@@ -14,6 +14,8 @@ from agrisathi.advisory.profiles import (
     get_organic_guidelines,
     get_soil_thresholds,
     get_irrigation_rules,
+    get_risk_rules,
+    update_agronomic_rules,
     reload_agronomic_rules,
     get_crop_profiles,
     get_crop_profile,
@@ -21,9 +23,11 @@ from agrisathi.advisory.profiles import (
 from agrisathi.advisory.soil import assess_soil_health
 from agrisathi.advisory.fertilizer import calculate_fertilizer_guidance
 from agrisathi.advisory.irrigation import calculate_irrigation_advisory
+from agrisathi.advisory.risk import assess_environmental_risks
 from agrisathi.advisory.comparison import build_crop_comparison_matrix
 from agrisathi.utils.weather import (
     get_regional_weather_baselines,
+    update_weather_baselines,
     reload_weather_baselines,
     fetch_weather_data,
 )
@@ -31,10 +35,14 @@ from agrisathi.data.scenarios import (
     get_farm_scenarios,
     get_scenario_parameters_map,
     get_farm_scenario,
+    save_farm_scenario,
+    delete_farm_scenario,
     reload_farm_scenarios,
 )
+from agrisathi.core.exceptions import ValidationError
 from agrisathi.core.validator import validate_farm_input
 from agrisathi.ml.whatif import simulate_what_if
+from agrisathi.ml.explain import generate_shap_waterfall
 
 
 def test_agronomic_rules_file_exists_and_valid():
@@ -172,3 +180,128 @@ def test_weather_dynamic_state_baseline_matching():
 
     w_kerala = fetch_weather_data(location="Kerala Backwaters")
     assert w_kerala["temperature"] == 28.0 or w_kerala["status"] == "online"
+
+
+def test_dynamic_environmental_risk_rules():
+    """Verify that environmental risk assessment dynamically utilizes thresholds from rules."""
+    rules = get_agronomic_rules()
+    orig_pest_sev = rules["environmental_risk_rules"]["pest"]["severe_pest_index"]
+
+    try:
+        # Dynamically lower severe pest index threshold to 15%
+        rules["environmental_risk_rules"]["pest"]["severe_pest_index"] = 15.0
+        r_rules = get_risk_rules()
+        assert r_rules["pest"]["severe_pest_index"] == 15.0
+
+        # Farm with pest pressure 20.0 should now trigger High pest risk
+        payload = {"pest_pressure": 20.0, "frost_risk": 0.0, "temperature": 25.0, "humidity": 60.0}
+        res = assess_environmental_risks(payload, "rice")
+        assert res["high_risk_count"] >= 1
+        assert any(m["hazard"] == "Pest & Insect Infestation" for m in res["risk_matrix"])
+    finally:
+        rules["environmental_risk_rules"]["pest"]["severe_pest_index"] = orig_pest_sev
+        reload_agronomic_rules()
+
+
+def test_all_advisory_modules_null_safe():
+    """Verify that passing dictionaries with None values does not crash any advisory module."""
+    null_payload = {
+        "N": None, "P": None, "K": None, "ph": None,
+        "soil_moisture": None, "temperature": None, "humidity": None,
+        "rainfall": None, "wind_speed": None, "frost_risk": None,
+        "pest_pressure": None, "organic_carbon": None, "electrical_conductivity": None,
+        "farm_area_ha": None, "expected_rainfall_24h": None,
+    }
+
+    soil_res = assess_soil_health(null_payload, "rice")
+    assert "status" in soil_res
+    assert "score" in soil_res
+
+    fert_res = calculate_fertilizer_guidance(null_payload, "rice")
+    assert "commercial_fertilizers" in fert_res
+
+    irrig_res = calculate_irrigation_advisory(null_payload, "rice")
+    assert "priority" in irrig_res
+    assert "water_quantity_litres" in irrig_res
+
+    risk_res = assess_environmental_risks(null_payload, "rice")
+    assert "overall_risk_level" in risk_res
+
+    comp_res = build_crop_comparison_matrix([{"crop": "rice"}], null_payload)
+    assert len(comp_res["items"]) == 1
+
+
+def test_whatif_categorical_human_readable_labels():
+    """Verify What-If logs canonical human-readable labels instead of raw integer codes."""
+    base_data = get_scenario_parameters_map()["rice"]
+    res = simulate_what_if(base_data, {"soil_type": "Sandy"})
+    assert "changes_applied" in res
+    soil_ch = next(c for c in res["changes_applied"] if c["field"] == "soil_type")
+    assert soil_ch["old_value"] in ("Clay", "Loamy")
+    assert soil_ch["new_value"] == "Sandy"
+    assert "Soil Type from" in res["insight_summary"]
+
+
+def test_whatif_empty_string_ignored():
+    """Verify What-If gracefully ignores empty string adjustments without parameter corruption."""
+    base_data = get_scenario_parameters_map()["rice"]
+    orig_temp = base_data.get("temperature", 21.0)
+    res = simulate_what_if(base_data, {"temperature": ""})
+    # Empty string should not change temperature or be added as change
+    assert not any(c["field"] == "temperature" for c in res["changes_applied"])
+
+
+def test_scenario_key_validation():
+    """Verify that saving scenarios with invalid keys raises ValidationError."""
+    with pytest.raises(ValidationError):
+        save_farm_scenario("", {"title": "Bad"})
+
+    with pytest.raises(ValidationError):
+        save_farm_scenario("   ", {"title": "Bad"})
+
+    with pytest.raises(ValidationError):
+        save_farm_scenario("invalid/key/path", {"title": "Bad"})
+
+    with pytest.raises(ValidationError):
+        save_farm_scenario("invalid key with spaces", {"title": "Bad"})
+
+
+def test_scenario_save_and_deletion():
+    """Verify dynamic scenario creation and deletion in the repository."""
+    test_key = "temp_test_scenario"
+    test_data = {
+        "key": test_key,
+        "title": "🌾 Temporary Scenario",
+        "category": "Testing",
+        "parameters": {"N": 90, "P": 40, "K": 40, "ph": 6.5, "soil_type": "Loamy"}
+    }
+    saved = save_farm_scenario(test_key, test_data)
+    assert saved["key"] == test_key
+
+    # Confirm it's retrievable
+    retrieved = get_farm_scenario(test_key)
+    assert retrieved is not None
+    assert retrieved["title"] == "🌾 Temporary Scenario"
+
+    # Delete scenario
+    deleted = delete_farm_scenario(test_key)
+    assert deleted is True
+
+    # Confirm it no longer exists
+    assert get_farm_scenario(test_key) is None
+    # Deleting non-existent key returns False
+    assert delete_farm_scenario("non_existent_key_999") is False
+
+
+def test_waterfall_dynamic_fallback():
+    """Verify SHAP waterfall graceful fallback generates dynamic steps from feature definitions."""
+    import pandas as pd
+    res = generate_shap_waterfall(None, pd.DataFrame(), "rice", top_k=4)
+    assert res["base_value"] > 0
+    assert res["final_value"] > res["base_value"]
+    assert len(res["steps"]) == 4
+    # Real feature names, not static dummy text
+    step_features = [s["feature"] for s in res["steps"]]
+    assert "Nitrogen" in step_features
+    assert "Phosphorus" in step_features
+    assert "<svg" in res["svg_plot"]

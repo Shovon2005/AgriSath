@@ -132,6 +132,21 @@ def test_api_rules_reload(client):
     assert "reloaded" in data["message"].lower()
 
 
+def test_api_rules_update(client):
+    from agrisathi.config import Config
+    orig_text = Config.AGRONOMIC_RULES_PATH.read_text(encoding="utf-8")
+    try:
+        res = client.post("/api/v1/rules", json={
+            "fertilizer_conversions": {"commercial_bag_weight_kg": 45.0}
+        })
+        assert res.status_code == 200
+        assert res.get_json()["rules"]["fertilizer_conversions"]["commercial_bag_weight_kg"] == 45.0
+    finally:
+        Config.AGRONOMIC_RULES_PATH.write_text(orig_text, encoding="utf-8")
+        from agrisathi.advisory.profiles import reload_agronomic_rules
+        reload_agronomic_rules()
+
+
 def test_api_scenarios(client):
     res = client.get("/api/v1/scenarios")
     assert res.status_code == 200
@@ -169,13 +184,31 @@ def test_api_create_scenario(client):
         assert res.status_code == 201
         assert res.get_json()["status"] == "success"
 
-        # Verify retrieval
-        res_get = client.get("/api/v1/scenarios/test_wheat")
-        assert res_get.status_code == 200
-        assert res_get.get_json()["scenario"]["title"] == "🌾 Test Wheat Scenario"
+        # Verify deletion
+        res_del = client.delete("/api/v1/scenarios/test_wheat")
+        assert res_del.status_code == 200
+        assert "deleted" in res_del.get_json()["message"]
+
+        # Confirm 404 after deletion
+        res_after = client.get("/api/v1/scenarios/test_wheat")
+        assert res_after.status_code == 404
     finally:
         Config.SCENARIOS_PATH.write_text(orig_text, encoding="utf-8")
         reload_farm_scenarios()
+
+
+def test_api_scenario_validation_errors(client):
+    # Empty or whitespace key
+    res1 = client.post("/api/v1/scenarios", json={"key": "   "})
+    assert res1.status_code == 422
+
+    # Invalid characters in key
+    res2 = client.post("/api/v1/scenarios", json={"key": "invalid key with spaces"})
+    assert res2.status_code == 422
+
+    # Delete non-existent scenario returns 404
+    res3 = client.delete("/api/v1/scenarios/non_existent_key_999")
+    assert res3.status_code == 404
 
 
 def test_api_weather_baselines(client):
@@ -186,6 +219,37 @@ def test_api_weather_baselines(client):
     assert data["count"] >= 5
     assert "punjab" in data["baselines"]
     assert "bengal" in data["baselines"]
+
+
+def test_api_weather_baselines_update_and_reload(client):
+    from agrisathi.config import Config
+    from agrisathi.utils.weather import reload_weather_baselines
+
+    orig_text = Config.REGIONAL_WEATHER_PATH.read_text(encoding="utf-8")
+    try:
+        custom_baseline = {
+            "himalayan_valley": {
+                "name": "Himalayan High Altitude Valley",
+                "temperature": 14.0,
+                "humidity": 45.0,
+                "rainfall": 60.0,
+                "wind_speed": 4.5,
+                "expected_rain": 1.0,
+                "latitude": 32.2,
+                "longitude": 77.1,
+            }
+        }
+        res_post = client.post("/api/v1/weather/baselines", json=custom_baseline)
+        assert res_post.status_code == 200
+        assert "himalayan_valley" in res_post.get_json()["baselines"]
+
+        # Reload
+        res_reload = client.post("/api/v1/weather/baselines/reload")
+        assert res_reload.status_code == 200
+        assert res_reload.get_json()["status"] == "success"
+    finally:
+        Config.REGIONAL_WEATHER_PATH.write_text(orig_text, encoding="utf-8")
+        reload_weather_baselines()
 
 
 def test_api_crop_update(client):
