@@ -1,0 +1,111 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-11-17",
+  "soil_properties": {
+    "Clay": {
+      "water_retention": "High",
+      "drainage": "Poor to Moderate",
+      "nutrient_holding": "High",
+      "aeration": "Low",
+      "description": "Heavy textured soil with high moisture and nutrient retention capacity, prone to waterlogging."
+    },
+    "Loamy": {
+      "water_retention": "Optimal",
+      "drainage": "Well Drained",
+      "nutrient_holding": "High",
+      "aeration": "Optimal",
+      "description": "Balanced soil texture offering ideal aeration, moisture retention, and fertility for most crops."
+    },
+    "Sandy": {
+      "water_retention": "Low",
+      "drainage": "Excessive",
+      "nutrient_holding": "Low",
+      "aeration": "High",
+      "description": "Light, coarse soil with rapid percolation; requires frequent light irrigation and split fertilizer doses."
+    }
+  },
+  "fertilizer_conversions": {
+    "urea_n_fraction": 0.46,
+    "dap_n_fraction": 0.18,
+    "dap_p_fraction": 0.46,
+    "ssp_p_fraction": 0.16,
+    "mop_k_fraction": 0.60,
+    "commercial_bag_weight_kg": 50.0,
+    "surplus_multiplier": 1.5
+  },
+  "organic_fertilizer_guidelines": {
+    "fym": {
+      "name": "Farm Yard Manure (FYM)",
+      "dosage_t_ha": "10 - 15 t/ha",
+      "rate_per_ha_tonnes": 10.0,
+      "benefits": "Improves soil humus, CEC, microbial diversity, and water retention capacity."
+    },
+    "vermicompost": {
+      "name": "Vermicompost",
+      "dosage_t_ha": "2.5 - 5.0 t/ha",
+      "rate_per_ha_tonnes": 3.0,
+      "benefits": "Rich in bioavailable micronutrients, plant growth hormones (auxins/gibberellins), and beneficial microbes."
+    },
+    "neem_cake": {
+      "name": "Neem Cake",
+      "dosage_kg_ha": "250 - 500 kg/ha",
+      "rate_per_ha_kg": 250.0,
+      "benefits": "Natural nitrification inhibitor; reduces nitrogen leaching while suppressing soil-borne nematodes and root pests."
+    },
+    "biofertilizers": {
+      "pulses": "Rhizobium leguminosarum (200 g/10 kg seed) + Phosphate Solubilizing Bacteria (PSB 2 kg/ha) for symbiotic nitrogen fixation.",
+      "cereals": "Azotobacter / Azospirillum (2 kg/ha) + PSB (2 kg/ha) incorporated with organic manure to boost natural nutrient cycling."
+    }
+  },
+  "soil_thresholds": {
+    "ph": {
+      "strongly_acidic": 5.0,
+      "slightly_acidic": 6.0,
+      "optimal_min": 6.0,
+      "optimal_max": 7.5,
+      "moderately_alkaline": 8.5
+    },
+    "electrical_conductivity": {
+      "low": 0.1,
+      "optimal_max": 2.0,
+      "severe_salinity": 4.0
+    },
+    "organic_matter": {
+      "critical_low": 1.5,
+      "suboptimal": 3.0
+    },
+    "organic_carbon": {
+      "critical_low": 0.50,
+      "optimal_min": 0.75
+    },
+    "nitrogen": {
+      "min": 30.0,
+      "max": 140.0,
+      "fertility_medium": 30.0,
+      "fertility_high": 50.0
+    },
+    "phosphorus": {
+      "min": 25.0,
+      "max": 100.0,
+      "fertility_medium": 20.0,
+      "fertility_high": 35.0
+    },
+    "potassium": {
+      "min": 30.0,
+      "max": 140.0,
+      "fertility_medium": 25.0,
+      "fertility_high": 45.0
+    }
+  },
+  "irrigation_rules": {
+    "critical_moisture": 12.0,
+    "acute_stress_moisture": 15.0,
+    "moderate_moisture": 22.0,
+    "surplus_moisture": 35.0,
+    "waterlogged_moisture": 45.0,
+    "rec_depth_high_mm": 45.0,
+    "rec_depth_med_mm": 30.0,
+    "rainfall_suppress_heavy_mm": 15.0,
+    "rainfall_suppress_light_mm": 5.0
+  }
+}

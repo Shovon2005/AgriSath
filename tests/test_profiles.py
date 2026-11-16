@@ -55,3 +55,28 @@ def test_fertilizer_conversions():
     assert FERTILIZER_CONVERSIONS["urea_n_fraction"] == 0.46
     assert FERTILIZER_CONVERSIONS["dap_p_fraction"] == 0.46
     assert FERTILIZER_CONVERSIONS["mop_k_fraction"] == 0.60
+
+
+def test_dynamic_rules_loading():
+    from agrisathi.advisory.profiles import (
+        get_agronomic_rules,
+        get_soil_thresholds,
+        get_irrigation_rules,
+        get_organic_guidelines,
+    )
+    rules = get_agronomic_rules()
+    assert "soil_properties" in rules
+    assert "fertilizer_conversions" in rules
+
+    thresholds = get_soil_thresholds()
+    assert "ph" in thresholds
+    assert "nitrogen" in thresholds
+
+    irrig = get_irrigation_rules()
+    assert "critical_moisture" in irrig
+    assert irrig["critical_moisture"] == 12.0
+
+    org = get_organic_guidelines()
+    assert "fym" in org
+    assert "vermicompost" in org
+
