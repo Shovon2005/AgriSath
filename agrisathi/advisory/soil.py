@@ -30,6 +30,11 @@ def assess_soil_health(
         crop_profile = get_crop_profile(crop_name)
     ph = float(farm_data.get("ph", 6.5))
     om = float(farm_data.get("organic_matter", 3.5))
+    raw_oc = farm_data.get("organic_carbon") or farm_data.get("oc")
+    oc = float(raw_oc) if raw_oc is not None else round(om / 1.724, 2)
+    raw_ec = farm_data.get("electrical_conductivity") or farm_data.get("ec")
+    ec = float(raw_ec) if raw_ec is not None else 0.6
+
     n = float(farm_data.get("N", 50))
     p = float(farm_data.get("P", 50))
     k = float(farm_data.get("K", 50))
@@ -38,6 +43,8 @@ def assess_soil_health(
 
     issues: List[str] = []
     actions: List[str] = []
+    deficiencies: List[str] = []
+    excesses: List[str] = []
     score = 100
 
     # 1. pH Assessment
@@ -82,47 +89,71 @@ def assess_soil_health(
             actions.append(f"Current pH {ph} exceeds optimal ({min_c_ph} - {max_c_ph}) for {crop_title}; incorporate gypsum or sulfur-based amendments.")
         score -= 10
 
-    # 2. Organic Matter (OM) Assessment
-    if om < 1.5:
+    # 2. Electrical Conductivity (EC) / Salinity Assessment
+    if ec > 4.0:
+        issues.append(f"Soil is severely saline (EC: {ec:.2f} dS/m), creating strong osmotic root stress.")
+        actions.append("Implement heavy leaching with low-salinity irrigation water and construct deep drainage ditches.")
+        score -= 25
+    elif ec > 2.0:
+        issues.append(f"Soil shows moderate salinity hazard (EC: {ec:.2f} dS/m).")
+        actions.append("Avoid saline well-water irrigation; select salt-tolerant crops and apply organic mulches.")
+        score -= 12
+    elif ec < 0.1:
+        issues.append(f"Soil EC is exceptionally low ({ec:.2f} dS/m), indicating low soluble mineral salt reserves.")
+        actions.append("Incorporate balanced mineral fertilizers with micro-nutrients.")
+        score -= 5
+    else:
+        issues.append(f"Electrical Conductivity is within the optimal non-saline range ({ec:.2f} dS/m).")
+
+    # 3. Organic Matter (OM) and Organic Carbon (OC) Assessment
+    if om < 1.5 or oc < 0.5:
         issues.append("Organic matter is critically deficient (< 1.5%).")
         actions.append("Apply 10-15 t/ha well-decomposed Farm Yard Manure (FYM) or vermicompost.")
+        deficiencies.append(f"Organic Matter/Carbon ({om:.1f}% OM, {oc:.2f}% OC)")
         score -= 20
-    elif om < 3.0:
+    elif om < 3.0 or oc < 0.75:
         issues.append("Organic matter is below optimal levels (< 3.0%).")
         actions.append("Practice green manuring (e.g. Sesbania/Dhaincha) and retain crop residues.")
         score -= 10
     else:
         issues.append("Soil organic matter content is healthy (≥ 3.0%).")
 
-    # 3. Macro-nutrient Baseline Check
+    # 4. Macro-nutrient Baseline Check
     if n < 30:
         issues.append("Nitrogen level is relatively low (< 30 mg/kg).")
         actions.append("Apply organic compost, well-decomposed manure, or basal nitrogenous fertilizer to restore the soil nitrogen pool.")
+        deficiencies.append(f"Nitrogen ({n:.1f} mg/kg)")
         score -= 10
     elif n > 140:
         issues.append(f"Nitrogen level is excessively high ({n:.1f} mg/kg); risk of vegetative lodging and delayed harvest.")
         actions.append("Avoid synthetic nitrogen top-dressing; irrigate cautiously to prevent nitrate leaching.")
+        excesses.append(f"Nitrogen ({n:.1f} mg/kg)")
         score -= 5
 
     if p < 25:
         issues.append("Phosphorus level is relatively low (< 25 mg/kg).")
         actions.append("Incorporate rock phosphate, bone meal, or single superphosphate (SSP) to support root proliferation.")
+        deficiencies.append(f"Phosphorus ({p:.1f} mg/kg)")
         score -= 10
     elif p > 100:
         issues.append(f"Phosphorus level is very high ({p:.1f} mg/kg); risk of zinc/iron micronutrient lockup.")
         actions.append("Omit phosphate applications; monitor foliage for micronutrient chlorosis.")
+        excesses.append(f"Phosphorus ({p:.1f} mg/kg)")
         score -= 5
 
     if k < 30:
         issues.append("Potassium level is relatively low (< 30 mg/kg).")
         actions.append("Apply muriate of potash (MOP) or incorporate potassium-rich crop residues/biochar.")
+        deficiencies.append(f"Potassium ({k:.1f} mg/kg)")
         score -= 10
     elif k > 140:
         issues.append(f"Potassium level is elevated ({k:.1f} mg/kg); competitive inhibition with calcium and magnesium uptake.")
         actions.append("Avoid potash applications to prevent cation antagonism with magnesium uptake.")
+        excesses.append(f"Potassium ({k:.1f} mg/kg)")
         score -= 5
 
-    # 4. Soil Texture Synergy
+
+    # 5. Soil Texture Synergy
     texture_info = SOIL_PROPERTIES.get(soil_type, SOIL_PROPERTIES["Loamy"])
 
     score = max(10, min(100, score))
@@ -133,13 +164,64 @@ def assess_soil_health(
     else:
         status = "Poor"
 
+    # Soil Fertility Classification: "Low", "Medium", or "High"
+    fertility_points = 0
+    if n >= 50:
+        fertility_points += 2
+    elif n >= 30:
+        fertility_points += 1
+
+    if p >= 35:
+        fertility_points += 2
+    elif p >= 20:
+        fertility_points += 1
+
+    if k >= 45:
+        fertility_points += 2
+    elif k >= 25:
+        fertility_points += 1
+
+    if oc >= 0.75:
+        fertility_points += 2
+    elif oc >= 0.50:
+        fertility_points += 1
+
+    if 6.0 <= ph <= 7.8:
+        fertility_points += 2
+    elif 5.2 <= ph <= 8.5:
+        fertility_points += 1
+
+    if ec < 1.8:
+        fertility_points += 1
+
+    if fertility_points >= 9 and len(deficiencies) == 0:
+        fertility_class = "High"
+    elif fertility_points >= 5:
+        fertility_class = "Medium"
+    else:
+        fertility_class = "Low"
+
     return {
         "status": status,
+        "fertility_class": fertility_class,
         "score": score,
         "ph": ph,
         "organic_matter": om,
+        "organic_carbon": oc,
+        "electrical_conductivity": ec,
         "soil_texture": soil_type,
         "texture_characteristics": texture_info,
+        "deficiencies": deficiencies,
+        "excesses": excesses,
+        "nutrients_analysis": {
+            "nitrogen": {"value": n, "status": "Excess" if n > 140 else ("Deficient" if n < 35 else "Optimal"), "unit": "mg/kg"},
+            "phosphorus": {"value": p, "status": "Excess" if p > 100 else ("Deficient" if p < 25 else "Optimal"), "unit": "mg/kg"},
+            "potassium": {"value": k, "status": "Excess" if k > 140 else ("Deficient" if k < 30 else "Optimal"), "unit": "mg/kg"},
+            "ph": {"value": ph, "status": "Alkaline" if ph > 7.5 else ("Acidic" if ph < 6.0 else "Optimal"), "unit": "pH"},
+            "electrical_conductivity": {"value": ec, "status": "Saline" if ec > 2.0 else "Normal", "unit": "dS/m"},
+            "organic_carbon": {"value": oc, "status": "Low" if oc < 0.5 else ("High" if oc >= 0.75 else "Medium"), "unit": "%"},
+        },
         "issues": issues,
         "corrective_actions": actions,
     }
+

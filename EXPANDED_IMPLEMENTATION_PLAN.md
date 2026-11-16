@@ -30,13 +30,13 @@ Plus:
 - [x] **Step 7**: Commit configuration updates.
 
 ### Phase 2: Enhanced Module 1 — Soil Fertility & Nutrient Engine (Steps 8 – 14)
-- [ ] **Step 8**: Implement composite soil fertility classification (`Low`, `Medium`, `High`) based on N, P, K, and Organic Carbon in `agrisathi/advisory/soil.py`.
-- [ ] **Step 9**: Add Electrical Conductivity (EC) assessment and salinity hazard rating in `agrisathi/advisory/soil.py`.
-- [ ] **Step 10**: Implement Organic Carbon (OC) evaluation with automatic conversion to/from Organic Matter (`OM = 1.724 * OC`).
-- [ ] **Step 11**: Implement comprehensive nutrient deficiency and excess diagnosis for all macro-nutrients and physical soil parameters.
-- [ ] **Step 12**: Generate actionable soil improvement suggestions (liming, gypsum for salinity, green manure, composting).
-- [ ] **Step 13**: Write unit tests in `tests/test_soil_assessment.py` for Low/Medium/High fertility and EC/OC diagnostics.
-- [ ] **Step 14**: Run test suite and commit Phase 2 soil engine enhancements.
+- [x] **Step 8**: Implement composite soil fertility classification (`Low`, `Medium`, `High`) based on N, P, K, and Organic Carbon in `agrisathi/advisory/soil.py`.
+- [x] **Step 9**: Add Electrical Conductivity (EC) assessment and salinity hazard rating in `agrisathi/advisory/soil.py`.
+- [x] **Step 10**: Implement Organic Carbon (OC) evaluation with automatic conversion to/from Organic Matter (`OM = 1.724 * OC`).
+- [x] **Step 11**: Implement comprehensive nutrient deficiency and excess diagnosis for all macro-nutrients and physical soil parameters.
+- [x] **Step 12**: Generate actionable soil improvement suggestions (liming, gypsum for salinity, green manure, composting).
+- [x] **Step 13**: Write unit tests in `tests/test_soil_assessment.py` for Low/Medium/High fertility and EC/OC diagnostics.
+- [x] **Step 14**: Run test suite and commit Phase 2 soil engine enhancements.
 
 ### Phase 3: Enhanced Module 2 — Crop Recommendation & Top-3 Suitability Comparison (Steps 15 – 21)
 - [ ] **Step 15**: Enhance `CropPredictor` in `agrisathi/ml/predictor.py` to structure Top 3 recommendations (Rank 1, 2, 3) with confidences.
