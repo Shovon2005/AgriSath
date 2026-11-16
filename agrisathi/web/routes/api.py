@@ -9,10 +9,26 @@ from agrisathi.core.validator import validate_farm_input
 from agrisathi.core.exceptions import ValidationError, AgriSathiError
 from agrisathi.ml.predictor import get_predictor
 from agrisathi.ml.whatif import simulate_what_if
-from agrisathi.advisory.profiles import get_crop_profiles
+from agrisathi.advisory.profiles import (
+    get_crop_profiles,
+    get_crop_profile,
+    update_crop_profile,
+    get_agronomic_rules,
+    reload_agronomic_rules,
+)
 from agrisathi.advisory.engine import generate_full_advisory
 from agrisathi.reports.pdf_generator import generate_pdf_advisory_report
-from agrisathi.utils.weather import fetch_weather_data
+from agrisathi.utils.weather import (
+    fetch_weather_data,
+    get_regional_weather_baselines,
+    reload_weather_baselines,
+)
+from agrisathi.data.scenarios import (
+    get_farm_scenarios,
+    get_farm_scenario,
+    save_farm_scenario,
+    reload_farm_scenarios,
+)
 from agrisathi.data.history import (
     save_prediction_record,
     get_recent_predictions,
@@ -67,6 +83,82 @@ def get_crop(crop_name: str):
         "crop": key,
         "profile": profiles[key],
     }), 200
+
+
+@api_bp.route("/crops/<crop_name>", methods=["POST", "PUT"])
+def update_crop(crop_name: str):
+    """Dynamically update or register a crop agronomic profile."""
+    payload = request.get_json(silent=True)
+    if not payload:
+        return jsonify({"error": "Bad Request", "message": "Missing JSON body."}), 400
+
+    updated = update_crop_profile(crop_name, payload)
+    return jsonify({
+        "status": "success",
+        "crop": crop_name.lower(),
+        "profile": updated,
+    }), 200
+
+
+@api_bp.route("/rules", methods=["GET"])
+def list_rules():
+    """Retrieve dynamic agronomic rules, conversion ratios, and thresholds."""
+    rules = get_agronomic_rules()
+    return jsonify({
+        "status": "success",
+        "rules": rules,
+    }), 200
+
+
+@api_bp.route("/rules/reload", methods=["POST"])
+def reload_rules():
+    """Reload dynamic agronomic rules from configuration storage."""
+    rules = reload_agronomic_rules()
+    return jsonify({
+        "status": "success",
+        "message": "Dynamic agronomic rules reloaded successfully.",
+        "rules": rules,
+    }), 200
+
+
+@api_bp.route("/scenarios", methods=["GET"])
+def list_scenarios():
+    """List all dynamic farm scenarios and simulation presets."""
+    scenarios = get_farm_scenarios()
+    return jsonify({
+        "status": "success",
+        "count": len(scenarios),
+        "scenarios": scenarios,
+    }), 200
+
+
+@api_bp.route("/scenarios/<key>", methods=["GET"])
+def get_scenario(key: str):
+    """Retrieve single farm scenario by key."""
+    sc = get_farm_scenario(key)
+    if not sc:
+        return jsonify({
+            "error": "Scenario Not Found",
+            "message": f"Scenario '{key}' not found."
+        }), 404
+    return jsonify({
+        "status": "success",
+        "scenario": sc,
+    }), 200
+
+
+@api_bp.route("/scenarios", methods=["POST"])
+def add_or_update_scenario():
+    """Dynamically save a new or modified farm scenario preset."""
+    payload = request.get_json(silent=True)
+    if not payload or "key" not in payload:
+        return jsonify({"error": "Bad Request", "message": "Missing 'key' or payload."}), 400
+
+    saved = save_farm_scenario(payload["key"], payload)
+    return jsonify({
+        "status": "success",
+        "scenario": saved,
+    }), 201
 
 
 @api_bp.route("/predict", methods=["POST"])
@@ -207,6 +299,17 @@ def get_weather():
     return jsonify({
         "status": "success",
         "weather": weather,
+    }), 200
+
+
+@api_bp.route("/weather/baselines", methods=["GET"])
+def list_weather_baselines():
+    """Retrieve dynamic regional weather baselines."""
+    baselines = get_regional_weather_baselines()
+    return jsonify({
+        "status": "success",
+        "count": len(baselines),
+        "baselines": baselines,
     }), 200
 
 
