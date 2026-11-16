@@ -48,13 +48,13 @@ Plus:
 - [x] **Step 21**: Run test suite and commit Phase 3 crop recommendation enhancements.
 
 ### Phase 4: Enhanced Module 3 — Smart Irrigation Engine with Water Volume & Weather (Steps 22 – 28)
-- [ ] **Step 22**: Implement daily crop water requirement ($ET_c = K_c \times ET_0$) in mm/day based on climate and growth stage in `agrisathi/advisory/irrigation.py`.
-- [ ] **Step 23**: Implement irrigation requirement status determination (`Yes - Immediate`, `Yes - Within 48 Hours`, `No - Adequate`, `Warning - Saturated`).
-- [ ] **Step 24**: Implement next irrigation timing recommendation window based on soil moisture depletion rate.
-- [ ] **Step 25**: Implement farm-area water volume calculation in Litres ($10,000 \times \text{ha} \times \text{mm}$) and cubic meters.
-- [ ] **Step 26**: Implement expected rainfall integration to suppress or postpone irrigation when rain is forecast.
-- [ ] **Step 27**: Write unit tests in `tests/test_irrigation_engine.py` for ETc calculations, water volume in litres, and rainfall suppression.
-- [ ] **Step 28**: Run test suite and commit Phase 4 irrigation engine enhancements.
+- [x] **Step 22**: Implement daily crop water requirement ($ET_c = K_c \times ET_0$) in mm/day based on climate and growth stage in `agrisathi/advisory/irrigation.py`.
+- [x] **Step 23**: Implement irrigation requirement status determination (`Yes - Immediate`, `Yes - Within 48 Hours`, `No - Adequate`, `Warning - Saturated`).
+- [x] **Step 24**: Implement next irrigation timing recommendation window based on soil moisture depletion rate.
+- [x] **Step 25**: Implement farm-area water volume calculation in Litres ($10,000 \times \text{ha} \times \text{mm}$) and cubic meters.
+- [x] **Step 26**: Implement expected rainfall integration to suppress or postpone irrigation when rain is forecast.
+- [x] **Step 27**: Write unit tests in `tests/test_irrigation_engine.py` for ETc calculations, water volume in litres, and rainfall suppression.
+- [x] **Step 28**: Run test suite and commit Phase 4 irrigation engine enhancements.
 
 ### Phase 5: Enhanced Module 4 — AI-Based Fertilizer Engine with Farm Sizing & Organics (Steps 29 – 35)
 - [ ] **Step 29**: Update `agrisathi/advisory/fertilizer.py` to compute both kg/ha AND total quantity (kg and 50-kg commercial bags) for specified farm size.
