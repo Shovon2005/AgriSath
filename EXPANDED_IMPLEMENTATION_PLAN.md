@@ -39,13 +39,13 @@ Plus:
 - [x] **Step 14**: Run test suite and commit Phase 2 soil engine enhancements.
 
 ### Phase 3: Enhanced Module 2 — Crop Recommendation & Top-3 Suitability Comparison (Steps 15 – 21)
-- [ ] **Step 15**: Enhance `CropPredictor` in `agrisathi/ml/predictor.py` to structure Top 3 recommendations (Rank 1, 2, 3) with confidences.
-- [ ] **Step 16**: Enrich `data/crop_agronomic_profiles.json` with season compatibility, growth duration (days), and yield potential benchmarks.
-- [ ] **Step 17**: Implement `agrisathi/advisory/comparison.py` generating a multi-attribute Suitability Comparison Matrix for top-3 crops.
-- [ ] **Step 18**: Add Season filtering and Location agro-climatic alignment scoring in `agrisathi/advisory/comparison.py`.
-- [ ] **Step 19**: Integrate Top-3 comparison matrix into unified advisory orchestrator `agrisathi/advisory/engine.py`.
-- [ ] **Step 20**: Write unit tests in `tests/test_crop_comparison.py` verifying top-3 ranking and comparison attributes.
-- [ ] **Step 21**: Run test suite and commit Phase 3 crop recommendation enhancements.
+- [x] **Step 15**: Enhance `CropPredictor` in `agrisathi/ml/predictor.py` to structure Top 3 recommendations (Rank 1, 2, 3) with confidences.
+- [x] **Step 16**: Enrich `data/crop_agronomic_profiles.json` with season compatibility, growth duration (days), and yield potential benchmarks.
+- [x] **Step 17**: Implement `agrisathi/advisory/comparison.py` generating a multi-attribute Suitability Comparison Matrix for top-3 crops.
+- [x] **Step 18**: Add Season filtering and Location agro-climatic alignment scoring in `agrisathi/advisory/comparison.py`.
+- [x] **Step 19**: Integrate Top-3 comparison matrix into unified advisory orchestrator `agrisathi/advisory/engine.py`.
+- [x] **Step 20**: Write unit tests in `tests/test_crop_comparison.py` verifying top-3 ranking and comparison attributes.
+- [x] **Step 21**: Run test suite and commit Phase 3 crop recommendation enhancements.
 
 ### Phase 4: Enhanced Module 3 — Smart Irrigation Engine with Water Volume & Weather (Steps 22 – 28)
 - [ ] **Step 22**: Implement daily crop water requirement ($ET_c = K_c \times ET_0$) in mm/day based on climate and growth stage in `agrisathi/advisory/irrigation.py`.

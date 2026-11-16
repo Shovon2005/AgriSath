@@ -112,7 +112,11 @@ class CropPredictor:
                 for crop, prob in zip(classes, probs)
             ]
             prob_pairs.sort(key=lambda x: x["probability"], reverse=True)
+            for idx, p in enumerate(prob_pairs, start=1):
+                p["rank"] = idx
+
             top_probabilities = prob_pairs[:top_k]
+            top_three = prob_pairs[:3]
 
             # Primary confidence
             confidence = top_probabilities[0]["percentage"] if top_probabilities else 100.0
@@ -129,9 +133,11 @@ class CropPredictor:
                 "recommended_crop": predicted_crop,
                 "confidence": confidence,
                 "probabilities": top_probabilities,
+                "top_three": top_three,
                 "important_features": explanations,
                 "input_data": sanitized_data,
             }
+
 
         except Exception as e:
             logger.error("Inference failed: %s", e, exc_info=True)
