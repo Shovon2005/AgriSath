@@ -22,6 +22,12 @@ logger = get_logger("agrisathi.ml.explain")
 _EXPLAINER_CACHE = None
 
 
+def reset_explainer_cache():
+    """Clear cached TreeExplainer instance."""
+    global _EXPLAINER_CACHE
+    _EXPLAINER_CACHE = None
+
+
 def clean_feature_label(raw_feature_name: str) -> str:
     """Format raw pipeline feature name into readable label."""
     name = raw_feature_name.replace("numeric__", "").replace("categorical__", "")
@@ -96,18 +102,24 @@ def explain_local_prediction(
         for feat_name, sv in zip(feature_names, shap_values):
             clean_name = clean_feature_label(feat_name)
             impact_pct = float(abs(sv) / abs_sum * 100)
+            if abs(sv) < 1e-4 or round(impact_pct, 1) == 0.0:
+                direction = "neutral"
+                narrative = f"{clean_name} maintained a balanced neutral influence on this crop recommendation."
+            elif sv > 0:
+                direction = "positive"
+                narrative = f"{clean_name} strongly supported this crop recommendation."
+            else:
+                direction = "negative"
+                narrative = f"{clean_name} was slightly suboptimal for this crop."
+
             contributions.append({
                 "feature": clean_name,
                 "raw_name": feat_name,
                 "shap_value": float(sv),
                 "importance": float(abs(sv) / abs_sum),
                 "impact_percentage": round(impact_pct, 1),
-                "direction": "positive" if sv >= 0 else "negative",
-                "narrative": (
-                    f"{clean_name} strongly supported this crop recommendation."
-                    if sv > 0 else
-                    f"{clean_name} was slightly suboptimal for this crop."
-                ),
+                "direction": direction,
+                "narrative": narrative,
             })
 
         # Sort by absolute SHAP impact descending

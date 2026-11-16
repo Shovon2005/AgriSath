@@ -76,6 +76,10 @@ def train_and_evaluate(
             json.dump(metrics, f, indent=2)
         logger.info("Saved metrics to %s", Config.MODEL_METRICS_PATH)
 
+        # 4. Reset predictor singleton to avoid serving stale cached model
+        from agrisathi.ml.predictor import CropPredictor
+        CropPredictor.reset_instance()
+
     return pipeline, metrics
 
 

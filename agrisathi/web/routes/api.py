@@ -134,6 +134,11 @@ def generate_report():
             "message": e.message,
             "details": e.details,
         }), 422
+    except AgriSathiError as e:
+        return jsonify({
+            "error": "Processing Error",
+            "message": e.message,
+        }), 500
     except Exception as e:
         logger.error("API Report generation failed: %s", e)
         return jsonify({"error": "Report Generation Failed", "message": str(e)}), 500

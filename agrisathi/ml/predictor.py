@@ -52,12 +52,16 @@ class CropPredictor:
         """Reset the singleton instance (useful for testing and artifact reloading)."""
         with cls._lock:
             cls._instance = None
+        from agrisathi.ml.explain import reset_explainer_cache
+        reset_explainer_cache()
 
     def reload(self, model_path: Path = None):
         """Reload the model pipeline from disk."""
         if model_path:
             self.model_path = model_path
         self._load_model()
+        from agrisathi.ml.explain import reset_explainer_cache
+        reset_explainer_cache()
 
     def _load_model(self):
         if not self.model_path.exists():
