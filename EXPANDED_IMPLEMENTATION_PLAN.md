@@ -57,13 +57,13 @@ Plus:
 - [x] **Step 28**: Run test suite and commit Phase 4 irrigation engine enhancements.
 
 ### Phase 5: Enhanced Module 4 — AI-Based Fertilizer Engine with Farm Sizing & Organics (Steps 29 – 35)
-- [ ] **Step 29**: Update `agrisathi/advisory/fertilizer.py` to compute both kg/ha AND total quantity (kg and 50-kg commercial bags) for specified farm size.
-- [ ] **Step 30**: Implement dual phosphate source recommendation: DAP (18-46-0) and Single Super Phosphate SSP (0-16-0) options.
-- [ ] **Step 31**: Implement organic alternative calculator: Farm Yard Manure (FYM), Vermicompost, Compost, and Biofertilizers (Rhizobium, Azotobacter, PSB).
-- [ ] **Step 32**: Implement structured 3-stage application schedule (Basal at sowing, Vegetative top-dressing, Flowering/Panicle initiation).
-- [ ] **Step 33**: Add warnings for nutrient excesses and antagonism risks (e.g., high N causing lodging, excess P blocking Zn/Fe).
-- [ ] **Step 34**: Write unit tests in `tests/test_fertilizer_engine.py` for farm size scaling, 50kg bags, SSP alternatives, and organic doses.
-- [ ] **Step 35**: Run test suite and commit Phase 5 fertilizer engine enhancements.
+- [x] **Step 29**: Update `agrisathi/advisory/fertilizer.py` to compute both kg/ha AND total quantity (kg and 50-kg commercial bags) for specified farm size.
+- [x] **Step 30**: Implement dual phosphate source recommendation: DAP (18-46-0) and Single Super Phosphate SSP (0-16-0) options.
+- [x] **Step 31**: Implement organic alternative calculator: Farm Yard Manure (FYM), Vermicompost, Compost, and Biofertilizers (Rhizobium, Azotobacter, PSB).
+- [x] **Step 32**: Implement structured 3-stage application schedule (Basal at sowing, Vegetative top-dressing, Flowering/Panicle initiation).
+- [x] **Step 33**: Add warnings for nutrient excesses and antagonism risks (e.g., high N causing lodging, excess P blocking Zn/Fe).
+- [x] **Step 34**: Write unit tests in `tests/test_fertilizer_engine.py` for farm size scaling, 50kg bags, SSP alternatives, and organic doses.
+- [x] **Step 35**: Run test suite and commit Phase 5 fertilizer engine enhancements.
 
 ### Phase 6: Enhanced Module 5 — Explainable AI (SHAP Waterfall, Contributions & What-If) (Steps 36 – 42)
 - [ ] **Step 36**: Implement SHAP Waterfall data generator in `agrisathi/ml/explain.py` calculating base value $E[f(x)]$, positive/negative steps, and final prediction value $f(x)$.
