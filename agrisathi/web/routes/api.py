@@ -8,6 +8,7 @@ from agrisathi import __version__
 from agrisathi.core.validator import validate_farm_input
 from agrisathi.core.exceptions import ValidationError, AgriSathiError
 from agrisathi.ml.predictor import get_predictor
+from agrisathi.ml.whatif import simulate_what_if
 from agrisathi.advisory.profiles import get_crop_profiles
 from agrisathi.advisory.engine import generate_full_advisory
 from agrisathi.reports.pdf_generator import generate_pdf_advisory_report
@@ -101,6 +102,37 @@ def predict():
             "error": "Internal Error",
             "message": str(e),
         }), 500
+
+
+@api_bp.route("/what-if", methods=["POST"])
+def what_if():
+    """Execute interactive What-If simulation comparing baseline vs modified farm inputs."""
+    payload = request.get_json(silent=True)
+    if not payload:
+        return jsonify({
+            "error": "Bad Request",
+            "message": "Missing JSON body in POST request."
+        }), 400
+
+    baseline = payload.get("baseline") or payload
+    adjustments = payload.get("adjustments") or payload.get("modifications") or {}
+
+    try:
+        result = simulate_what_if(baseline, adjustments)
+        return jsonify({
+            "status": "success",
+            "simulation": result,
+        }), 200
+    except ValidationError as e:
+        return jsonify({
+            "error": "Validation Error",
+            "message": e.message,
+            "details": e.details,
+        }), 422
+    except Exception as e:
+        logger.error("What-If simulation failed: %s", e, exc_info=True)
+        return jsonify({"error": "Simulation Failed", "message": str(e)}), 500
+
 
 
 @api_bp.route("/report", methods=["POST"])

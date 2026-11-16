@@ -19,7 +19,7 @@ from agrisathi.core.schemas import (
     canonical_growth_stage,
     canonical_water_source,
 )
-from agrisathi.ml.explain import explain_local_prediction
+from agrisathi.ml.explain import explain_local_prediction, generate_shap_waterfall
 from agrisathi.utils.logger import get_logger
 
 logger = get_logger("agrisathi.ml.predictor")
@@ -129,14 +129,26 @@ class CropPredictor:
                 top_k=top_k,
             )
 
+            # SHAP Waterfall data and narrative
+            waterfall = generate_shap_waterfall(
+                pipeline=self.pipeline,
+                input_df=input_df,
+                predicted_crop=predicted_crop,
+                top_k=top_k,
+                farm_data=sanitized_data,
+            )
+
             return {
                 "recommended_crop": predicted_crop,
                 "confidence": confidence,
                 "probabilities": top_probabilities,
                 "top_three": top_three,
                 "important_features": explanations,
+                "waterfall": waterfall,
+                "explanation_narrative": waterfall.get("natural_language_explanation", ""),
                 "input_data": sanitized_data,
             }
+
 
 
         except Exception as e:

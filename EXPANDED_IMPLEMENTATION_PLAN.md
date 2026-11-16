@@ -66,13 +66,13 @@ Plus:
 - [x] **Step 35**: Run test suite and commit Phase 5 fertilizer engine enhancements.
 
 ### Phase 6: Enhanced Module 5 — Explainable AI (SHAP Waterfall, Contributions & What-If) (Steps 36 – 42)
-- [ ] **Step 36**: Implement SHAP Waterfall data generator in `agrisathi/ml/explain.py` calculating base value $E[f(x)]$, positive/negative steps, and final prediction value $f(x)$.
-- [ ] **Step 37**: Implement SVG/HTML Waterfall Plot visualizer module that renders an interactive, responsive waterfall graph without external binary dependencies.
-- [ ] **Step 38**: Implement natural-language explanation synthesis summarizing why the crop was selected in simple, farmer-friendly language.
-- [ ] **Step 39**: Implement interactive What-If Analysis engine in `agrisathi/ml/whatif.py` allowing dynamic parameter sensitivity simulation.
-- [ ] **Step 40**: Add What-If REST API endpoint `/api/v1/what-if` in `agrisathi/web/routes/api.py`.
-- [ ] **Step 41**: Write unit tests in `tests/test_whatif_xai.py` testing SHAP waterfall values, natural language synthesis, and what-if simulations.
-- [ ] **Step 42**: Run test suite and commit Phase 6 XAI enhancements.
+- [x] **Step 36**: Implement SHAP Waterfall data generator in `agrisathi/ml/explain.py` calculating base value $E[f(x)]$, positive/negative steps, and final prediction value $f(x)$.
+- [x] **Step 37**: Implement SVG/HTML Waterfall Plot visualizer module that renders an interactive, responsive waterfall graph without external binary dependencies.
+- [x] **Step 38**: Implement natural-language explanation synthesis summarizing why the crop was selected in simple, farmer-friendly language.
+- [x] **Step 39**: Implement interactive What-If Analysis engine in `agrisathi/ml/whatif.py` allowing dynamic parameter sensitivity simulation.
+- [x] **Step 40**: Add What-If REST API endpoint `/api/v1/what-if` in `agrisathi/web/routes/api.py`.
+- [x] **Step 41**: Write unit tests in `tests/test_whatif_xai.py` testing SHAP waterfall values, natural language synthesis, and what-if simulations.
+- [x] **Step 42**: Run test suite and commit Phase 6 XAI enhancements.
 
 ### Phase 7: Real-Time Weather Integration & Historical Prediction Persistence (Steps 43 – 48)
 - [ ] **Step 43**: Implement Weather API client in `agrisathi/utils/weather.py` using Open-Meteo (temperature, humidity, rainfall, 48h forecast with offline fallback).
