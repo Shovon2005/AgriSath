@@ -4,6 +4,7 @@ Web HTML View Blueprint for AgriSathi.
 
 import io
 from flask import Blueprint, render_template, request, send_file, redirect, url_for, flash
+from agrisathi.core.schemas import FEATURE_NAMES, FEATURE_MAP
 from agrisathi.core.validator import validate_farm_input
 from agrisathi.core.exceptions import ValidationError
 from agrisathi.ml.predictor import get_predictor
@@ -74,6 +75,14 @@ def predict():
         prediction = predictor.predict(sanitized)
         advisory = generate_full_advisory(sanitized, prediction["recommended_crop"])
 
+        # Clean display dictionary for Farm Input Summary
+        display_inputs = {}
+        for name in FEATURE_NAMES:
+            spec = FEATURE_MAP[name]
+            label_val = sanitized.get(f"{name}_label", sanitized.get(name))
+            unit_str = f" {spec.unit}" if spec.unit else ""
+            display_inputs[spec.display_name] = f"{label_val}{unit_str}"
+
         return render_template(
             "result.html",
             crop=prediction["recommended_crop"].title(),
@@ -87,6 +96,7 @@ def predict():
             important_features=prediction["important_features"],
             probabilities=prediction["probabilities"],
             input_data=sanitized,
+            display_inputs=display_inputs,
             crop_profile=advisory["crop_profile"],
         )
 

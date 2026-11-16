@@ -34,6 +34,12 @@ def test_predict_form_submission(client, valid_farm_payload):
     assert b"Soil Assessment" in response.data
     assert b"Smart Irrigation" in response.data
     assert b"Download Official PDF Report" in response.data
+    # Verify branding and confidence display
+    assert b"AgriSathi" in response.data
+    assert b"AgriAI" not in response.data
+    assert b"% Match" in response.data
+    assert b"Soil Type" in response.data
+    assert b"Soil Type Label" not in response.data
 
 
 def test_download_report_form_submission(client, valid_farm_payload):
