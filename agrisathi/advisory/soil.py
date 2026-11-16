@@ -65,8 +65,12 @@ def assess_soil_health(
         min_c_ph = crop_profile.get("min_ph", 5.5)
         max_c_ph = crop_profile.get("max_ph", 7.5)
         if ph < min_c_ph or ph > max_c_ph:
-            crop_name = crop_profile.get("display_name", "Target crop")
-            issues.append(f"Current pH {ph} is outside ideal range ({min_c_ph} - {max_c_ph}) for {crop_name}.")
+            crop_title = crop_profile.get("display_name", "Target crop")
+            issues.append(f"Current pH {ph} is outside ideal range ({min_c_ph} - {max_c_ph}) for {crop_title}.")
+            if ph < min_c_ph:
+                actions.append(f"Current pH {ph} is below optimal ({min_c_ph} - {max_c_ph}) for {crop_title}; apply agricultural lime to buffer acidity.")
+            else:
+                actions.append(f"Current pH {ph} exceeds optimal ({min_c_ph} - {max_c_ph}) for {crop_title}; incorporate gypsum or sulfur-based amendments.")
             score -= 10
 
     # 2. Organic Matter (OM) Assessment

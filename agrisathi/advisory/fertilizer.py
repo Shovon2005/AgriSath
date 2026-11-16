@@ -97,12 +97,46 @@ def calculate_fertilizer_guidance(
                 "avoid nitrogenous fertilizers to prevent vegetative lodging and delayed harvest."
             )
 
-    # Application split guidance
-    schedule = [
-        "Basal Application (at sowing): Apply 100% of DAP, 100% of MOP, and 33% of Urea.",
-        "First Top-Dressing (active vegetative stage): Apply 33% of Urea with light irrigation.",
-        "Second Top-Dressing (panicle/flowering initiation): Apply remaining 34% of Urea.",
-    ]
+    if current_p > opt_p * 1.5 and opt_p > 0:
+        recommendations.append(
+            f"Soil Phosphorus ({current_p:.0f} mg/kg) is in notable surplus over target ({opt_p:.0f} mg/kg); "
+            "omit phosphate applications to avoid zinc and iron micronutrient lockup."
+        )
+
+    if current_k > opt_k * 1.5 and opt_k > 0:
+        recommendations.append(
+            f"Soil Potassium ({current_k:.0f} mg/kg) is in notable surplus over target ({opt_k:.0f} mg/kg); "
+            "avoid potash applications to prevent cation antagonism with magnesium uptake."
+        )
+
+    # Dynamic application split guidance tailored to prescribed fertilizers
+    if round(urea_kg_ha, 1) == 0.0 and round(dap_kg_ha, 1) == 0.0 and round(mop_kg_ha, 1) == 0.0:
+        schedule = [
+            "Soil nutrient reserves are sufficient. No chemical fertilizer application required for basal or top-dressing."
+        ]
+    else:
+        basal_parts = []
+        if round(dap_kg_ha, 1) > 0.0:
+            basal_parts.append(f"100% of DAP ({dap_kg_ha:.1f} kg/ha)")
+        if round(mop_kg_ha, 1) > 0.0:
+            basal_parts.append(f"100% of MOP ({mop_kg_ha:.1f} kg/ha)")
+        if round(urea_kg_ha, 1) > 0.0:
+            basal_parts.append(f"33% of Urea ({urea_kg_ha * 0.33:.1f} kg/ha)")
+
+        schedule = [
+            f"Basal Application (at sowing): Apply {', '.join(basal_parts)}."
+        ]
+        if round(urea_kg_ha, 1) > 0.0:
+            schedule.append(
+                f"First Top-Dressing (active vegetative stage): Apply 33% of Urea ({urea_kg_ha * 0.33:.1f} kg/ha) with light irrigation."
+            )
+            schedule.append(
+                f"Second Top-Dressing (panicle/flowering initiation): Apply remaining 34% of Urea ({urea_kg_ha * 0.34:.1f} kg/ha)."
+            )
+        else:
+            schedule.append(
+                "Top-Dressing: No synthetic nitrogen top-dressing required as baseline soil nitrogen is sufficient."
+            )
 
     return {
         "crop": crop_title,

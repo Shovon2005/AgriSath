@@ -237,3 +237,67 @@ def test_freezing_temperature_risk_and_clay_saturation():
     assert any("Clay soil is heavily saturated" in act for act in wet_clay["recommended_actions"])
 
 
+def test_phosphorus_and_potassium_surplus_and_tailored_schedule():
+    # P surplus and K surplus
+    fert_surplus = calculate_fertilizer_guidance(
+        {"N": 100, "P": 120, "K": 130}, crop_name="rice"
+    )
+    # Target for rice is opt_p=45, opt_k=45 -> 120 > 45*1.5, 130 > 45*1.5
+    recs = " ".join(fert_surplus["recommendations"])
+    assert "Phosphorus" in recs and "notable surplus" in recs
+    assert "Potassium" in recs and "notable surplus" in recs
+
+    # Zero fertilizer need produces tailored schedule
+    fert_zero = calculate_fertilizer_guidance(
+        {"N": 150, "P": 80, "K": 80}, crop_name="rice"
+    )
+    assert len(fert_zero["application_schedule"]) == 1
+    assert "No chemical fertilizer application required" in fert_zero["application_schedule"][0]
+
+    # Only DAP and MOP needed (no Urea)
+    fert_no_urea = calculate_fertilizer_guidance(
+        {"N": 100, "P": 20, "K": 20}, crop_name="rice"
+    )
+    sched = fert_no_urea["application_schedule"]
+    assert any("No synthetic nitrogen top-dressing required" in s for s in sched)
+
+
+def test_environmental_risks_crop_thresholds_and_drought_waterlogging():
+    # Sub-optimal temperature for tropical crop (Rice min_temp is 20.0°C; ambient temp is 12.0°C)
+    cool_rice = assess_environmental_risks({"temperature": 12.0, "frost_risk": 5.0}, crop_name="rice")
+    assert any("Cold Temperature Stress" in m["hazard"] for m in cool_rice["risk_matrix"])
+    assert any("below minimum requirement" in r for r in cool_rice["risks"])
+
+    # High temperature for cool crop (Apple max_temp is 28.0°C; ambient temp is 32.0°C)
+    warm_apple = assess_environmental_risks({"temperature": 32.0}, crop_name="apple")
+    assert any("Heat Stress" in m["hazard"] for m in warm_apple["risk_matrix"])
+    assert any("exceeds optimal ceiling" in r for r in warm_apple["risks"])
+
+    # Agricultural drought hazard
+    drought_res = assess_environmental_risks(
+        {"soil_moisture": 8.0, "rainfall": 20.0, "temperature": 30.0}, crop_name="rice"
+    )
+    assert drought_res["overall_risk_level"] in ("Elevated", "Critical")
+    assert any("Agricultural Drought" in m["hazard"] for m in drought_res["risk_matrix"])
+
+    # Waterlogging hazard
+    waterlog_res = assess_environmental_risks(
+        {"rainfall": 350.0, "soil_moisture": 35.0, "soil_type": "Clay"}, crop_name="maize"
+    )
+    assert any("Waterlogging / Hypoxia" in m["hazard"] for m in waterlog_res["risk_matrix"])
+
+
+def test_irrigation_heavy_saturation_and_soil_crop_ph_actions():
+    # Moisture > 45% triggers heavy water saturation directive
+    saturated_irrig = calculate_irrigation_advisory({"soil_moisture": 52.0}, crop_name="rice")
+    assert saturated_irrig["priority"] == "Low"
+    assert "heavily water-saturated" in saturated_irrig["message"]
+    assert any("ponding surface water" in act for act in saturated_irrig["recommended_actions"])
+
+    # Crop-specific pH corrective action in soil assessment
+    # Chickpea ideal pH is 6.0 - 8.0. Test with pH 5.2 (below min_ph 6.0)
+    low_ph_chickpea = assess_soil_health({"ph": 5.2, "organic_matter": 3.0}, crop_name="chickpea")
+    assert any("apply agricultural lime" in act.lower() for act in low_ph_chickpea["corrective_actions"])
+
+
+

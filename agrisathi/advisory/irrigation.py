@@ -83,7 +83,11 @@ def calculate_irrigation_advisory(
 
     # 3. Adequate or High Moisture
     else:
-        if rainfall > 150.0:
+        if moisture > 45.0:
+            priority = "Low"
+            message = "Soil is heavily water-saturated. Cease all irrigation and inspect drainage to prevent root hypoxia."
+            actions.append("Ensure drainage ditches are clear to evacuate ponding surface water.")
+        elif rainfall > 150.0:
             priority = "Low"
             message = "Soil moisture is abundant following significant rainfall. No irrigation required."
             if soil_type == "Clay":
@@ -92,6 +96,10 @@ def calculate_irrigation_advisory(
             priority = "Low"
             message = "Soil moisture is surplus. Cease irrigation to avoid root hypoxia and fungal rot."
             actions.append("Facilitate surface runoff drainage if water pools.")
+        elif high_et and rainfall < 60.0:
+            priority = "Medium"
+            message = "Soil moisture is currently adequate, but rapid evaporative loss necessitates scheduling irrigation within 3-4 days."
+            actions.append("Monitor root zone moisture and prepare irrigation supply.")
         else:
             priority = "Low"
             message = "Soil moisture is currently optimal for crop metabolic activity."
