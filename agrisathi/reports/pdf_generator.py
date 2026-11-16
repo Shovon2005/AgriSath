@@ -3,6 +3,7 @@ Professional PDF Agronomic Advisory Report Generator using ReportLab.
 """
 
 import io
+import html
 from datetime import datetime
 from typing import Dict, Any
 
@@ -145,7 +146,7 @@ def generate_pdf_advisory_report(
 
         # 2. Hero Recommendation Box
         crop_val = prediction_result.get("recommended_crop") or "Target Crop"
-        crop = str(crop_val).title()
+        crop = html.escape(str(crop_val).title())
         conf_val = prediction_result.get("confidence")
         try:
             conf = float(conf_val) if conf_val is not None else 95.0
@@ -153,12 +154,13 @@ def generate_pdf_advisory_report(
             conf = 95.0
 
         crop_profile = (advisory_data.get("crop_profile") or {}) if isinstance(advisory_data, dict) else {}
-        crop_desc = str(crop_profile.get("description") or "Target crop determined optimal by Random Forest model.")
+        crop_desc = html.escape(str(crop_profile.get("description") or "Target crop determined optimal by Random Forest model."))
+        crop_sci_name = html.escape(str(crop_profile.get("display_name", crop)))
 
         hero_data = [
             [Paragraph("PRIMARY AI CROP RECOMMENDATION", ParagraphStyle("SubHeader", parent=body_bold, textColor=SECONDARY_GREEN, alignment=1, fontSize=8))],
             [Paragraph(f"<b>{crop.upper()}</b>", hero_style)],
-            [Paragraph(f"Model Confidence: <b>{conf:.1f}%</b> | Scientific Name: <i>{crop_profile.get('display_name', crop)}</i>", ParagraphStyle("Conf", parent=body_style, alignment=1, fontSize=8))],
+            [Paragraph(f"Model Confidence: <b>{conf:.1f}%</b> | Scientific Name: <i>{crop_sci_name}</i>", ParagraphStyle("Conf", parent=body_style, alignment=1, fontSize=8))],
             [Paragraph(crop_desc, ParagraphStyle("Desc", parent=body_style, alignment=1, textColor=colors.HexColor("#444444"), fontSize=7.5))],
         ]
         hero_table = Table(hero_data, colWidths=[7.2 * inch])
@@ -179,8 +181,8 @@ def generate_pdf_advisory_report(
         soil_issues = (soil.get("issues") or []) if isinstance(soil, dict) else []
         fert_recs = (fert.get("recommendations") or []) if isinstance(fert, dict) else []
 
-        soil_items = "<br/>".join([f"• {issue}" for issue in soil_issues[:3]]) or "• Soil parameters within baseline."
-        fert_items = "<br/>".join([f"• {rec}" for rec in fert_recs[:3]]) or "• Nutrient status adequate."
+        soil_items = "<br/>".join([f"• {html.escape(str(issue))}" for issue in soil_issues[:3]]) or "• Soil parameters within baseline."
+        fert_items = "<br/>".join([f"• {html.escape(str(rec))}" for rec in fert_recs[:3]]) or "• Nutrient status adequate."
 
         comm_fert = (fert.get("commercial_fertilizers") or {}) if isinstance(fert, dict) else {}
         deficits = (fert.get("deficits") or {}) if isinstance(fert, dict) else {}
@@ -192,6 +194,9 @@ def generate_pdf_advisory_report(
             f"• <b>MOP (60% K₂O):</b> {comm_fert.get('mop_kg_ha', 0)} kg/ha"
         )
 
+        soil_status = html.escape(str(soil.get('status', 'Good')))
+        soil_texture = html.escape(str(soil.get('soil_texture', 'Loamy')))
+
         two_col_data = [
             [
                 Paragraph("<b>Soil Condition Profile</b>", body_bold),
@@ -199,8 +204,8 @@ def generate_pdf_advisory_report(
             ],
             [
                 Paragraph(
-                    f"<b>Condition:</b> {soil.get('status', 'Good')} (Health Score: {soil.get('score', 80)}/100)<br/>"
-                    f"<b>Texture:</b> {soil.get('soil_texture', 'Loamy')}<br/>"
+                    f"<b>Condition:</b> {soil_status} (Health Score: {soil.get('score', 80)}/100)<br/>"
+                    f"<b>Texture:</b> {soil_texture}<br/>"
                     f"<b>Reaction (pH):</b> {soil.get('ph', 6.5)} | <b>Organic Matter:</b> {soil.get('organic_matter', 3.0)}%<br/><br/>"
                     f"<b>Key Observations:</b><br/>{soil_items}",
                     table_cell,
@@ -234,8 +239,13 @@ def generate_pdf_advisory_report(
         irrig_actions_list = (irrig.get("recommended_actions") or []) if isinstance(irrig, dict) else []
         risk_warnings_list = (risks.get("risks") or []) if isinstance(risks, dict) else []
 
-        irrig_actions = "<br/>".join([f"• {act}" for act in irrig_actions_list[:2]]) or "• Maintain standard moisture monitoring."
-        risk_warnings = "<br/>".join([f"• {r}" for r in risk_warnings_list[:2]]) or "• No acute environmental hazards detected."
+        irrig_actions = "<br/>".join([f"• {html.escape(str(act))}" for act in irrig_actions_list[:2]]) or "• Maintain standard moisture monitoring."
+        risk_warnings = "<br/>".join([f"• {html.escape(str(r))}" for r in risk_warnings_list[:2]]) or "• No acute environmental hazards detected."
+
+        irrig_prio = html.escape(str(irrig.get('priority', 'Low')))
+        irrig_et = html.escape(str(irrig.get('evapotranspiration_risk', 'Normal')))
+        irrig_msg = html.escape(str(irrig.get('message', 'Maintain adequate irrigation.')))
+        risk_level = html.escape(str(risks.get('overall_risk_level', 'Normal')))
 
         water_risk_data = [
             [
@@ -244,15 +254,15 @@ def generate_pdf_advisory_report(
             ],
             [
                 Paragraph(
-                    f"<b>Priority:</b> {irrig.get('priority', 'Low')}<br/>"
+                    f"<b>Priority:</b> {irrig_prio}<br/>"
                     f"<b>Soil Moisture:</b> {irrig.get('soil_moisture', 25)}%<br/>"
-                    f"<b>Evapotranspiration Risk:</b> {irrig.get('evapotranspiration_risk', 'Normal')}<br/><br/>"
-                    f"<b>Directive:</b> {irrig.get('message', 'Maintain adequate irrigation.')}<br/><br/>"
+                    f"<b>Evapotranspiration Risk:</b> {irrig_et}<br/><br/>"
+                    f"<b>Directive:</b> {irrig_msg}<br/><br/>"
                     f"<b>Action Plan:</b><br/>{irrig_actions}",
                     table_cell,
                 ),
                 Paragraph(
-                    f"<b>Overall Risk Status:</b> {risks.get('overall_risk_level', 'Normal')}<br/>"
+                    f"<b>Overall Risk Status:</b> {risk_level}<br/>"
                     f"<b>Active Warnings Count:</b> {risks.get('high_risk_count', 0)} High Severity<br/><br/>"
                     f"<b>Identified Environmental Factors:</b><br/>{risk_warnings}",
                     table_cell,
@@ -328,11 +338,11 @@ def generate_pdf_advisory_report(
                     c_prob = str(p_item.get("percentage") or "-")
 
                 xai_rows.append([
-                    Paragraph(f_name, table_cell),
-                    Paragraph(f_imp, table_cell),
-                    Paragraph(f_dir, table_cell),
-                    Paragraph(c_name, table_cell),
-                    Paragraph(c_prob, table_cell),
+                    Paragraph(html.escape(f_name), table_cell),
+                    Paragraph(html.escape(f_imp), table_cell),
+                    Paragraph(html.escape(f_dir), table_cell),
+                    Paragraph(html.escape(c_name), table_cell),
+                    Paragraph(html.escape(c_prob), table_cell),
                 ])
 
         xai_table = Table(xai_rows, colWidths=[2.2 * inch, 0.8 * inch, 1.0 * inch, 1.8 * inch, 1.4 * inch])
