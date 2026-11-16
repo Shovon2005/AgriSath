@@ -101,6 +101,10 @@ def calculate_irrigation_advisory(
     if soil_type == "Sandy" and priority in ("High", "Medium"):
         actions.append("Sandy soil has rapid percolation: apply frequent, smaller irrigation volumes rather than heavy flood irrigation.")
 
+    # Special note on clay soils with high moisture
+    if soil_type == "Clay" and moisture > 35.0:
+        actions.append("Clay soil is heavily saturated; ensure active field drainage channels to prevent root asphyxiation.")
+
     # Growth stage adjustments
     if growth_stage == "Maturity" and moisture >= 18.0:
         actions.append("Crop has reached Maturity stage: gradually reduce irrigation volume to encourage uniform ripening and avoid pre-harvest mold.")

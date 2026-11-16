@@ -209,3 +209,31 @@ def test_advisory_crop_parameter_polymorphism(valid_farm_payload):
     r_res = assess_environmental_risks(valid_farm_payload, crop_profile="rice")
     assert r_res["overall_risk_level"] in ("Normal", "Elevated", "Critical")
 
+
+def test_nutrient_excess_and_surplus_warnings():
+    # Excess NPK in soil assessment
+    excess_soil = assess_soil_health({"ph": 6.5, "organic_matter": 3.0, "N": 190, "P": 140, "K": 180, "soil_type": "Clay"})
+    assert any("Nitrogen level is excessively high" in issue for issue in excess_soil["issues"])
+    assert any("Phosphorus level is very high" in issue for issue in excess_soil["issues"])
+    assert any("Potassium level is elevated" in issue for issue in excess_soil["issues"])
+
+    # Pulse crop with nitrogen surplus
+    fert_pulse = calculate_fertilizer_guidance({"N": 90, "P": 40, "K": 40}, crop_name="chickpea")
+    assert any("inhibits Rhizobium nodulation" in rec for rec in fert_pulse["recommendations"])
+
+    # General crop with nitrogen surplus
+    fert_cereal = calculate_fertilizer_guidance({"N": 200, "P": 40, "K": 40}, crop_name="rice")
+    assert any("substantial surplus" in rec for rec in fert_cereal["recommendations"])
+
+
+def test_freezing_temperature_risk_and_clay_saturation():
+    # Freezing temp even if frost_risk number is low
+    cold_risk = assess_environmental_risks({"temperature": 2.0, "frost_risk": 15.0}, crop_name="rice")
+    assert cold_risk["overall_risk_level"] in ("Elevated", "Critical")
+    assert any("Frost / Freezing Injury" in m["hazard"] for m in cold_risk["risk_matrix"])
+
+    # Saturated clay soil
+    wet_clay = calculate_irrigation_advisory({"soil_moisture": 38.0, "soil_type": "Clay", "rainfall": 50.0}, crop_name="rice")
+    assert any("Clay soil is heavily saturated" in act for act in wet_clay["recommended_actions"])
+
+

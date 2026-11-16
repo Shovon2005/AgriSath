@@ -85,12 +85,25 @@ def assess_soil_health(
     if n < 30:
         issues.append("Nitrogen level is relatively low (< 30 mg/kg).")
         score -= 10
+    elif n > 140:
+        issues.append(f"Nitrogen level is excessively high ({n:.1f} mg/kg); risk of vegetative lodging and delayed harvest.")
+        actions.append("Avoid synthetic nitrogen top-dressing; irrigate cautiously to prevent nitrate leaching.")
+        score -= 5
+
     if p < 25:
         issues.append("Phosphorus level is relatively low (< 25 mg/kg).")
         score -= 10
+    elif p > 100:
+        issues.append(f"Phosphorus level is very high ({p:.1f} mg/kg); risk of zinc/iron micronutrient lockup.")
+        actions.append("Omit phosphate applications; monitor foliage for micronutrient chlorosis.")
+        score -= 5
+
     if k < 30:
         issues.append("Potassium level is relatively low (< 30 mg/kg).")
         score -= 10
+    elif k > 140:
+        issues.append(f"Potassium level is elevated ({k:.1f} mg/kg); competitive inhibition with calcium and magnesium uptake.")
+        score -= 5
 
     # 4. Soil Texture Synergy
     texture_info = SOIL_PROPERTIES.get(soil_type, SOIL_PROPERTIES["Loamy"])

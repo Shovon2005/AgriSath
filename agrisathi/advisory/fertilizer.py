@@ -83,6 +83,20 @@ def calculate_fertilizer_guidance(
             f"DAP: {dap_kg_ha:.1f} kg/ha, MOP: {mop_kg_ha:.1f} kg/ha."
         )
 
+    # Surplus checks
+    if current_n > opt_n * 1.5 and opt_n > 0:
+        crop_category = crop_profile.get("category", "")
+        if crop_category == "Pulses":
+            recommendations.append(
+                f"Soil Nitrogen ({current_n:.0f} mg/kg) exceeds pulse demand ({opt_n:.0f} mg/kg); "
+                "excess nitrogen inhibits Rhizobium nodulation and biological nitrogen fixation."
+            )
+        else:
+            recommendations.append(
+                f"Soil Nitrogen ({current_n:.0f} mg/kg) is in substantial surplus over target ({opt_n:.0f} mg/kg); "
+                "avoid nitrogenous fertilizers to prevent vegetative lodging and delayed harvest."
+            )
+
     # Application split guidance
     schedule = [
         "Basal Application (at sowing): Apply 100% of DAP, 100% of MOP, and 33% of Urea.",

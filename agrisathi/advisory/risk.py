@@ -43,9 +43,9 @@ def assess_environmental_risks(
     high_risk_count = 0
 
     # 1. Frost Hazard
-    if frost_risk > 60.0:
+    if frost_risk > 60.0 or temperature < 4.0:
         high_risk_count += 1
-        msg = f"High frost-risk indicator ({frost_risk:.1f}%)."
+        msg = f"High frost/chilling risk indicator (frost index: {frost_risk:.1f}%, temp: {temperature:.1f}°C)."
         if is_frost_sensitive:
             msg += f" {crop_title} is highly vulnerable to cellular frost damage."
         legacy_risks.append(msg)
@@ -55,10 +55,10 @@ def assess_environmental_risks(
             "impact": "Cellular rupture, seedling dieback, blossom freeze.",
             "mitigation": "Install anti-frost sprinkler systems, smoke generation, or row-cover fleece blankets.",
         })
-    elif frost_risk > 35.0:
-        legacy_risks.append(f"Moderate frost risk ({frost_risk:.1f}%).")
+    elif frost_risk > 35.0 or temperature < 8.0:
+        legacy_risks.append(f"Moderate frost/chilling hazard (temp: {temperature:.1f}°C, index: {frost_risk:.1f}%).")
         matrix.append({
-            "hazard": "Frost",
+            "hazard": "Frost / Cold Stress",
             "level": "Medium",
             "impact": "Mild cold shock and delayed vegetative growth.",
             "mitigation": "Maintain light nocturnal soil moisture to increase thermal soil mass.",
