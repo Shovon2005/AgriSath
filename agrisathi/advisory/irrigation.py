@@ -19,7 +19,16 @@ def calculate_irrigation_advisory(
 ) -> Dict[str, Any]:
     """
     Computes precise irrigation scheduling, priority level, and water management guidelines.
+    Accepts crop_name (str) and/or crop_profile (dict or str).
     """
+    if isinstance(crop_name, dict) and crop_profile is None:
+        crop_profile = crop_name
+        crop_name = None
+
+    if isinstance(crop_profile, str):
+        crop_name = crop_profile
+        crop_profile = None
+
     if crop_profile is None:
         crop_profile = get_crop_profile(crop_name or "rice")
 

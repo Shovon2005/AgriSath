@@ -4,18 +4,30 @@ Analyzes soil reaction (pH), organic matter, texture, and nutrient retention.
 """
 
 from typing import Dict, Any, List
-from agrisathi.advisory.profiles import SOIL_PROPERTIES
+from agrisathi.advisory.profiles import SOIL_PROPERTIES, get_crop_profile
 from agrisathi.core.schemas import canonical_soil_type
 
 
 def assess_soil_health(
     farm_data: Dict[str, Any],
+    crop_name: str = None,
     crop_profile: Dict[str, Any] = None,
 ) -> Dict[str, Any]:
     """
     Comprehensive agronomic soil health assessment.
     Returns status, numerical soil health score (0-100), issues list, and recommendations.
+    Accepts crop_name (str) and/or crop_profile (dict or str).
     """
+    if isinstance(crop_name, dict) and crop_profile is None:
+        crop_profile = crop_name
+        crop_name = None
+
+    if isinstance(crop_profile, str):
+        crop_name = crop_profile
+        crop_profile = None
+
+    if crop_profile is None and crop_name:
+        crop_profile = get_crop_profile(crop_name)
     ph = float(farm_data.get("ph", 6.5))
     om = float(farm_data.get("organic_matter", 3.5))
     n = float(farm_data.get("N", 50))

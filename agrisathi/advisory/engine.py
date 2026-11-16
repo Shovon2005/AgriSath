@@ -20,7 +20,7 @@ def generate_full_advisory(
     """
     crop_profile = get_crop_profile(recommended_crop)
 
-    soil = assess_soil_health(farm_data, crop_profile)
+    soil = assess_soil_health(farm_data, recommended_crop, crop_profile)
     fertilizer = calculate_fertilizer_guidance(farm_data, recommended_crop, crop_profile)
     irrigation = calculate_irrigation_advisory(farm_data, recommended_crop, crop_profile)
     risks = assess_environmental_risks(farm_data, recommended_crop, crop_profile)

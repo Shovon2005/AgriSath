@@ -184,3 +184,28 @@ def test_soil_health_canonical_texture_lookup():
     assert res_str["soil_texture"] == "Sandy"
     assert res_code["soil_texture"] == "Sandy"
     assert res_str["texture_characteristics"]["water_retention"] == "Low"
+
+
+def test_advisory_crop_parameter_polymorphism(valid_farm_payload):
+    # assess_soil_health accepts string as positional 2nd arg
+    res1 = assess_soil_health(valid_farm_payload, "rice")
+    assert res1["status"] in ("Good", "Needs Attention")
+
+    # assess_soil_health accepts keyword crop_name
+    res2 = assess_soil_health(valid_farm_payload, crop_name="rice")
+    assert res2["status"] in ("Good", "Needs Attention")
+
+    # assess_soil_health accepts keyword crop_profile as string
+    res3 = assess_soil_health(valid_farm_payload, crop_profile="rice")
+    assert res3["status"] in ("Good", "Needs Attention")
+
+    # fertilizer, irrigation, risk accept string crop_profile keyword
+    f_res = calculate_fertilizer_guidance(valid_farm_payload, crop_profile="rice")
+    assert "Urea" in " ".join(f_res["recommendations"]) or "sufficient" in " ".join(f_res["recommendations"]).lower()
+
+    i_res = calculate_irrigation_advisory(valid_farm_payload, crop_profile="rice")
+    assert i_res["priority"] in ("Low", "Medium", "High")
+
+    r_res = assess_environmental_risks(valid_farm_payload, crop_profile="rice")
+    assert r_res["overall_risk_level"] in ("Normal", "Elevated", "Critical")
+
