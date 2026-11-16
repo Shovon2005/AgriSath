@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>AgriAI | Precision Agriculture</title>
+    <title>AgriSathi | Precision Agriculture</title>
 
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -13,9 +13,6 @@
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
 </head>
-
-
-
 
 <body>
 
@@ -29,7 +26,7 @@
             </div>
 
             <div>
-                <h2>AgriAI</h2>
+                <h2>AgriSathi</h2>
                 <span>Precision Agriculture</span>
             </div>
         </div>
@@ -106,7 +103,7 @@
                     </div>
 
                     <div>
-                        <strong>23</strong>
+                        <strong>22</strong>
                         <small>Features</small>
                     </div>
 
@@ -140,9 +137,33 @@
 
         </div>
 
+        <!-- 1-Click Demo Presets -->
+        <div style="margin: 15px auto 30px; text-align: center; background: #f1f8e9; padding: 16px 20px; border-radius: 12px; border: 1px solid #c8e6c9; max-width: 900px;">
+            <div style="font-weight: 600; color: #2e7d32; margin-bottom: 8px;">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Quick Farm Scenario Presets:
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                <a href="/?demo=rice" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid #81c784; border-radius: 20px; color: #1b5e20; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == 'rice' %}background: #c8e6c9;{% endif %}">🌾 Wetland Rice</a>
+                <a href="/?demo=chickpea" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid #81c784; border-radius: 20px; color: #1b5e20; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == 'chickpea' %}background: #c8e6c9;{% endif %}">🥜 Semi-Arid Chickpea</a>
+                <a href="/?demo=cotton" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid #81c784; border-radius: 20px; color: #1b5e20; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == 'cotton' %}background: #c8e6c9;{% endif %}">🌿 Commercial Cotton</a>
+                <a href="/?demo=alert" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid #ef9a9a; border-radius: 20px; color: #c62828; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == 'alert' %}background: #ffcdd2;{% endif %}">⚠️ Multi-Risk Alert</a>
+            </div>
+        </div>
+
+        {% if error %}
+        <div style="background: #ffebee; border: 1px solid #ef5350; border-radius: 8px; padding: 15px; margin: 0 auto 25px; color: #c62828; max-width: 900px;">
+            <strong><i class="fa-solid fa-triangle-exclamation"></i> Input Validation Notice:</strong> {{ error }}
+            {% if error_details %}
+            <ul style="margin: 8px 0 0 20px; font-size: 0.9rem;">
+                {% for field, msg in error_details.items() %}
+                <li>{{ msg }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        {% endif %}
 
         <form action="/predict" method="POST">
-
 
             <!-- ================= SOIL ================= -->
 
@@ -161,71 +182,66 @@
 
                 </div>
 
-
                 <div class="form-grid">
 
                     <div class="input-group">
                         <label>Nitrogen (N)</label>
                         <input type="number" step="any" name="N"
+                               value="{{ demo_data.get('N') or (form_data.get('N') if form_data else '') }}"
                                placeholder="e.g. 90" required>
                         <span>mg/kg</span>
                     </div>
 
-
                     <div class="input-group">
                         <label>Phosphorus (P)</label>
                         <input type="number" step="any" name="P"
+                               value="{{ demo_data.get('P') or (form_data.get('P') if form_data else '') }}"
                                placeholder="e.g. 42" required>
                         <span>mg/kg</span>
                     </div>
 
-
                     <div class="input-group">
                         <label>Potassium (K)</label>
                         <input type="number" step="any" name="K"
+                               value="{{ demo_data.get('K') or (form_data.get('K') if form_data else '') }}"
                                placeholder="e.g. 43" required>
                         <span>mg/kg</span>
                     </div>
 
-
                     <div class="input-group">
                         <label>Soil pH</label>
                         <input type="number" step="0.01" name="ph"
+                               value="{{ demo_data.get('ph') or (form_data.get('ph') if form_data else '') }}"
                                placeholder="e.g. 6.5" required>
                         <span>pH</span>
                     </div>
 
-
                     <div class="input-group">
                         <label>Soil Moisture</label>
                         <input type="number" step="any" name="soil_moisture"
+                               value="{{ demo_data.get('soil_moisture') or (form_data.get('soil_moisture') if form_data else '') }}"
                                placeholder="e.g. 35" required>
                         <span>%</span>
                     </div>
 
-
                     <div class="input-group">
                         <label>Organic Matter</label>
                         <input type="number" step="any" name="organic_matter"
+                               value="{{ demo_data.get('organic_matter') or (form_data.get('organic_matter') if form_data else '') }}"
                                placeholder="e.g. 4" required>
                         <span>%</span>
                     </div>
-
 
                     <div class="input-group">
 
                         <label>Soil Type</label>
 
                         <select name="soil_type" required>
-
+                            {% set cur_soil = demo_data.get('soil_type') or (form_data.get('soil_type') if form_data else '') %}
                             <option value="">Select Soil Type</option>
-
-                            <option value="Loamy">Loamy</option>
-
-                            <option value="Clay">Clay</option>
-
-                            <option value="Sandy">Sandy</option>
-
+                            <option value="Loamy" {% if cur_soil == 'Loamy' %}selected{% endif %}>Loamy</option>
+                            <option value="Clay" {% if cur_soil == 'Clay' %}selected{% endif %}>Clay</option>
+                            <option value="Sandy" {% if cur_soil == 'Sandy' %}selected{% endif %}>Sandy</option>
                         </select>
 
                     </div>
@@ -252,60 +268,60 @@
 
                 </div>
 
-
                 <div class="form-grid">
 
                     <div class="input-group">
                         <label>Temperature</label>
                         <input type="number" step="any" name="temperature"
+                               value="{{ demo_data.get('temperature') or (form_data.get('temperature') if form_data else '') }}"
                                placeholder="e.g. 25" required>
                         <span>°C</span>
                     </div>
 
-
                     <div class="input-group">
                         <label>Humidity</label>
                         <input type="number" step="any" name="humidity"
+                               value="{{ demo_data.get('humidity') or (form_data.get('humidity') if form_data else '') }}"
                                placeholder="e.g. 80" required>
                         <span>%</span>
                     </div>
 
-
                     <div class="input-group">
                         <label>Rainfall</label>
                         <input type="number" step="any" name="rainfall"
+                               value="{{ demo_data.get('rainfall') or (form_data.get('rainfall') if form_data else '') }}"
                                placeholder="e.g. 200" required>
                         <span>mm</span>
                     </div>
 
-
                     <div class="input-group">
                         <label>Sunlight Exposure</label>
                         <input type="number" step="any" name="sunlight_exposure"
+                               value="{{ demo_data.get('sunlight_exposure') or (form_data.get('sunlight_exposure') if form_data else '') }}"
                                placeholder="e.g. 8" required>
                         <span>hours</span>
                     </div>
 
-
                     <div class="input-group">
                         <label>Wind Speed</label>
                         <input type="number" step="any" name="wind_speed"
+                               value="{{ demo_data.get('wind_speed') or (form_data.get('wind_speed') if form_data else '') }}"
                                placeholder="e.g. 3" required>
                         <span>m/s</span>
                     </div>
 
-
                     <div class="input-group">
                         <label>CO₂ Concentration</label>
                         <input type="number" step="any" name="co2_concentration"
+                               value="{{ demo_data.get('co2_concentration') or (form_data.get('co2_concentration') if form_data else '') }}"
                                placeholder="e.g. 400" required>
                         <span>ppm</span>
                     </div>
 
-
                     <div class="input-group">
                         <label>Frost Risk</label>
                         <input type="number" step="any" name="frost_risk"
+                               value="{{ demo_data.get('frost_risk') or (form_data.get('frost_risk') if form_data else '') }}"
                                placeholder="e.g. 5" required>
                         <span>%</span>
                     </div>
@@ -332,102 +348,84 @@
 
                 </div>
 
-
                 <div class="form-grid">
 
                     <div class="input-group">
                         <label>Irrigation Frequency</label>
-                        <input type="number" step="any"
-                               name="irrigation_frequency"
+                        <input type="number" step="any" name="irrigation_frequency"
+                               value="{{ demo_data.get('irrigation_frequency') or (form_data.get('irrigation_frequency') if form_data else '') }}"
                                placeholder="e.g. 3" required>
                         <span>times</span>
                     </div>
 
-
                     <div class="input-group">
                         <label>Crop Density</label>
-                        <input type="number" step="any"
-                               name="crop_density"
+                        <input type="number" step="any" name="crop_density"
+                               value="{{ demo_data.get('crop_density') or (form_data.get('crop_density') if form_data else '') }}"
                                placeholder="e.g. 70" required>
                         <span>%</span>
                     </div>
 
-
                     <div class="input-group">
                         <label>Pest Pressure</label>
-                        <input type="number" step="any"
-                               name="pest_pressure"
+                        <input type="number" step="any" name="pest_pressure"
+                               value="{{ demo_data.get('pest_pressure') or (form_data.get('pest_pressure') if form_data else '') }}"
                                placeholder="e.g. 20" required>
                         <span>%</span>
                     </div>
 
-
                     <div class="input-group">
                         <label>Fertilizer Usage</label>
-                        <input type="number" step="any"
-                               name="fertilizer_usage"
+                        <input type="number" step="any" name="fertilizer_usage"
+                               value="{{ demo_data.get('fertilizer_usage') or (form_data.get('fertilizer_usage') if form_data else '') }}"
                                placeholder="e.g. 50" required>
                         <span>kg/ha</span>
                     </div>
-
 
                     <div class="input-group">
 
                         <label>Growth Stage</label>
 
                         <select name="growth_stage" required>
-
+                            {% set cur_stage = demo_data.get('growth_stage') or (form_data.get('growth_stage') if form_data else '') %}
                             <option value="">Select Growth Stage</option>
-
-                            <option value="Seedling">Seedling</option>
-
-                            <option value="Vegetative">Vegetative</option>
-
-                            <option value="Flowering">Flowering</option>
-
-                            <option value="Maturity">Maturity</option>
-
+                            <option value="Seedling" {% if cur_stage == 'Seedling' %}selected{% endif %}>Seedling</option>
+                            <option value="Vegetative" {% if cur_stage == 'Vegetative' %}selected{% endif %}>Vegetative</option>
+                            <option value="Flowering" {% if cur_stage == 'Flowering' %}selected{% endif %}>Flowering</option>
+                            <option value="Maturity" {% if cur_stage == 'Maturity' %}selected{% endif %}>Maturity</option>
                         </select>
 
                     </div>
-
 
                     <div class="input-group">
 
                         <label>Water Source Type</label>
 
                         <select name="water_source_type" required>
-
+                            {% set cur_ws = demo_data.get('water_source_type') or (form_data.get('water_source_type') if form_data else '') %}
                             <option value="">Select Water Source</option>
-
-                            <option value="Groundwater">Groundwater</option>
-
-                            <option value="Rainwater">Rainwater</option>
-
-                            <option value="Canal">Canal</option>
-
-                            <option value="River">River</option>
-
+                            <option value="Groundwater" {% if cur_ws == 'Groundwater' %}selected{% endif %}>Groundwater</option>
+                            <option value="Rainwater" {% if cur_ws == 'Rainwater' %}selected{% endif %}>Rainwater</option>
+                            <option value="Canal" {% if cur_ws == 'Canal' %}selected{% endif %}>Canal</option>
+                            <option value="River" {% if cur_ws == 'River' %}selected{% endif %}>River</option>
                         </select>
 
                     </div>
 
-
                     <div class="input-group">
                         <label>Urban Area Proximity</label>
-                        <input type="number" step="any"
-                               name="urban_area_proximity"
+                        <input type="number" step="any" name="urban_area_proximity"
+                               value="{{ demo_data.get('urban_area_proximity') or (form_data.get('urban_area_proximity') if form_data else '') }}"
                                placeholder="e.g. 10" required>
                         <span>km</span>
                     </div>
 
-
                     <div class="input-group">
                         <label>Water Usage Efficiency</label>
-                        <input type="number" step="any"
-                               name="water_usage_efficiency"
+                        <input type="number" step="any" name="water_usage_efficiency"
+                               value="{{ demo_data.get('water_usage_efficiency') or (form_data.get('water_usage_efficiency') if form_data else '') }}"
                                placeholder="e.g. 80" required>
-                        <span>%</span>
+                        <span>ratio</span>
                     </div>
 
                 </div>
@@ -441,19 +439,13 @@
 
                 <div class="privacy-note">
                     <i class="fa-solid fa-shield-halved"></i>
-
-                    Your farm parameters are used only for generating
-                    the prediction.
+                    Your farm parameters are processed securely for precision advisory recommendations.
                 </div>
 
                 <button type="submit" class="predict-btn">
-
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
-
-                    Predict Best Crop
-
+                    Generate AI Advisory
                     <i class="fa-solid fa-arrow-right"></i>
-
                 </button>
 
             </div>
@@ -469,7 +461,7 @@
 
         <div>
             <i class="fa-solid fa-seedling"></i>
-            AgriAI
+            AgriSathi
         </div>
 
         <p>
@@ -478,7 +470,7 @@
         </p>
 
         <span>
-            © 2026 AgriAI
+            © 2026 AgriSathi
         </span>
 
     </footer>

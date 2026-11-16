@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>AgriAI | Prediction Results</title>
+    <title>AgriSathi | Prediction Results</title>
 
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -27,7 +27,7 @@
         </div>
 
         <div>
-            <h2>AgriAI</h2>
+            <h2>AgriSathi</h2>
             <span>Precision Agriculture</span>
         </div>
 
@@ -100,11 +100,11 @@
 
         <div class="confidence-box">
 
-            <span>AI DECISION</span>
+            <span>AI CONFIDENCE</span>
 
             <strong>
-                <i class="fa-solid fa-check"></i>
-                Recommended
+                <i class="fa-solid fa-circle-check"></i>
+                {{ confidence }}% Match
             </strong>
 
         </div>
@@ -330,6 +330,20 @@
 
                 <div class="recommendation-list">
 
+                    {% if fertilizer_details and fertilizer_details.commercial_fertilizers %}
+                    <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+                        <span style="background: #e8f5e9; border: 1px solid #81c784; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; color: #1b5e20;">
+                            <i class="fa-solid fa-seedling"></i> Urea: {{ fertilizer_details.commercial_fertilizers.urea_kg_ha }} kg/ha
+                        </span>
+                        <span style="background: #e8f5e9; border: 1px solid #81c784; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; color: #1b5e20;">
+                            <i class="fa-solid fa-flask"></i> DAP: {{ fertilizer_details.commercial_fertilizers.dap_kg_ha }} kg/ha
+                        </span>
+                        <span style="background: #e8f5e9; border: 1px solid #81c784; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; color: #1b5e20;">
+                            <i class="fa-solid fa-jar"></i> MOP: {{ fertilizer_details.commercial_fertilizers.mop_kg_ha }} kg/ha
+                        </span>
+                    </div>
+                    {% endif %}
+
                     {% for item in fertilizer %}
 
                     <div class="recommendation-item fertilizer-item">
@@ -533,17 +547,23 @@
 
         <div class="input-summary-grid">
 
-            {% for key, value in input_data.items() %}
-
-            <div class="input-summary-item">
-
-                <span>{{ key|replace("_", " ")|title }}</span>
-
-                <strong>{{ value }}</strong>
-
-            </div>
-
-            {% endfor %}
+            {% if display_inputs %}
+                {% for key, value in display_inputs.items() %}
+                <div class="input-summary-item">
+                    <span>{{ key }}</span>
+                    <strong>{{ value }}</strong>
+                </div>
+                {% endfor %}
+            {% else %}
+                {% for key, value in input_data.items() %}
+                {% if not key.endswith('_label') %}
+                <div class="input-summary-item">
+                    <span>{{ key|replace("_", " ")|title }}</span>
+                    <strong>{{ value }}</strong>
+                </div>
+                {% endif %}
+                {% endfor %}
+            {% endif %}
 
         </div>
 
@@ -562,12 +582,25 @@
 
         </a>
 
+        <form action="/download-report" method="POST" style="display: inline-block; margin: 0;">
+            {% for key, value in input_data.items() %}
+            {% if key in ['soil_type', 'growth_stage', 'water_source_type'] %}
+            <input type="hidden" name="{{ key }}" value="{{ input_data.get(key ~ '_label', value) }}">
+            {% elif not key.endswith('_label') %}
+            <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endif %}
+            {% endfor %}
+            <button type="submit" class="print-report" style="background: #1b5e20; border-color: #1b5e20; color: #ffffff; cursor: pointer;">
+                <i class="fa-solid fa-file-pdf"></i>
+                Download Official PDF Report
+            </button>
+        </form>
 
         <button onclick="window.print()" class="print-report">
 
-            <i class="fa-solid fa-file-pdf"></i>
+            <i class="fa-solid fa-print"></i>
 
-            Print / Save Report
+            Print Screen
 
         </button>
 
@@ -583,7 +616,7 @@
 
     <div>
         <i class="fa-solid fa-seedling"></i>
-        AgriAI
+        AgriSathi
     </div>
 
     <p>
@@ -592,7 +625,7 @@
     </p>
 
     <span>
-        © 2026 AgriAI
+        © 2026 AgriSathi
     </span>
 
 </footer>
