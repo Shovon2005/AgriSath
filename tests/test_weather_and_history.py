@@ -32,18 +32,18 @@ def test_weather_unknown_location_fallback():
 def test_history_save_and_retrieve(valid_farm_payload):
     clear_history()
 
-    dummy_prediction = {
+    sample_prediction = {
         "recommended_crop": "rice",
         "confidence": 94.5,
     }
-    dummy_advisory = {
+    sample_advisory = {
         "soil": {"status": "Good", "fertility_class": "High", "score": 90},
         "irrigation": {"priority": "Low", "water_quantity_litres": 0},
         "fertilizer": {"recommendations": ["Apply Urea"]},
         "risks": {"risks": ["Low risk"]},
     }
 
-    rec_id = save_prediction_record(valid_farm_payload, dummy_prediction, dummy_advisory)
+    rec_id = save_prediction_record(valid_farm_payload, sample_prediction, sample_advisory)
     assert rec_id > 0
 
     recent = get_recent_predictions(limit=10)
@@ -124,10 +124,10 @@ def test_history_detail_view_and_pdf(client, valid_farm_payload):
 def test_history_sqlite_closed_connections(valid_farm_payload):
     # Verify multiple writes and reads execute cleanly without file lock contention
     clear_history()
-    dummy_pred = {"recommended_crop": "rice", "confidence": 91.0}
-    dummy_adv = {"soil": {}, "irrigation": {}, "fertilizer": {}, "risks": {}}
+    sample_pred = {"recommended_crop": "rice", "confidence": 91.0}
+    sample_adv = {"soil": {}, "irrigation": {}, "fertilizer": {}, "risks": {}}
 
     for i in range(15):
-        save_prediction_record(valid_farm_payload, dummy_pred, dummy_adv)
+        save_prediction_record(valid_farm_payload, sample_pred, sample_adv)
         recs = get_recent_predictions(limit=5)
         assert len(recs) == min(i + 1, 5)

@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "description": "Agro-climatic regional baseline normals for offline fallback & baseline reference",
+  "regions": {
+    "punjab": { "name": "Punjab (Indo-Gangetic Plain)", "temperature": 22.0, "humidity": 65.0, "rainfall": 45.0, "wind_speed": 3.8, "expected_rain": 2.0, "latitude": 30.9, "longitude": 75.8 },
+    "haryana": { "name": "Haryana (North-West Plains)", "temperature": 23.5, "humidity": 60.0, "rainfall": 40.0, "wind_speed": 3.6, "expected_rain": 1.5, "latitude": 29.05, "longitude": 76.08 },
+    "uttar pradesh": { "name": "Uttar Pradesh (Upper/Middle Gangetic)", "temperature": 26.0, "humidity": 68.0, "rainfall": 85.0, "wind_speed": 3.2, "expected_rain": 3.0, "latitude": 26.85, "longitude": 80.95 },
+    "bengal": { "name": "West Bengal (Lower Gangetic Delta)", "temperature": 27.5, "humidity": 82.0, "rainfall": 210.0, "wind_speed": 4.2, "expected_rain": 12.0, "latitude": 22.57, "longitude": 88.36 },
+    "bihar": { "name": "Bihar (Middle Gangetic Plain)", "temperature": 27.0, "humidity": 75.0, "rainfall": 110.0, "wind_speed": 3.1, "expected_rain": 5.0, "latitude": 25.6, "longitude": 85.1 },
+    "odisha": { "name": "Odisha (Eastern Coastal Plains)", "temperature": 28.0, "humidity": 80.0, "rainfall": 150.0, "wind_speed": 3.8, "expected_rain": 8.0, "latitude": 20.3, "longitude": 85.8 },
+    "assam": { "name": "Assam & North-East (Brahmaputra Valley)", "temperature": 24.5, "humidity": 85.0, "rainfall": 280.0, "wind_speed": 2.5, "expected_rain": 18.0, "latitude": 26.2, "longitude": 92.9 },
+    "maharashtra": { "name": "Maharashtra (Deccan Plateau)", "temperature": 29.0, "humidity": 55.0, "rainfall": 75.0, "wind_speed": 3.5, "expected_rain": 0.0, "latitude": 19.75, "longitude": 75.71 },
+    "gujarat": { "name": "Gujarat (Western Semi-Arid)", "temperature": 30.5, "humidity": 58.0, "rainfall": 65.0, "wind_speed": 4.5, "expected_rain": 0.0, "latitude": 22.26, "longitude": 71.19 },
+    "rajasthan": { "name": "Rajasthan (Thar Arid Zone)", "temperature": 32.0, "humidity": 30.0, "rainfall": 25.0, "wind_speed": 5.5, "expected_rain": 0.0, "latitude": 27.02, "longitude": 74.22 },
+    "madhya pradesh": { "name": "Madhya Pradesh (Central Plateau)", "temperature": 28.0, "humidity": 52.0, "rainfall": 70.0, "wind_speed": 3.2, "expected_rain": 0.0, "latitude": 22.97, "longitude": 78.65 },
+    "karnataka": { "name": "Karnataka (Southern Plateau & Ghats)", "temperature": 26.5, "humidity": 68.0, "rainfall": 95.0, "wind_speed": 3.6, "expected_rain": 4.0, "latitude": 15.31, "longitude": 75.71 },
+    "andhra": { "name": "Andhra Pradesh (Southern Coastal & Rayalaseema)", "temperature": 29.5, "humidity": 72.0, "rainfall": 90.0, "wind_speed": 3.9, "expected_rain": 3.5, "latitude": 15.91, "longitude": 79.74 },
+    "tamil nadu": { "name": "Tamil Nadu (Southern Coastal Plains)", "temperature": 29.0, "humidity": 76.0, "rainfall": 105.0, "wind_speed": 4.0, "expected_rain": 6.0, "latitude": 11.12, "longitude": 78.65 },
+    "kerala": { "name": "Kerala (Humid Tropical Coastal)", "temperature": 28.0, "humidity": 85.0, "rainfall": 240.0, "wind_speed": 4.0, "expected_rain": 25.0, "latitude": 10.85, "longitude": 76.27 },
+    "delhi": { "name": "Delhi NCR (Northern Transition)", "temperature": 26.5, "humidity": 58.0, "rainfall": 50.0, "wind_speed": 3.5, "expected_rain": 2.0, "latitude": 28.7, "longitude": 77.1 },
+    "default": { "name": "National Agricultural Baseline", "temperature": 25.0, "humidity": 70.0, "rainfall": 120.0, "wind_speed": 3.5, "expected_rain": 5.0, "latitude": 20.59, "longitude": 78.96 }
+  }
+}
