@@ -143,3 +143,36 @@ def test_generate_pdf_xml_escaping():
     assert isinstance(pdf_bytes, bytes)
     assert pdf_bytes.startswith(b"%PDF-")
 
+
+def test_generate_pdf_string_percentage_parsing():
+    """Verify string percentages like '87.4%' don't fail float conversion."""
+    import base64, zlib
+    pred = {
+        "recommended_crop": "chickpea",
+        "confidence": "87.4%",
+        "probabilities": [
+            {"crop": "chickpea", "percentage": "87.4%"},
+            {"crop": "lentil", "percentage": "12.6%"},
+        ],
+        "important_features": [
+            {"feature": "Rainfall", "impact_percentage": "35.2%", "direction": "positive"},
+        ],
+    }
+    adv = {
+        "soil": {"status": "Good", "issues": ["Healthy"]},
+        "fertilizer": {"recommendations": ["Sufficient"]},
+        "irrigation": {"priority": "Low", "message": "Adequate"},
+        "risks": {"risks": ["Normal"]},
+        "crop_profile": {"display_name": "Chickpea (Cicer arietinum)"},
+    }
+    pdf_bytes = generate_pdf_advisory_report(pred, adv)
+    assert isinstance(pdf_bytes, bytes)
+    assert pdf_bytes.startswith(b"%PDF-")
+
+    # Decompress ASCII85 + Flate stream to verify 87.4% was correctly parsed and embedded
+    pos = pdf_bytes.find(b"stream\n") + 7
+    end = pdf_bytes.find(b"~>endstream") + 2
+    raw = pdf_bytes[pos:end]
+    decomp = zlib.decompress(base64.a85decode(raw, adobe=True))
+    assert b"87.4" in decomp
+

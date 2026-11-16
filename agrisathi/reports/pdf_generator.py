@@ -4,7 +4,7 @@ Professional PDF Agronomic Advisory Report Generator using ReportLab.
 
 import io
 import html
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any
 
 from reportlab.lib.pagesizes import letter
@@ -127,12 +127,12 @@ def generate_pdf_advisory_report(
         story = []
 
         # 1. Header Banner
-        timestamp_str = datetime.now().strftime("%B %d, %Y - %H:%M UTC")
+        timestamp_str = datetime.now(timezone.utc).strftime("%B %d, %Y - %H:%M UTC")
         header_table = Table(
             [
                 [
                     Paragraph("<b>AgriSathi | Precision Agriculture</b>", title_style),
-                    Paragraph(f"<b>Report ID:</b> AGR-{int(datetime.now().timestamp())}<br/><b>Date:</b> {timestamp_str}", subtitle_style),
+                    Paragraph(f"<b>Report ID:</b> AGR-{int(datetime.now(timezone.utc).timestamp())}<br/><b>Date:</b> {timestamp_str}", subtitle_style),
                 ]
             ],
             colWidths=[4.4 * inch, 2.8 * inch],
@@ -149,6 +149,8 @@ def generate_pdf_advisory_report(
         crop = html.escape(str(crop_val).title())
         conf_val = prediction_result.get("confidence")
         try:
+            if isinstance(conf_val, str):
+                conf_val = conf_val.rstrip("%").strip()
             conf = float(conf_val) if conf_val is not None else 95.0
         except (ValueError, TypeError):
             conf = 95.0
@@ -321,6 +323,8 @@ def generate_pdf_advisory_report(
                 f_name = str(f_item.get("feature") or "-")
                 try:
                     imp_val = f_item.get("impact_percentage")
+                    if isinstance(imp_val, str):
+                        imp_val = imp_val.rstrip("%").strip()
                     f_imp = f"{float(imp_val):.1f}%" if imp_val is not None else "-"
                 except (ValueError, TypeError):
                     f_imp = str(f_item.get("impact_percentage") or "-")
@@ -333,6 +337,8 @@ def generate_pdf_advisory_report(
 
                 try:
                     p_val = p_item.get("percentage")
+                    if isinstance(p_val, str):
+                        p_val = p_val.rstrip("%").strip()
                     c_prob = f"{float(p_val):.1f}%" if p_val is not None else "-"
                 except (ValueError, TypeError):
                     c_prob = str(p_item.get("percentage") or "-")
