@@ -2,7 +2,6 @@
 Unit tests targeting edge cases, robustness, and refactored pathways.
 """
 
-import math
 import pandas as pd
 import pytest
 from agrisathi.core.schemas import safe_float, area_to_hectares
@@ -32,10 +31,10 @@ def test_area_to_hectares_edge_cases():
     assert area_to_hectares(10.0, "hectare") == 10.0
     assert area_to_hectares(10.0, "acre") == round(10.0 * 0.404686, 4)
     assert area_to_hectares(10.0, "bigha") == round(10.0 * 0.1338, 4)
-    # NaN and negative values must safely return standard 1.0 hectare
+    # NaN returns default 1.0, negative bounded to 0.01 minimum
     assert area_to_hectares(float("nan"), "hectare") == 1.0
-    assert area_to_hectares(-5.0, "hectare") == 1.0
-    assert area_to_hectares(0.0, "hectare") == 1.0
+    assert area_to_hectares(-5.0, "hectare") == 0.01
+    assert area_to_hectares(0.0, "hectare") == 0.01
 
 
 def test_crop_comparison_polymorphism_and_nulls():

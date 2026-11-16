@@ -6,7 +6,6 @@ import io
 from flask import Blueprint, request, jsonify, send_file
 from agrisathi import __version__
 from agrisathi.core.schemas import safe_float
-from agrisathi.core.validator import validate_farm_input
 from agrisathi.core.exceptions import ValidationError, AgriSathiError
 from agrisathi.ml.predictor import get_predictor
 from agrisathi.ml.whatif import simulate_what_if
@@ -17,7 +16,7 @@ from agrisathi.advisory.profiles import (
     update_agronomic_rules,
     reload_agronomic_rules,
 )
-from agrisathi.advisory.engine import run_full_pipeline, generate_full_advisory
+from agrisathi.advisory.engine import run_full_pipeline
 from agrisathi.reports.pdf_generator import generate_pdf_advisory_report
 from agrisathi.utils.weather import (
     fetch_weather_data,

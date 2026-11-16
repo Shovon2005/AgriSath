@@ -4,7 +4,6 @@ Ensures legacy APIs remain fully operational with existing signatures.
 """
 
 import pandas as pd
-import pytest
 from recommendation import (
     soil_assessment,
     irrigation_recommendation,
