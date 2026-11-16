@@ -47,6 +47,18 @@ class CropPredictor:
         self._load_model()
         self._initialized = True
 
+    @classmethod
+    def reset_instance(cls):
+        """Reset the singleton instance (useful for testing and artifact reloading)."""
+        with cls._lock:
+            cls._instance = None
+
+    def reload(self, model_path: Path = None):
+        """Reload the model pipeline from disk."""
+        if model_path:
+            self.model_path = model_path
+        self._load_model()
+
     def _load_model(self):
         if not self.model_path.exists():
             raise ModelNotFoundError(

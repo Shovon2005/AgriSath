@@ -46,3 +46,20 @@ def test_predict_float_and_lowercase_categoricals(valid_farm_payload):
     assert result["recommended_crop"] in ("rice", "jute")
     assert result["confidence"] > 0
     assert len(result["important_features"]) == 5
+
+
+def test_predictor_reset_and_reload():
+    p1 = get_predictor()
+    assert p1.pipeline is not None
+
+    # Test reload
+    p1.reload()
+    assert p1.pipeline is not None
+
+    # Test reset_instance
+    CropPredictor.reset_instance()
+    assert CropPredictor._instance is None
+    p2 = get_predictor()
+    assert p2 is not None
+    assert p2.pipeline is not None
+

@@ -45,3 +45,32 @@ def test_train_and_evaluate_routine():
     assert metrics["accuracy"] > 0.95
     assert metrics["sample_count"] == 2200
 
+
+def test_load_dataset_with_mixed_categoricals(tmp_path):
+    """Ensure dataset loader normalizes string codes, floats, and lowercase names cleanly."""
+    X_orig, y_orig = load_dataset()
+    sample_df = X_orig.iloc[:10].copy()
+    sample_df["label"] = y_orig.iloc[:10].copy()
+
+    # Modify categoricals with string numbers, float numbers, and lowercase names
+    sample_df.loc[0, "soil_type"] = "1"
+    sample_df.loc[1, "soil_type"] = 2.0
+    sample_df.loc[2, "soil_type"] = "sandy"
+    sample_df.loc[0, "growth_stage"] = "1.0"
+    sample_df.loc[1, "growth_stage"] = "flowering"
+    sample_df.loc[0, "water_source_type"] = "4"
+    sample_df.loc[1, "water_source_type"] = "canal"
+
+    csv_file = tmp_path / "test_crop.csv"
+    sample_df.to_csv(csv_file, index=False)
+
+    X_loaded, y_loaded = load_dataset(csv_file)
+    assert X_loaded["soil_type"].iloc[0] == "Clay"
+    assert X_loaded["soil_type"].iloc[1] == "Loamy"
+    assert X_loaded["soil_type"].iloc[2] == "Sandy"
+    assert X_loaded["growth_stage"].iloc[0] == "Seedling"
+    assert X_loaded["growth_stage"].iloc[1] == "Flowering"
+    assert X_loaded["water_source_type"].iloc[0] == "River"
+    assert X_loaded["water_source_type"].iloc[1] == "Canal"
+
+
