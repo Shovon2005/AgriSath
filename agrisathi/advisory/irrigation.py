@@ -51,7 +51,12 @@ def calculate_irrigation_advisory(
     high_et = (temperature > 32.0 and humidity < 50.0) or (wind_speed > 6.0 and temperature > 28.0)
 
     # 1. Critical Water Scarcity
-    if moisture < 15.0:
+    if moisture < 12.0:
+        priority = "High"
+        message = f"Critical soil moisture depletion ({moisture:.1f}%). Immediate irrigation required to prevent permanent wilting."
+        actions.append("Initiate deep irrigation immediately (40-50 mm equivalent depth).")
+        actions.append("Prioritize early morning or evening application to minimize atmospheric evaporation loss.")
+    elif moisture < 15.0:
         if crop_demand == "High" or growth_stage == "Flowering":
             priority = "High"
             message = f"Immediate irrigation required. {crop_title} is undergoing acute moisture stress at critical growth stage."
@@ -114,7 +119,9 @@ def calculate_irrigation_advisory(
         actions.append("Clay soil is heavily saturated; ensure active field drainage channels to prevent root asphyxiation.")
 
     # Growth stage adjustments
-    if growth_stage == "Maturity" and moisture >= 18.0:
+    if growth_stage == "Seedling" and priority in ("High", "Medium"):
+        actions.append("Seedling stage has shallow rooting depth: maintain light, uniform surface moisture to avoid seedling desiccation.")
+    elif growth_stage == "Maturity" and moisture >= 18.0:
         actions.append("Crop has reached Maturity stage: gradually reduce irrigation volume to encourage uniform ripening and avoid pre-harvest mold.")
 
     # Water source guidance
@@ -123,11 +130,83 @@ def calculate_irrigation_advisory(
     elif water_source == "Groundwater" and moisture < 20.0:
         actions.append("Monitor groundwater salinity/EC levels before heavy pumping during dry spells.")
 
+    # 4. Daily Crop Evapotranspiration (ETc) estimation via FAO-56 Penman/Hargreaves principles
+    # Reference ET0: based on temperature, relative humidity, and wind velocity
+    base_et0 = max(1.5, min(8.5, 0.16 * (temperature + 4.0) * (1.0 - (humidity / 160.0)) + (wind_speed * 0.12)))
+    
+    # Stage crop coefficient Kc
+    kc_mid = float(crop_profile.get("kc_mid", 1.05))
+    if growth_stage == "Seedling":
+        kc = round(kc_mid * 0.45, 2)
+    elif growth_stage == "Vegetative":
+        kc = round(kc_mid * 0.85, 2)
+    elif growth_stage == "Flowering":
+        kc = round(kc_mid * 1.15, 2)
+    else:  # Maturity
+        kc = round(kc_mid * 0.70, 2)
+
+    etc_mm_day = round(base_et0 * kc, 1)
+
+    # 5. Farm Area Water Volume Calculation (in Litres and m³)
+    raw_area_ha = float(farm_data.get("farm_area_ha") or 1.0)
+    farm_area_ha = max(0.01, raw_area_ha)
+
+    # Recommended irrigation depth in mm
+    if priority == "High":
+        rec_depth_mm = 45.0
+    elif priority == "Medium":
+        rec_depth_mm = 30.0
+    else:
+        rec_depth_mm = 0.0
+
+    # 1 mm depth over 1 hectare = 10,000 Litres (10 m³)
+    water_quantity_litres = int(round(rec_depth_mm * farm_area_ha * 10000.0))
+    daily_water_litres = int(round(etc_mm_day * farm_area_ha * 10000.0))
+    water_quantity_m3 = round(water_quantity_litres / 1000.0, 1)
+
+    # 6. Expected Rainfall (24-48h forecast) Integration
+    expected_rain = float(farm_data.get("expected_rainfall_24h") or farm_data.get("forecast_rainfall") or 0.0)
+    rainfall_suppressed = False
+
+    if expected_rain >= 15.0 and priority in ("High", "Medium"):
+        rainfall_suppressed = True
+        actions.insert(0, f"Upcoming Rainfall Alert: {expected_rain:.1f} mm forecast in next 24-48 hours. Postpone chemical fertilizer & heavy irrigation to conserve water and prevent nutrient leaching.")
+        message = f"Rainfall expected ({expected_rain:.1f} mm). Postpone irrigation until precipitation passes and reassess field soil moisture."
+        next_irrigation = "Postpone: Rainfall forecast within 24-48 hours"
+        irrigation_req = "No (Rain Forecast)"
+    elif expected_rain >= 5.0 and priority == "Medium":
+        rainfall_suppressed = True
+        actions.insert(0, f"Light rain expected ({expected_rain:.1f} mm). Hold irrigation to assess effective soil wetting.")
+        next_irrigation = "Hold: Check soil after expected rainfall"
+        irrigation_req = "No (Rain Expected)"
+    elif priority == "High":
+        next_irrigation = "Immediate (within 24 hours)"
+        irrigation_req = "Yes (Immediate)"
+    elif priority == "Medium":
+        next_irrigation = "Within 48 hours"
+        irrigation_req = "Yes (Scheduled)"
+    else:
+        next_irrigation = "Not required for 4-6 days"
+        irrigation_req = "No (Adequate Moisture)"
+
     return {
         "priority": priority,
+        "irrigation_required": irrigation_req,
+        "is_required": (priority in ("High", "Medium") and not rainfall_suppressed),
+        "next_irrigation_time": next_irrigation,
+        "daily_water_requirement_mm": etc_mm_day,
+        "daily_water_litres": daily_water_litres,
+        "recommended_irrigation_depth_mm": rec_depth_mm if not rainfall_suppressed else 0.0,
+        "water_quantity_litres": water_quantity_litres if not rainfall_suppressed else 0,
+        "water_quantity_m3": water_quantity_m3 if not rainfall_suppressed else 0.0,
+        "farm_area_ha": farm_area_ha,
+        "expected_rainfall_24h": expected_rain,
+        "rainfall_suppressed": rainfall_suppressed,
+        "crop_coefficient_kc": kc,
         "message": message,
         "soil_moisture": moisture,
         "evapotranspiration_risk": "High" if high_et else "Normal",
         "crop_water_demand": crop_demand,
         "recommended_actions": actions,
     }
+

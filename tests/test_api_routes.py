@@ -76,7 +76,7 @@ def test_api_report_pdf_download(client, valid_farm_payload):
     assert response.data.startswith(b"%PDF-")
 
 
-def test_api_report_errors(client):
+def test_api_report_errors(client, valid_farm_payload):
     # Missing JSON body
     res_empty = client.post("/api/v1/report", data="not json", content_type="text/plain")
     assert res_empty.status_code == 400
@@ -86,6 +86,17 @@ def test_api_report_errors(client):
     res_val = client.post("/api/v1/report", json={"N": -10})
     assert res_val.status_code == 422
     assert "error" in res_val.get_json()
+
+    # Processing error (AgriSathiError)
+    from unittest.mock import patch
+    from agrisathi.core.exceptions import PredictionError
+    with patch("agrisathi.web.routes.api.get_predictor") as mock_gp:
+        mock_gp.return_value.predict.side_effect = PredictionError("Simulated inference crash")
+        res_proc = client.post("/api/v1/report", json=valid_farm_payload)
+        assert res_proc.status_code == 500
+        data = res_proc.get_json()
+        assert data["error"] == "Processing Error"
+        assert "Simulated inference crash" in data["message"]
 
 
 def test_api_405_handler(client):

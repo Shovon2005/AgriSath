@@ -40,6 +40,24 @@ def test_predict_form_submission(client, valid_farm_payload):
     assert b"% Match" in response.data
     assert b"Soil Type" in response.data
     assert b"Soil Type Label" not in response.data
+    # Verify application schedule and hazard matrix rendering
+    assert b"Application Split Schedule:" in response.data
+    assert b"Soil nutrient reserves are sufficient" in response.data or b"Basal Application" in response.data
+
+
+def test_predict_hazard_matrix_and_elevated_risk_status(client, valid_farm_payload):
+    # Payload with nutrient deficit, high pest pressure, and thermal stress
+    hazard_payload = dict(valid_farm_payload)
+    hazard_payload["N"] = 20.0  # Acute nitrogen deficit to trigger Basal Application
+    hazard_payload["pest_pressure"] = 88.0
+    hazard_payload["temperature"] = 43.0
+    response = client.post("/predict", data=hazard_payload)
+    assert response.status_code == 200
+    assert b"Critical" in response.data or b"Elevated" in response.data
+    assert b"Application Split Schedule:" in response.data
+    assert b"Basal Application" in response.data
+    assert b"Hazard Mitigation Matrix:" in response.data
+    assert b"Pest &amp; Insect Infestation" in response.data or b"Pest & Insect Infestation" in response.data
 
 
 def test_download_report_form_submission(client, valid_farm_payload):

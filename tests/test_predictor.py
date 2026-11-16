@@ -49,16 +49,19 @@ def test_predict_float_and_lowercase_categoricals(valid_farm_payload):
 
 
 def test_predictor_reset_and_reload():
+    from agrisathi.ml import explain
     p1 = get_predictor()
     assert p1.pipeline is not None
 
     # Test reload
     p1.reload()
     assert p1.pipeline is not None
+    assert explain._EXPLAINER_CACHE is None
 
     # Test reset_instance
     CropPredictor.reset_instance()
     assert CropPredictor._instance is None
+    assert explain._EXPLAINER_CACHE is None
     p2 = get_predictor()
     assert p2 is not None
     assert p2.pipeline is not None

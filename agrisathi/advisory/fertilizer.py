@@ -37,14 +37,14 @@ def calculate_fertilizer_guidance(
 
     crop_title = crop_profile.get("display_name", crop_name or "Target Crop")
 
-    # Deficits in kg/ha
-    deficit_n = max(0.0, opt_n - current_n)
-    deficit_p = max(0.0, opt_p - current_p)
-    deficit_k = max(0.0, opt_k - current_k)
+    # Deficits in kg/ha, rounded to 1 decimal place
+    deficit_n = round(max(0.0, opt_n - current_n), 1)
+    deficit_p = round(max(0.0, opt_p - current_p), 1)
+    deficit_k = round(max(0.0, opt_k - current_k), 1)
 
     # 1. Calculate DAP needed for Phosphorus deficit
     # DAP: 18% N, 46% P2O5
-    if deficit_p > 0:
+    if deficit_p > 0.0:
         dap_kg_ha = deficit_p / FERTILIZER_CONVERSIONS["dap_p_fraction"]
         n_supplied_by_dap = dap_kg_ha * FERTILIZER_CONVERSIONS["dap_n_fraction"]
     else:
@@ -53,34 +53,84 @@ def calculate_fertilizer_guidance(
 
     # 2. Remaining Nitrogen supplied via Urea (46% N)
     remaining_n = max(0.0, deficit_n - n_supplied_by_dap)
-    urea_kg_ha = remaining_n / FERTILIZER_CONVERSIONS["urea_n_fraction"] if remaining_n > 0 else 0.0
+    urea_kg_ha = remaining_n / FERTILIZER_CONVERSIONS["urea_n_fraction"] if remaining_n > 0.0 else 0.0
 
     # 3. Potassium supplied via MOP (60% K2O)
-    mop_kg_ha = deficit_k / FERTILIZER_CONVERSIONS["mop_k_fraction"] if deficit_k > 0 else 0.0
+    mop_kg_ha = deficit_k / FERTILIZER_CONVERSIONS["mop_k_fraction"] if deficit_k > 0.0 else 0.0
+
+    # 4. Alternative Phosphorus source: SSP (Single Superphosphate, 16% P2O5)
+    ssp_p_fraction = FERTILIZER_CONVERSIONS.get("ssp_p_fraction", 0.16)
+    ssp_kg_ha = deficit_p / ssp_p_fraction if deficit_p > 0.0 else 0.0
+
+    urea_rounded = round(urea_kg_ha, 1)
+    dap_rounded = round(dap_kg_ha, 1)
+    ssp_rounded = round(ssp_kg_ha, 1)
+    mop_rounded = round(mop_kg_ha, 1)
+
+    # 5. Farm Area Scaling (Total kg & 50-kg commercial bags)
+    raw_area_ha = float(farm_data.get("farm_area_ha") or 1.0)
+    farm_area_ha = max(0.01, raw_area_ha)
+
+    total_urea_kg = round(urea_rounded * farm_area_ha, 1)
+    total_dap_kg = round(dap_rounded * farm_area_ha, 1)
+    total_ssp_kg = round(ssp_rounded * farm_area_ha, 1)
+    total_mop_kg = round(mop_rounded * farm_area_ha, 1)
+
+    urea_bags = round(total_urea_kg / 50.0, 1)
+    dap_bags = round(total_dap_kg / 50.0, 1)
+    ssp_bags = round(total_ssp_kg / 50.0, 1)
+    mop_bags = round(total_mop_kg / 50.0, 1)
+
+    # 6. Organic Alternatives and Bio-fertilizers
+    crop_category = crop_profile.get("category", "General")
+    ph = float(farm_data.get("ph", 6.5))
+
+    organic_alternatives = {
+        "compost_fym_tonnes": round(10.0 * farm_area_ha, 1),
+        "vermicompost_tonnes": round(3.0 * farm_area_ha, 1),
+        "neem_cake_kg": round(250.0 * farm_area_ha, 1),
+        "biofertilizer": (
+            "Rhizobium leguminosarum (200 g/10 kg seed) + Phosphate Solubilizing Bacteria (PSB 2 kg/ha) for symbiotic nitrogen fixation."
+            if crop_category == "Pulses"
+            else "Azotobacter / Azospirillum (2 kg/ha) + PSB (2 kg/ha) incorporated with organic manure to boost natural nutrient cycling."
+        ),
+        "soil_conditioning": (
+            "Soil is slightly acidic; SSP is preferred over DAP as it delivers 11% essential sulfur and 19% calcium."
+            if ph < 6.0
+            else "Incorporate compost/green manure to improve cation exchange capacity (CEC) and mitigate nutrient volatilization."
+        )
+    }
 
     recommendations: List[str] = []
 
-    if deficit_n > 0:
+
+    if deficit_n > 0.0:
         recommendations.append(
             f"Nitrogen deficit of {deficit_n:.1f} kg/ha detected for optimal {crop_title} yield."
         )
-    if deficit_p > 0:
+    if deficit_p > 0.0:
         recommendations.append(
             f"Phosphorus deficit of {deficit_p:.1f} kg/ha detected for root development."
         )
-    if deficit_k > 0:
+    if deficit_k > 0.0:
         recommendations.append(
             f"Potassium deficit of {deficit_k:.1f} kg/ha detected for disease resistance."
         )
 
-    if not recommendations:
-        recommendations.append(
-            f"Soil NPK levels ({current_n:.0f}-{current_p:.0f}-{current_k:.0f}) are sufficient for {crop_title}."
-        )
+    if not recommendations or (urea_rounded == 0.0 and dap_rounded == 0.0 and mop_rounded == 0.0):
+        if not recommendations:
+            recommendations.append(
+                f"Soil NPK levels ({current_n:.0f}-{current_p:.0f}-{current_k:.0f}) are sufficient for {crop_title}."
+            )
+        else:
+            recommendations = [
+                f"Soil NPK levels ({current_n:.0f}-{current_p:.0f}-{current_k:.0f}) are sufficient for {crop_title}. "
+                "Minor deficits are negligible and require no synthetic fertilizer supplementation."
+            ]
     else:
         recommendations.append(
-            f"Recommended commercial dosage: Urea: {urea_kg_ha:.1f} kg/ha, "
-            f"DAP: {dap_kg_ha:.1f} kg/ha, MOP: {mop_kg_ha:.1f} kg/ha."
+            f"Recommended commercial dosage: Urea: {urea_rounded:.1f} kg/ha, "
+            f"DAP: {dap_rounded:.1f} kg/ha, MOP: {mop_rounded:.1f} kg/ha."
         )
 
     # Surplus checks
@@ -110,30 +160,47 @@ def calculate_fertilizer_guidance(
         )
 
     # Dynamic application split guidance tailored to prescribed fertilizers
-    if round(urea_kg_ha, 1) == 0.0 and round(dap_kg_ha, 1) == 0.0 and round(mop_kg_ha, 1) == 0.0:
+    if urea_rounded == 0.0 and dap_rounded == 0.0 and mop_rounded == 0.0:
         schedule = [
             "Soil nutrient reserves are sufficient. No chemical fertilizer application required for basal or top-dressing."
         ]
     else:
         basal_parts = []
-        if round(dap_kg_ha, 1) > 0.0:
-            basal_parts.append(f"100% of DAP ({dap_kg_ha:.1f} kg/ha)")
-        if round(mop_kg_ha, 1) > 0.0:
-            basal_parts.append(f"100% of MOP ({mop_kg_ha:.1f} kg/ha)")
-        if round(urea_kg_ha, 1) > 0.0:
-            basal_parts.append(f"33% of Urea ({urea_kg_ha * 0.33:.1f} kg/ha)")
+        if dap_rounded > 0.0:
+            basal_parts.append(f"100% of DAP ({dap_rounded:.1f} kg/ha)")
+        if mop_rounded > 0.0:
+            basal_parts.append(f"100% of MOP ({mop_rounded:.1f} kg/ha)")
 
-        schedule = [
-            f"Basal Application (at sowing): Apply {', '.join(basal_parts)}."
-        ]
-        if round(urea_kg_ha, 1) > 0.0:
+        # Handle Urea application splits:
+        # If urea dosage is minimal (< 1.5 kg/ha) or split doses would round to 0.0 kg/ha,
+        # apply entire urea dosage as basal to avoid meaningless 0.0 kg/ha splits.
+        split_urea_1 = round(urea_rounded * 0.33, 1)
+        split_urea_2 = round(urea_rounded * 0.33, 1)
+        split_urea_3 = round(urea_rounded - split_urea_1 - split_urea_2, 1)
+
+        if urea_rounded > 0.0 and (urea_rounded < 1.5 or split_urea_1 == 0.0):
+            basal_parts.append(f"100% of Urea ({urea_rounded:.1f} kg/ha)")
+            schedule = [
+                f"Basal Application (at sowing): Apply {', '.join(basal_parts)}."
+            ]
             schedule.append(
-                f"First Top-Dressing (active vegetative stage): Apply 33% of Urea ({urea_kg_ha * 0.33:.1f} kg/ha) with light irrigation."
+                "Top-Dressing: No split top-dressing required for minimal nitrogen dosage; full requirement satisfied at basal application."
+            )
+        elif urea_rounded > 0.0:
+            basal_parts.append(f"33% of Urea ({split_urea_1:.1f} kg/ha)")
+            schedule = [
+                f"Basal Application (at sowing): Apply {', '.join(basal_parts)}."
+            ]
+            schedule.append(
+                f"First Top-Dressing (active vegetative stage): Apply 33% of Urea ({split_urea_2:.1f} kg/ha) with light irrigation."
             )
             schedule.append(
-                f"Second Top-Dressing (panicle/flowering initiation): Apply remaining 34% of Urea ({urea_kg_ha * 0.34:.1f} kg/ha)."
+                f"Second Top-Dressing (panicle/flowering initiation): Apply remaining {split_urea_3:.1f} kg/ha of Urea."
             )
         else:
+            schedule = [
+                f"Basal Application (at sowing): Apply {', '.join(basal_parts)}."
+            ]
             schedule.append(
                 "Top-Dressing: No synthetic nitrogen top-dressing required as baseline soil nitrogen is sufficient."
             )
@@ -149,9 +216,23 @@ def calculate_fertilizer_guidance(
             "K": round(deficit_k, 1),
         },
         "commercial_fertilizers": {
-            "urea_kg_ha": round(urea_kg_ha, 1),
-            "dap_kg_ha": round(dap_kg_ha, 1),
-            "mop_kg_ha": round(mop_kg_ha, 1),
+            "urea_kg_ha": urea_rounded,
+            "dap_kg_ha": dap_rounded,
+            "ssp_kg_ha": ssp_rounded,
+            "mop_kg_ha": mop_rounded,
         },
+        "farm_area_ha": farm_area_ha,
+        "total_farm_requirements": {
+            "urea_kg": total_urea_kg,
+            "urea_bags_50kg": urea_bags,
+            "dap_kg": total_dap_kg,
+            "dap_bags_50kg": dap_bags,
+            "ssp_kg": total_ssp_kg,
+            "ssp_bags_50kg": ssp_bags,
+            "mop_kg": total_mop_kg,
+            "mop_bags_50kg": mop_bags,
+        },
+        "organic_alternatives": organic_alternatives,
         "application_schedule": schedule,
     }
+

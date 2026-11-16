@@ -27,6 +27,13 @@ class WaterSourceType(str, Enum):
     RIVER = "River"
 
 
+class Season(str, Enum):
+    KHARIF = "Kharif"
+    RABI = "Rabi"
+    ZAID = "Zaid"
+    WHOLE_YEAR = "Whole Year"
+
+
 # Bidirectional mappings between UI strings and model integer encodings
 SOIL_TYPE_TO_CODE: Dict[str, int] = {
     "clay": 1,
@@ -115,6 +122,32 @@ def canonical_water_source(val: Any) -> str:
     return "Groundwater"
 
 
+def canonical_season(val: Any) -> str:
+    """Normalize any season representation to 'Kharif' | 'Rabi' | 'Zaid' | 'Whole Year'."""
+    s = str(val or "").strip().lower()
+    if "kharif" in s or "monsoon" in s or "autumn" in s:
+        return "Kharif"
+    if "rabi" in s or "winter" in s or "spring" in s:
+        return "Rabi"
+    if "zaid" in s or "summer" in s:
+        return "Zaid"
+    return "Whole Year"
+
+
+def area_to_hectares(area: float, unit: str = "hectare") -> float:
+    """Convert agricultural farm area in any unit (hectares, acres, bighas) to standard hectares."""
+    try:
+        val = float(area)
+    except (ValueError, TypeError):
+        return 1.0
+    u = str(unit or "hectare").strip().lower()
+    if "acre" in u:
+        return max(0.01, round(val * 0.404686, 4))
+    if "bigha" in u:
+        return max(0.01, round(val * 0.1338, 4))
+    return max(0.01, round(val, 4))
+
+
 @dataclass(frozen=True)
 class FeatureSpec:
     name: str
@@ -157,3 +190,18 @@ FEATURE_NAMES: List[str] = [spec.name for spec in FEATURE_DEFINITIONS]
 CATEGORICAL_FEATURES: List[str] = ["soil_type", "growth_stage", "water_source_type"]
 NUMERIC_FEATURES: List[str] = [f for f in FEATURE_NAMES if f not in CATEGORICAL_FEATURES]
 FEATURE_MAP: Dict[str, FeatureSpec] = {spec.name: spec for spec in FEATURE_DEFINITIONS}
+
+# Extended domain features for precision agronomic decision support
+EXTENDED_FEATURE_DEFINITIONS: List[FeatureSpec] = [
+    FeatureSpec("farm_area", "Farm Area", "ha", "float", 0.01, 100000.0, 1.0, "Total cultivateable farm area"),
+    FeatureSpec("farm_area_unit", "Farm Area Unit", "", "string", 0.0, 0.0, 0.0, "Unit for farm area: hectare or acre"),
+    FeatureSpec("electrical_conductivity", "Electrical Conductivity (EC)", "dS/m", "float", 0.0, 30.0, 0.6, "Soil electrical conductivity / salinity index"),
+    FeatureSpec("organic_carbon", "Organic Carbon (OC)", "%", "float", 0.0, 15.0, 0.75, "Soil organic carbon fraction"),
+    FeatureSpec("location", "Farm Location", "", "string", 0.0, 0.0, 0.0, "Farm geographical location or district"),
+    FeatureSpec("season", "Cropping Season", "", "string", 0.0, 0.0, 0.0, "Agricultural season"),
+    FeatureSpec("expected_rainfall_24h", "Expected Rainfall (24-48h)", "mm", "float", 0.0, 1000.0, 0.0, "Expected upcoming precipitation"),
+]
+
+ALL_FEATURE_DEFINITIONS: List[FeatureSpec] = FEATURE_DEFINITIONS + EXTENDED_FEATURE_DEFINITIONS
+ALL_FEATURE_MAP: Dict[str, FeatureSpec] = {spec.name: spec for spec in ALL_FEATURE_DEFINITIONS}
+

@@ -36,15 +36,47 @@ SOIL_PROPERTIES = {
 # Commercial fertilizer elemental concentrations
 # Urea: 46% N
 # DAP (Di-ammonium phosphate): 18% N, 46% P2O5
+# SSP (Single superphosphate): 16% P2O5
 # MOP (Muriate of potash): 60% K2O
 FERTILIZER_CONVERSIONS = {
     "urea_n_fraction": 0.46,
     "dap_n_fraction": 0.18,
     "dap_p_fraction": 0.46,
+    "ssp_p_fraction": 0.16,
     "mop_k_fraction": 0.60
 }
 
+# Organic and bio-fertilizer guidance benchmarks
+ORGANIC_FERTILIZER_GUIDELINES = {
+    "fym": {
+        "name": "Farm Yard Manure (FYM)",
+        "dosage_t_ha": "10 - 15 t/ha",
+        "benefits": "Improves soil humus, CEC, microbial diversity, and water retention capacity."
+    },
+    "vermicompost": {
+        "name": "Vermicompost",
+        "dosage_t_ha": "2.5 - 5.0 t/ha",
+        "benefits": "Rich in bioavailable micronutrients, plant growth hormones (auxins/gibberellins), and beneficial microbes."
+    },
+    "neem_cake": {
+        "name": "Neem Cake",
+        "dosage_kg_ha": "250 - 500 kg/ha",
+        "benefits": "Natural nitrification inhibitor; reduces nitrogen leaching while suppressing soil-borne nematodes and root pests."
+    },
+    "biofertilizers": {
+        "pulses": "Rhizobium seed treatment (200 g/10 kg seed) + Phosphate Solubilizing Bacteria (PSB)",
+        "cereals": "Azotobacter / Azospirillum (2 kg/ha) + PSB (2 kg/ha) to enhance natural nitrogen fixation and phosphorus mobilization."
+    }
+}
+
+
 _PROFILES_CACHE: Optional[Dict[str, Any]] = None
+
+
+def reset_profiles_cache():
+    """Reset cached crop profiles."""
+    global _PROFILES_CACHE
+    _PROFILES_CACHE = None
 
 
 def get_crop_profiles() -> Dict[str, Any]:
@@ -59,14 +91,16 @@ def get_crop_profiles() -> Dict[str, Any]:
     return _PROFILES_CACHE
 
 
-def get_crop_profile(crop_name: str) -> Dict[str, Any]:
-    """Retrieve profile for a specific crop (case-insensitive)."""
+def get_crop_profile(crop_name: Optional[str] = None) -> Dict[str, Any]:
+    """Retrieve profile for a specific crop (case-insensitive and null-safe)."""
     profiles = get_crop_profiles()
-    key = crop_name.strip().lower()
+    raw_str = str(crop_name or "rice").strip()
+    key = raw_str.lower()
     if key not in profiles:
         # Fallback profile for unknown crop
+        display = raw_str.title() if raw_str else "Target Crop"
         return {
-            "display_name": crop_name.title(),
+            "display_name": display,
             "category": "General Crop",
             "opt_n": 80,
             "opt_p": 40,

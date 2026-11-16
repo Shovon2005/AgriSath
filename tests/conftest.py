@@ -3,6 +3,16 @@ Shared pytest fixtures for AgriSathi testing.
 """
 
 import pytest
+from agrisathi.web.app import create_app
+
+
+@pytest.fixture
+def client():
+    """Flask test client fixture."""
+    app = create_app("testing")
+    with app.test_client() as client:
+        yield client
+
 
 
 @pytest.fixture

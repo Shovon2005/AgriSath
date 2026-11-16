@@ -77,3 +77,13 @@ def test_explain_local_prediction_with_integer_categoricals(valid_farm_payload):
     assert len(explanations) == 5
     # Should not fall back to global narrative ("key determinant across the farm model")
     assert any("strongly supported" in item["narrative"] or "suboptimal" in item["narrative"] for item in explanations)
+
+
+def test_reset_explainer_cache():
+    from agrisathi.ml.explain import get_tree_explainer, reset_explainer_cache, _EXPLAINER_CACHE
+    predictor = get_predictor()
+    rf = predictor.pipeline.named_steps["model"]
+    get_tree_explainer(rf)
+    reset_explainer_cache()
+    from agrisathi.ml import explain
+    assert explain._EXPLAINER_CACHE is None

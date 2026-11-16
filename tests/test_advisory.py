@@ -300,4 +300,74 @@ def test_irrigation_heavy_saturation_and_soil_crop_ph_actions():
     assert any("apply agricultural lime" in act.lower() for act in low_ph_chickpea["corrective_actions"])
 
 
+def test_fertilizer_small_deficit_and_dosage_rounding():
+    # Negligible deficit (99.99 with opt_n 100) must not output 0.0 kg/ha deficit or dosages
+    res = calculate_fertilizer_guidance({"N": 99.99, "P": 45, "K": 45}, crop_name="rice")
+    assert res["deficits"]["N"] == 0.0
+    assert res["commercial_fertilizers"]["urea_kg_ha"] == 0.0
+    assert not any("deficit of 0.0" in r for r in res["recommendations"])
+    assert "sufficient" in res["recommendations"][0].lower()
+    assert "No chemical fertilizer application required" in res["application_schedule"][0]
+
+    # Minimal urea (< 1.5 kg/ha) should be applied as single basal, not three 0.0 splits
+    res_minimal = calculate_fertilizer_guidance({"N": 98.0, "P": 45, "K": 45}, crop_name="rice")
+    assert res_minimal["commercial_fertilizers"]["urea_kg_ha"] > 0
+    sched = res_minimal["application_schedule"]
+    assert not any("0.0 kg/ha" in s for s in sched)
+    assert any("Basal Application" in s for s in sched)
+
+
+def test_soil_health_macronutrient_deficiency_corrective_actions():
+    # Low N, Low P, Low K with healthy pH and OM must produce actionable corrective actions
+    low_npk = assess_soil_health({"ph": 6.5, "organic_matter": 3.5, "N": 15, "P": 10, "K": 12})
+    assert low_npk["status"] == "Needs Attention"
+    assert low_npk["score"] == 70
+    assert len(low_npk["corrective_actions"]) >= 3
+    actions_text = " ".join(low_npk["corrective_actions"]).lower()
+    assert "nitrogen" in actions_text or "compost" in actions_text
+    assert "phosphate" in actions_text or "superphosphate" in actions_text
+    assert "potash" in actions_text or "biochar" in actions_text
+
+
+def test_soil_health_crop_ph_suboptimal_non_contradiction():
+    # Coffee prefers pH 5.5 - 6.5. pH 7.0 should indicate baseline standard but suboptimal for coffee
+    coffee_soil = assess_soil_health({"ph": 7.0, "organic_matter": 3.0}, crop_name="coffee")
+    issues_text = " ".join(coffee_soil["issues"])
+    assert "suboptimal for Coffee" in issues_text
+    assert "Current pH 7.0 is outside ideal range" in issues_text
+    assert not ("within the optimal agronomic range (6.0 - 7.5)" in issues_text)
+
+
+def test_irrigation_critical_drought_moisture_and_seedling_guidance():
+    # Critical low moisture (< 12%) triggers High priority regardless of normal temp
+    res = calculate_irrigation_advisory(
+        {"soil_moisture": 9.0, "temperature": 22.0, "crop_demand": "Low", "growth_stage": "Vegetative"},
+        crop_name="chickpea"
+    )
+    assert res["priority"] == "High"
+    assert "Critical soil moisture depletion" in res["message"]
+
+    # Seedling stage guidance
+    res_seedling = calculate_irrigation_advisory(
+        {"soil_moisture": 14.0, "growth_stage": "Seedling"},
+        crop_name="rice"
+    )
+    assert any("Seedling stage has shallow rooting depth" in act for act in res_seedling["recommended_actions"])
+
+
+def test_crop_profile_safe_none_and_cache_reset():
+    from agrisathi.advisory.profiles import get_crop_profile, reset_profiles_cache
+    reset_profiles_cache()
+    # None and empty crop names should safely return fallback
+    p_none = get_crop_profile(None)
+    assert p_none["display_name"] == "Rice (Oryza sativa)"
+
+    p_empty = get_crop_profile("")
+    assert p_empty["display_name"] == "Rice (Oryza sativa)"
+
+    p_unknown = get_crop_profile("quinoa")
+    assert p_unknown["display_name"] == "Quinoa"
+
+
+
 
