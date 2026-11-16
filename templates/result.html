@@ -168,7 +168,9 @@
                 <span>RISK MONITORING</span>
 
                 <h3>
-                    {% if risks|length > 1 %}
+                    {% if risk_details and risk_details.overall_risk_level %}
+                        {{ risk_details.overall_risk_level }}
+                    {% elif risks|length > 1 %}
                         Attention
                     {% else %}
                         Normal
@@ -356,6 +358,20 @@
 
                     {% endfor %}
 
+                    {% if fertilizer_details and fertilizer_details.application_schedule %}
+                    <div style="margin-top: 14px; padding-top: 10px; border-top: 1px dashed #c8e6c9;">
+                        <h4 style="font-size: 0.9rem; color: #2e7d32; margin-bottom: 8px;">
+                            <i class="fa-solid fa-calendar-check"></i> Application Split Schedule:
+                        </h4>
+                        {% for step in fertilizer_details.application_schedule %}
+                        <div style="font-size: 0.85rem; color: #333333; margin-bottom: 6px; display: flex; align-items: flex-start; gap: 8px;">
+                            <i class="fa-solid fa-arrow-right" style="color: #2e7d32; margin-top: 3px; font-size: 0.75rem;"></i>
+                            <span>{{ step }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
                 </div>
 
             </div>
@@ -517,6 +533,26 @@
                     </div>
 
                     {% endfor %}
+
+                    {% if risk_details and risk_details.risk_matrix %}
+                    <div style="margin-top: 14px; padding-top: 10px; border-top: 1px dashed #ffcdd2;">
+                        <h4 style="font-size: 0.9rem; color: #c62828; margin-bottom: 8px;">
+                            <i class="fa-solid fa-table-list"></i> Hazard Mitigation Matrix:
+                        </h4>
+                        {% for item in risk_details.risk_matrix %}
+                        <div style="background: #ffffff; border: 1px solid #ffcdd2; border-radius: 6px; padding: 8px 12px; margin-bottom: 8px; font-size: 0.82rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <strong style="color: #b71c1c;">{{ item.hazard }}</strong>
+                                <span style="padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; {% if item.level == 'High' %}background: #ffebee; color: #c62828; border: 1px solid #ef5350;{% elif item.level == 'Medium' %}background: #fff8e1; color: #f57f17; border: 1px solid #ffe082;{% else %}background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7;{% endif %}">
+                                    {{ item.level }}
+                                </span>
+                            </div>
+                            <div style="color: #444444; margin-bottom: 3px;"><strong>Impact:</strong> {{ item.impact }}</div>
+                            <div style="color: #1b5e20;"><strong>Mitigation:</strong> {{ item.mitigation }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
 
                 </div>
 
