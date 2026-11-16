@@ -64,9 +64,12 @@ def home():
     return render_template("index.html", demo_data=demo_data, active_preset=preset_key)
 
 
-@views_bp.route("/predict", methods=["POST"])
+@views_bp.route("/predict", methods=["GET", "POST"])
 def predict():
     """Process farm parameters and display AI recommendation and agronomic advisory."""
+    if request.method == "GET":
+        return redirect(url_for("views.home"))
+
     raw_data = request.form.to_dict()
 
     try:
@@ -115,9 +118,12 @@ def predict():
         return render_template("error.html", error_message=str(e)), 500
 
 
-@views_bp.route("/download-report", methods=["POST"])
+@views_bp.route("/download-report", methods=["GET", "POST"])
 def download_report():
     """Generate and return PDF report from submitted farm data."""
+    if request.method == "GET":
+        return redirect(url_for("views.home"))
+
     raw_data = request.form.to_dict()
 
     try:

@@ -20,14 +20,20 @@ api_bp = Blueprint("api", __name__, url_prefix="/api/v1")
 @api_bp.route("/health", methods=["GET"])
 def health():
     """Health check endpoint."""
-    predictor = get_predictor()
-    model_loaded = predictor.pipeline is not None
+    try:
+        predictor = get_predictor()
+        model_loaded = predictor.pipeline is not None
+    except Exception:
+        model_loaded = False
+
+    status = "healthy" if model_loaded else "degraded"
+    code = 200 if model_loaded else 503
     return jsonify({
-        "status": "healthy",
+        "status": status,
         "service": "AgriSathi Precision Agriculture API",
         "version": __version__,
         "model_loaded": model_loaded,
-    }), 200
+    }), code
 
 
 @api_bp.route("/crops", methods=["GET"])
@@ -37,6 +43,22 @@ def list_crops():
     return jsonify({
         "count": len(profiles),
         "crops": profiles,
+    }), 200
+
+
+@api_bp.route("/crops/<crop_name>", methods=["GET"])
+def get_crop(crop_name: str):
+    """Retrieve agronomic profile for a specific crop."""
+    profiles = get_crop_profiles()
+    key = crop_name.strip().lower()
+    if key not in profiles:
+        return jsonify({
+            "error": "Crop Not Found",
+            "message": f"No agronomic profile found for crop '{crop_name}'."
+        }), 404
+    return jsonify({
+        "crop": key,
+        "profile": profiles[key],
     }), 200
 
 
@@ -73,6 +95,12 @@ def predict():
             "error": "Processing Error",
             "message": e.message,
         }), 500
+    except Exception as e:
+        logger.error("API Prediction failed: %s", e, exc_info=True)
+        return jsonify({
+            "error": "Internal Error",
+            "message": str(e),
+        }), 500
 
 
 @api_bp.route("/report", methods=["POST"])
@@ -80,7 +108,10 @@ def generate_report():
     """Generate and download PDF advisory report from JSON payload."""
     payload = request.get_json(silent=True)
     if not payload:
-        return jsonify({"error": "Missing JSON body"}), 400
+        return jsonify({
+            "error": "Bad Request",
+            "message": "Missing JSON body in POST request."
+        }), 400
 
     try:
         sanitized = validate_farm_input(payload)
@@ -98,7 +129,11 @@ def generate_report():
         )
 
     except ValidationError as e:
-        return jsonify({"error": "Validation Error", "details": e.details}), 422
+        return jsonify({
+            "error": "Validation Error",
+            "message": e.message,
+            "details": e.details,
+        }), 422
     except Exception as e:
         logger.error("API Report generation failed: %s", e)
         return jsonify({"error": "Report Generation Failed", "message": str(e)}), 500

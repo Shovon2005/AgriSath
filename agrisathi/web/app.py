@@ -36,11 +36,23 @@ def create_app(config_name: str = "default") -> Flask:
         return {"demo_data": {}, "active_preset": "", "form_data": {}}
 
     # Custom Error Handlers
+    @app.errorhandler(400)
+    def bad_request_error(error):
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "Bad Request", "message": getattr(error, "description", "Malformed request.")}), 400
+        return render_template("error.html", error_message="Bad Request"), 400
+
     @app.errorhandler(404)
     def not_found_error(error):
         if request.path.startswith("/api/"):
             return jsonify({"error": "Not Found", "message": "The requested API endpoint does not exist."}), 404
         return render_template("404.html"), 404
+
+    @app.errorhandler(405)
+    def method_not_allowed_error(error):
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "Method Not Allowed", "message": "The HTTP method is not allowed for this endpoint."}), 405
+        return render_template("error.html", error_message="Method Not Allowed"), 405
 
     @app.errorhandler(500)
     def internal_error(error):

@@ -61,3 +61,16 @@ def test_download_report_validation_failure(client, valid_farm_payload):
     response = client.post("/download-report", data=valid_farm_payload)
     assert response.status_code == 422
     assert b"Input Validation Notice" in response.data
+
+
+def test_views_get_redirects(client):
+    # GET on /predict should gracefully redirect to home
+    res1 = client.get("/predict")
+    assert res1.status_code in (301, 302)
+    assert res1.headers["Location"].endswith("/")
+
+    # GET on /download-report should gracefully redirect to home
+    res2 = client.get("/download-report")
+    assert res2.status_code in (301, 302)
+    assert res2.headers["Location"].endswith("/")
+

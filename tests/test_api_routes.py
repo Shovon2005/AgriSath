@@ -29,6 +29,21 @@ def test_api_crops(client):
     assert "rice" in data["crops"]
 
 
+def test_api_single_crop(client):
+    # Valid crop lookup
+    res_ok = client.get("/api/v1/crops/rice")
+    assert res_ok.status_code == 200
+    data_ok = res_ok.get_json()
+    assert data_ok["crop"] == "rice"
+    assert data_ok["profile"]["category"] == "Cereal"
+
+    # Non-existent crop
+    res_bad = client.get("/api/v1/crops/unknown_crop_123")
+    assert res_bad.status_code == 404
+    data_bad = res_bad.get_json()
+    assert data_bad["error"] == "Crop Not Found"
+
+
 def test_api_predict_success(client, valid_farm_payload):
     response = client.post("/api/v1/predict", json=valid_farm_payload)
     assert response.status_code == 200
@@ -59,6 +74,26 @@ def test_api_report_pdf_download(client, valid_farm_payload):
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "application/pdf"
     assert response.data.startswith(b"%PDF-")
+
+
+def test_api_report_errors(client):
+    # Missing JSON body
+    res_empty = client.post("/api/v1/report", data="not json", content_type="text/plain")
+    assert res_empty.status_code == 400
+    assert res_empty.get_json()["error"] == "Bad Request"
+
+    # Validation error
+    res_val = client.post("/api/v1/report", json={"N": -10})
+    assert res_val.status_code == 422
+    assert "error" in res_val.get_json()
+
+
+def test_api_405_handler(client):
+    # GET to POST-only endpoint returns JSON 405
+    response = client.get("/api/v1/predict")
+    assert response.status_code == 405
+    data = response.get_json()
+    assert data["error"] == "Method Not Allowed"
 
 
 def test_api_404_handler(client):
