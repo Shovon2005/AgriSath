@@ -104,12 +104,12 @@
 
                 <div class="mini-stats">
                     <div>
-                        <strong>22+</strong>
+                        <strong>{{ crop_count }}+</strong>
                         <small>Crops</small>
                     </div>
 
                     <div>
-                        <strong>22</strong>
+                        <strong>{{ feature_count }}</strong>
                         <small>Features</small>
                     </div>
 
@@ -155,11 +155,6 @@
                         {{ sc.title }}
                     </a>
                     {% endfor %}
-                {% else %}
-                    <a href="/?demo=rice" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid #81c784; border-radius: 20px; color: #1b5e20; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == 'rice' %}background: #c8e6c9;{% endif %}">🌾 Wetland Rice</a>
-                    <a href="/?demo=chickpea" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid #81c784; border-radius: 20px; color: #1b5e20; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == 'chickpea' %}background: #c8e6c9;{% endif %}">🥜 Semi-Arid Chickpea</a>
-                    <a href="/?demo=cotton" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid #81c784; border-radius: 20px; color: #1b5e20; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == 'cotton' %}background: #c8e6c9;{% endif %}">🌿 Commercial Cotton</a>
-                    <a href="/?demo=alert" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid #ef9a9a; border-radius: 20px; color: #c62828; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == 'alert' %}background: #ffcdd2;{% endif %}">⚠️ Multi-Risk Alert</a>
                 {% endif %}
             </div>
         </div>

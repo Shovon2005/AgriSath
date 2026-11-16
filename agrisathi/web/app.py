@@ -33,7 +33,24 @@ def create_app(config_name: str = "default") -> Flask:
 
     @app.context_processor
     def inject_defaults():
-        return {"demo_data": {}, "active_preset": "", "form_data": {}}
+        from agrisathi.data.scenarios import get_farm_scenarios
+        from agrisathi.advisory.profiles import get_crop_profiles
+        from agrisathi.core.schemas import FEATURE_NAMES
+
+        scenarios = get_farm_scenarios()
+        try:
+            crop_count = len(get_crop_profiles())
+        except Exception:
+            crop_count = 22
+
+        return {
+            "demo_data": {},
+            "active_preset": "",
+            "form_data": {},
+            "scenarios": scenarios,
+            "crop_count": crop_count,
+            "feature_count": len(FEATURE_NAMES),
+        }
 
     # Custom Error Handlers
     @app.errorhandler(400)

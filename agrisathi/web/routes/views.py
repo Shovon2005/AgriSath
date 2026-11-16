@@ -26,7 +26,24 @@ logger = get_logger("agrisathi.views")
 views_bp = Blueprint("views", __name__)
 
 # Dynamic scenarios proxy
-DEMO_PRESETS = get_scenario_parameters_map()
+class _DynamicPresetsProxy(dict):
+    """Dynamic dict proxy always querying fresh scenario parameter mappings."""
+    def __getitem__(self, key):
+        return get_scenario_parameters_map()[key]
+    def get(self, key, default=None):
+        return get_scenario_parameters_map().get(key, default)
+    def items(self):
+        return get_scenario_parameters_map().items()
+    def keys(self):
+        return get_scenario_parameters_map().keys()
+    def values(self):
+        return get_scenario_parameters_map().values()
+    def __contains__(self, key):
+        return key in get_scenario_parameters_map()
+    def __len__(self):
+        return len(get_scenario_parameters_map())
+
+DEMO_PRESETS = _DynamicPresetsProxy()
 
 
 @views_bp.route("/")
@@ -110,6 +127,7 @@ def predict():
             form_data=raw_data,
             demo_data={},
             active_preset="",
+            scenarios=get_farm_scenarios(),
         ), 422
     except Exception as e:
         logger.error("Error during prediction: %s", e, exc_info=True)
@@ -151,6 +169,7 @@ def download_report():
             form_data=raw_data,
             demo_data={},
             active_preset="",
+            scenarios=get_farm_scenarios(),
         ), 422
     except Exception as e:
         logger.error("Download report failed: %s", e)

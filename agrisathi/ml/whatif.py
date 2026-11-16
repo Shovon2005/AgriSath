@@ -6,7 +6,12 @@ and observe sensitivity shifts in crop recommendations.
 
 from typing import Dict, Any, List
 from agrisathi.core.validator import validate_farm_input, FEATURE_NAMES
-from agrisathi.core.schemas import EXTENDED_FEATURE_DEFINITIONS
+from agrisathi.core.schemas import (
+    EXTENDED_FEATURE_DEFINITIONS,
+    canonical_soil_type,
+    canonical_growth_stage,
+    canonical_water_source,
+)
 from agrisathi.ml.predictor import get_predictor
 
 
@@ -31,27 +36,49 @@ def simulate_what_if(
     supported_fields = set(FEATURE_NAMES) | {s.name for s in EXTENDED_FEATURE_DEFINITIONS}
 
     for field, new_val in adjustments.items():
-        if field in supported_fields and new_val is not None:
+        if field not in supported_fields or new_val is None:
+            continue
+
+        if isinstance(new_val, str) and not new_val.strip():
+            continue
+
+        # Remove cached display label to prevent stale label shadowing
+        modified_data.pop(f"{field}_label", None)
+
+        if field in ("soil_type", "growth_stage", "water_source_type"):
+            old_display = sanitized_base.get(f"{field}_label")
+            if field == "soil_type":
+                new_display = canonical_soil_type(new_val)
+                if not old_display:
+                    old_display = canonical_soil_type(sanitized_base.get(field, 2))
+            elif field == "growth_stage":
+                new_display = canonical_growth_stage(new_val)
+                if not old_display:
+                    old_display = canonical_growth_stage(sanitized_base.get(field, 2))
+            else:  # water_source_type
+                new_display = canonical_water_source(new_val)
+                if not old_display:
+                    old_display = canonical_water_source(sanitized_base.get(field, 1))
+
+            if old_display != new_display:
+                modified_data[field] = new_display
+                applied_changes.append({
+                    "field": field,
+                    "old_value": old_display,
+                    "new_value": new_display,
+                    "delta": 0.0,
+                })
+        else:
             old_val = sanitized_base.get(field)
-            # Remove cached display label to prevent stale label shadowing
-            modified_data.pop(f"{field}_label", None)
             try:
-                if isinstance(old_val, (int, float)) and isinstance(new_val, (int, float, str)) and field not in ("soil_type", "growth_stage", "water_source_type"):
-                    num_new = float(new_val)
-                    modified_data[field] = num_new
+                num_new = float(new_val)
+                modified_data[field] = num_new
+                if old_val is None or abs(num_new - float(old_val)) > 1e-4:
                     applied_changes.append({
                         "field": field,
                         "old_value": old_val,
                         "new_value": num_new,
-                        "delta": round(num_new - old_val, 2),
-                    })
-                else:
-                    modified_data[field] = new_val
-                    applied_changes.append({
-                        "field": field,
-                        "old_value": old_val,
-                        "new_value": new_val,
-                        "delta": 0.0,
+                        "delta": round(num_new - float(old_val), 2) if old_val is not None else 0.0,
                     })
             except (ValueError, TypeError):
                 modified_data[field] = new_val
@@ -92,7 +119,7 @@ def simulate_what_if(
             sign = "+" if ch["delta"] > 0 else ""
             change_summaries.append(f"{field_name} by {sign}{ch['delta']}")
         else:
-            change_summaries.append(f"{field_name} to {ch['new_value']}")
+            change_summaries.append(f"{field_name} from {ch['old_value']} to {ch['new_value']}")
 
     changes_text = ", ".join(change_summaries) if change_summaries else "selected parameters"
 
