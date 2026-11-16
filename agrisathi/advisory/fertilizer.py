@@ -8,7 +8,7 @@ from typing import Dict, Any, List
 from agrisathi.advisory.profiles import (
     get_fertilizer_conversions,
     get_organic_guidelines,
-    get_crop_profile,
+    resolve_crop_profile,
 )
 from agrisathi.core.schemas import safe_float as _safe_float
 
@@ -24,17 +24,7 @@ def calculate_fertilizer_guidance(
     Uses dynamic conversions and organic guidelines.
     """
     farm_data = farm_data or {}
-
-    if isinstance(crop_name, dict) and crop_profile is None:
-        crop_profile = crop_name
-        crop_name = None
-
-    if isinstance(crop_profile, str):
-        crop_name = crop_profile
-        crop_profile = None
-
-    if crop_profile is None:
-        crop_profile = get_crop_profile(crop_name or "rice")
+    crop_name, crop_profile = resolve_crop_profile(crop_name, crop_profile, default_crop="rice")
 
     conversions = get_fertilizer_conversions()
     guidelines = get_organic_guidelines()
@@ -90,15 +80,9 @@ def calculate_fertilizer_guidance(
     raw_area_ha = _safe_float(farm_data.get("farm_area_ha"), 1.0)
     farm_area_ha = max(0.01, raw_area_ha)
 
-    total_urea_kg = round(urea_rounded * farm_area_ha, 1)
-    total_dap_kg = round(dap_rounded * farm_area_ha, 1)
-    total_ssp_kg = round(ssp_rounded * farm_area_ha, 1)
-    total_mop_kg = round(mop_rounded * farm_area_ha, 1)
-
-    urea_bags = round(total_urea_kg / bag_weight, 1)
-    dap_bags = round(total_dap_kg / bag_weight, 1)
-    ssp_bags = round(total_ssp_kg / bag_weight, 1)
-    mop_bags = round(total_mop_kg / bag_weight, 1)
+    rates = {"urea": urea_rounded, "dap": dap_rounded, "ssp": ssp_rounded, "mop": mop_rounded}
+    totals = {k: round(v * farm_area_ha, 1) for k, v in rates.items()}
+    bags = {k: round(v / bag_weight, 1) for k, v in totals.items()}
 
     # 6. Organic Alternatives and Bio-fertilizers
     crop_category = crop_profile.get("category", "General")
@@ -199,30 +183,21 @@ def calculate_fertilizer_guidance(
 
         if urea_rounded > 0.0 and (urea_rounded < 1.5 or split_urea_1 == 0.0):
             basal_parts.append(f"100% of Urea ({urea_rounded:.1f} kg/ha)")
-            schedule = [
-                f"Basal Application (at sowing): Apply {', '.join(basal_parts)}."
-            ]
-            schedule.append(
+            top_dressing = [
                 "Top-Dressing: No split top-dressing required for minimal nitrogen dosage; full requirement satisfied at basal application."
-            )
+            ]
         elif urea_rounded > 0.0:
             basal_parts.append(f"33% of Urea ({split_urea_1:.1f} kg/ha)")
-            schedule = [
-                f"Basal Application (at sowing): Apply {', '.join(basal_parts)}."
+            top_dressing = [
+                f"First Top-Dressing (active vegetative stage): Apply 33% of Urea ({split_urea_2:.1f} kg/ha) with light irrigation.",
+                f"Second Top-Dressing (panicle/flowering initiation): Apply remaining {split_urea_3:.1f} kg/ha of Urea.",
             ]
-            schedule.append(
-                f"First Top-Dressing (active vegetative stage): Apply 33% of Urea ({split_urea_2:.1f} kg/ha) with light irrigation."
-            )
-            schedule.append(
-                f"Second Top-Dressing (panicle/flowering initiation): Apply remaining {split_urea_3:.1f} kg/ha of Urea."
-            )
         else:
-            schedule = [
-                f"Basal Application (at sowing): Apply {', '.join(basal_parts)}."
-            ]
-            schedule.append(
+            top_dressing = [
                 "Top-Dressing: No synthetic nitrogen top-dressing required as baseline soil nitrogen is sufficient."
-            )
+            ]
+
+        schedule = [f"Basal Application (at sowing): Apply {', '.join(basal_parts)}."] + top_dressing
 
     return {
         "crop": crop_title,
@@ -243,14 +218,14 @@ def calculate_fertilizer_guidance(
         "farm_area_ha": farm_area_ha,
         "commercial_bag_weight_kg": bag_weight,
         "total_farm_requirements": {
-            "urea_kg": total_urea_kg,
-            "urea_bags_50kg": urea_bags,
-            "dap_kg": total_dap_kg,
-            "dap_bags_50kg": dap_bags,
-            "ssp_kg": total_ssp_kg,
-            "ssp_bags_50kg": ssp_bags,
-            "mop_kg": total_mop_kg,
-            "mop_bags_50kg": mop_bags,
+            "urea_kg": totals["urea"],
+            "urea_bags_50kg": bags["urea"],
+            "dap_kg": totals["dap"],
+            "dap_bags_50kg": bags["dap"],
+            "ssp_kg": totals["ssp"],
+            "ssp_bags_50kg": bags["ssp"],
+            "mop_kg": totals["mop"],
+            "mop_bags_50kg": bags["mop"],
         },
         "organic_alternatives": organic_alternatives,
         "application_schedule": schedule,

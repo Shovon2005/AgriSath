@@ -5,7 +5,7 @@ dynamically from configuration files, eliminating static hardcoded dictionaries.
 """
 
 import json
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple
 from agrisathi.config import Config
 from agrisathi.core.exceptions import AdvisoryCalculationError
 
@@ -338,3 +338,24 @@ def update_crop_profile(crop_name: str, profile_data: Dict[str, Any]) -> Dict[st
         json.dump(profiles, f, indent=2)
     _PROFILES_CACHE = profiles
     return profile_data
+
+
+def resolve_crop_profile(
+    crop_name: Any = None,
+    crop_profile: Any = None,
+    default_crop: Optional[str] = "rice",
+) -> Tuple[Optional[str], Optional[Dict[str, Any]]]:
+    """Resolve polymorphic (crop_name, crop_profile) arguments into (name, profile)."""
+    if isinstance(crop_name, dict) and crop_profile is None:
+        crop_profile = crop_name
+        crop_name = None
+    elif isinstance(crop_profile, str):
+        crop_name = crop_profile
+        crop_profile = None
+
+    if crop_profile is None:
+        target = crop_name or default_crop
+        if target:
+            crop_profile = get_crop_profile(target)
+    return crop_name, crop_profile
+

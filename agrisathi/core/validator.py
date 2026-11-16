@@ -11,6 +11,7 @@ from agrisathi.core.schemas import (
     CATEGORICAL_FEATURES,
     canonical_season,
     area_to_hectares,
+    safe_float,
 )
 
 _CATEGORICAL_LOOKUP = {
@@ -37,15 +38,10 @@ def _parse_bounded_float(
     ndigits: int = 2,
 ) -> float:
     """Safely parse float within bounds, respecting 0.0 and falling back to default."""
-    if val is None or (isinstance(val, str) and not val.strip()):
+    f = safe_float(val, default)
+    if f < min_val or f > max_val:
         return default
-    try:
-        f = float(val)
-        if math.isnan(f) or math.isinf(f) or f < min_val or f > max_val:
-            return default
-        return round(f, ndigits)
-    except (ValueError, TypeError):
-        return default
+    return round(f, ndigits)
 
 
 def normalize_categorical(field_name: str, raw_value: Any) -> Tuple[int, str]:
@@ -158,7 +154,7 @@ def validate_farm_input(raw_data: Dict[str, Any], allow_defaults: bool = False) 
     raw_unit = str(raw_data.get("farm_area_unit") or "hectare").strip().lower()
     area_val = _parse_bounded_float(raw_area, default=1.0, min_val=0.01, ndigits=2)
     sanitized["farm_area"] = area_val
-    sanitized["farm_area_unit"] = "acre" if "acre" in raw_unit else "hectare"
+    sanitized["farm_area_unit"] = "acre" if "acre" in raw_unit else ("bigha" if "bigha" in raw_unit else "hectare")
     sanitized["farm_area_ha"] = area_to_hectares(area_val, raw_unit)
 
     # 2. Electrical Conductivity (EC in dS/m)

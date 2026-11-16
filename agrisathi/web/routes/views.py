@@ -5,10 +5,8 @@ Web HTML View Blueprint for AgriSathi.
 import io
 from flask import Blueprint, render_template, request, send_file, redirect, url_for, flash
 from agrisathi.core.schemas import FEATURE_NAMES, FEATURE_MAP
-from agrisathi.core.validator import validate_farm_input
 from agrisathi.core.exceptions import ValidationError
-from agrisathi.ml.predictor import get_predictor
-from agrisathi.advisory.engine import generate_full_advisory
+from agrisathi.advisory.engine import run_full_pipeline
 from agrisathi.reports.pdf_generator import generate_pdf_advisory_report
 from agrisathi.data.history import (
     save_prediction_record,
@@ -69,14 +67,7 @@ def predict():
     raw_data = request.form.to_dict()
 
     try:
-        sanitized = validate_farm_input(raw_data)
-        predictor = get_predictor()
-        prediction = predictor.predict(sanitized)
-        advisory = generate_full_advisory(
-            sanitized,
-            prediction["recommended_crop"],
-            top_crops=prediction.get("top_three"),
-        )
+        sanitized, prediction, advisory = run_full_pipeline(raw_data)
         record_id = save_prediction_record(sanitized, prediction, advisory)
 
         # Clean display dictionary for Farm Input Summary
@@ -142,15 +133,7 @@ def download_report():
     raw_data = request.form.to_dict()
 
     try:
-        sanitized = validate_farm_input(raw_data)
-        predictor = get_predictor()
-        prediction = predictor.predict(sanitized)
-        advisory = generate_full_advisory(
-            sanitized,
-            prediction["recommended_crop"],
-            top_crops=prediction.get("top_three"),
-        )
-
+        _, prediction, advisory = run_full_pipeline(raw_data)
         pdf_bytes = generate_pdf_advisory_report(prediction, advisory)
 
         return send_file(
@@ -202,14 +185,7 @@ def history_pdf(record_id: int):
         return redirect(url_for("views.history"))
 
     try:
-        sanitized = validate_farm_input(record["inputs"], allow_defaults=True)
-        predictor = get_predictor()
-        prediction = predictor.predict(sanitized)
-        advisory = generate_full_advisory(
-            sanitized,
-            prediction["recommended_crop"],
-            top_crops=prediction.get("top_three"),
-        )
+        _, prediction, advisory = run_full_pipeline(record["inputs"], allow_defaults=True)
         pdf_bytes = generate_pdf_advisory_report(prediction, advisory)
 
         return send_file(

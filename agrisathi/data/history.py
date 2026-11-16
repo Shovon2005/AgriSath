@@ -135,6 +135,17 @@ def save_prediction_record(
             conn.close()
 
 
+def _hydrate_record(row: sqlite3.Row) -> Dict[str, Any]:
+    """Hydrate a database row into a dictionary with deserialized JSON subdocuments."""
+    rec = dict(row)
+    for key, json_col in (("inputs", "input_json"), ("advisory_summary", "advisory_json")):
+        try:
+            rec[key] = json.loads(rec[json_col])
+        except Exception:
+            rec[key] = {}
+    return rec
+
+
 def get_recent_predictions(limit: int = 20, crop_filter: Optional[str] = None) -> List[Dict[str, Any]]:
     """Retrieve recent predictions, optionally filtered by crop name."""
     conn = None
@@ -149,21 +160,7 @@ def get_recent_predictions(limit: int = 20, crop_filter: Optional[str] = None) -
         params.append(limit)
 
         cur = conn.execute(query, params)
-        rows = cur.fetchall()
-
-        records = []
-        for r in rows:
-            rec = dict(r)
-            try:
-                rec["inputs"] = json.loads(rec["input_json"])
-            except Exception:
-                rec["inputs"] = {}
-            try:
-                rec["advisory_summary"] = json.loads(rec["advisory_json"])
-            except Exception:
-                rec["advisory_summary"] = {}
-            records.append(rec)
-        return records
+        return [_hydrate_record(r) for r in cur.fetchall()]
     except Exception as e:
         logger.error("Failed to query prediction history: %s", e)
         return []
@@ -179,12 +176,7 @@ def get_prediction_by_id(record_id: int) -> Optional[Dict[str, Any]]:
         conn = get_db_connection()
         cur = conn.execute("SELECT * FROM predictions_history WHERE id = ?", (record_id,))
         row = cur.fetchone()
-        if not row:
-            return None
-        rec = dict(row)
-        rec["inputs"] = json.loads(rec["input_json"])
-        rec["advisory_summary"] = json.loads(rec["advisory_json"])
-        return rec
+        return _hydrate_record(row) if row else None
     except Exception as e:
         logger.error("Failed to fetch prediction %s: %s", record_id, e)
         return None

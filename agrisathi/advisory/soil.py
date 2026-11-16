@@ -5,8 +5,16 @@ using dynamic agronomic thresholds.
 """
 
 from typing import Dict, Any, List
-from agrisathi.advisory.profiles import get_soil_properties, get_soil_thresholds, get_crop_profile
+from agrisathi.advisory.profiles import get_soil_properties, get_soil_thresholds, resolve_crop_profile
 from agrisathi.core.schemas import canonical_soil_type, safe_float as _safe_float
+
+
+def _fertility_tier(val: float, high: float, med: float) -> int:
+    return 2 if val >= high else (1 if val >= med else 0)
+
+
+def _npk_status(val: float, min_v: float, max_v: float) -> str:
+    return "Excess" if val > max_v else ("Deficient" if val < min_v else "Optimal")
 
 
 def assess_soil_health(
@@ -21,17 +29,7 @@ def assess_soil_health(
     Uses dynamic agronomic thresholds and parameters.
     """
     farm_data = farm_data or {}
-
-    if isinstance(crop_name, dict) and crop_profile is None:
-        crop_profile = crop_name
-        crop_name = None
-
-    if isinstance(crop_profile, str):
-        crop_name = crop_profile
-        crop_profile = None
-
-    if crop_profile is None and crop_name:
-        crop_profile = get_crop_profile(crop_name)
+    crop_name, crop_profile = resolve_crop_profile(crop_name, crop_profile, default_crop=None)
 
     thresholds = get_soil_thresholds()
     th_ph = thresholds.get("ph", {})
@@ -211,26 +209,12 @@ def assess_soil_health(
         status = "Poor"
 
     # Soil Fertility Classification: "Low", "Medium", or "High"
-    fertility_points = 0
-    if n >= th_n.get("fertility_high", 50.0):
-        fertility_points += 2
-    elif n >= th_n.get("fertility_medium", 30.0):
-        fertility_points += 1
-
-    if p >= th_p.get("fertility_high", 35.0):
-        fertility_points += 2
-    elif p >= th_p.get("fertility_medium", 20.0):
-        fertility_points += 1
-
-    if k >= th_k.get("fertility_high", 45.0):
-        fertility_points += 2
-    elif k >= th_k.get("fertility_medium", 25.0):
-        fertility_points += 1
-
-    if oc >= oc_opt_min:
-        fertility_points += 2
-    elif oc >= oc_crit_low:
-        fertility_points += 1
+    fertility_points = (
+        _fertility_tier(n, th_n.get("fertility_high", 50.0), th_n.get("fertility_medium", 30.0))
+        + _fertility_tier(p, th_p.get("fertility_high", 35.0), th_p.get("fertility_medium", 20.0))
+        + _fertility_tier(k, th_k.get("fertility_high", 45.0), th_k.get("fertility_medium", 25.0))
+        + _fertility_tier(oc, oc_opt_min, oc_crit_low)
+    )
 
     fert_ph_opt_min = _safe_float(th_fert.get("ph_optimal_min"), 6.0)
     fert_ph_opt_max = _safe_float(th_fert.get("ph_optimal_max"), 7.8)
@@ -272,21 +256,9 @@ def assess_soil_health(
         "deficiencies": deficiencies,
         "excesses": excesses,
         "nutrients_analysis": {
-            "nitrogen": {
-                "value": n,
-                "status": "Excess" if n > n_max else ("Deficient" if n < n_min else "Optimal"),
-                "unit": "mg/kg",
-            },
-            "phosphorus": {
-                "value": p,
-                "status": "Excess" if p > p_max else ("Deficient" if p < p_min else "Optimal"),
-                "unit": "mg/kg",
-            },
-            "potassium": {
-                "value": k,
-                "status": "Excess" if k > k_max else ("Deficient" if k < k_min else "Optimal"),
-                "unit": "mg/kg",
-            },
+            "nitrogen": {"value": n, "status": _npk_status(n, n_min, n_max), "unit": "mg/kg"},
+            "phosphorus": {"value": p, "status": _npk_status(p, p_min, p_max), "unit": "mg/kg"},
+            "potassium": {"value": k, "status": _npk_status(k, k_min, k_max), "unit": "mg/kg"},
             "ph": {
                 "value": ph,
                 "status": "Alkaline" if ph > ph_opt_max else ("Acidic" if ph < ph_slight_acid else "Optimal"),

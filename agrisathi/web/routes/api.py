@@ -5,7 +5,6 @@ RESTful JSON API Blueprint for AgriSathi.
 import io
 from flask import Blueprint, request, jsonify, send_file
 from agrisathi import __version__
-from agrisathi.core.validator import validate_farm_input
 from agrisathi.core.exceptions import ValidationError, AgriSathiError
 from agrisathi.ml.predictor import get_predictor
 from agrisathi.ml.whatif import simulate_what_if
@@ -16,7 +15,7 @@ from agrisathi.advisory.profiles import (
     update_agronomic_rules,
     reload_agronomic_rules,
 )
-from agrisathi.advisory.engine import generate_full_advisory
+from agrisathi.advisory.engine import run_full_pipeline
 from agrisathi.reports.pdf_generator import generate_pdf_advisory_report
 from agrisathi.utils.weather import (
     fetch_weather_data,
@@ -211,14 +210,7 @@ def predict():
         }), 400
 
     try:
-        sanitized = validate_farm_input(payload)
-        predictor = get_predictor()
-        prediction = predictor.predict(sanitized)
-        advisory = generate_full_advisory(
-            sanitized,
-            prediction["recommended_crop"],
-            top_crops=prediction.get("top_three"),
-        )
+        sanitized, prediction, advisory = run_full_pipeline(payload)
         record_id = save_prediction_record(sanitized, prediction, advisory)
 
         return jsonify({
@@ -290,15 +282,7 @@ def generate_report():
         }), 400
 
     try:
-        sanitized = validate_farm_input(payload)
-        predictor = get_predictor()
-        prediction = predictor.predict(sanitized)
-        advisory = generate_full_advisory(
-            sanitized,
-            prediction["recommended_crop"],
-            top_crops=prediction.get("top_three"),
-        )
-
+        _, prediction, advisory = run_full_pipeline(payload)
         pdf_bytes = generate_pdf_advisory_report(prediction, advisory)
 
         return send_file(

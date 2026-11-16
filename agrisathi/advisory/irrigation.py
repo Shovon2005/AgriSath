@@ -5,7 +5,7 @@ using dynamic irrigation rules and FAO-56 Penman-Monteith ETc estimation.
 """
 
 from typing import Dict, Any, List
-from agrisathi.advisory.profiles import get_crop_profile, get_irrigation_rules
+from agrisathi.advisory.profiles import get_irrigation_rules, resolve_crop_profile
 from agrisathi.core.schemas import (
     canonical_soil_type,
     canonical_growth_stage,
@@ -25,17 +25,7 @@ def calculate_irrigation_advisory(
     Uses dynamic irrigation rules.
     """
     farm_data = farm_data or {}
-
-    if isinstance(crop_name, dict) and crop_profile is None:
-        crop_profile = crop_name
-        crop_name = None
-
-    if isinstance(crop_profile, str):
-        crop_name = crop_profile
-        crop_profile = None
-
-    if crop_profile is None:
-        crop_profile = get_crop_profile(crop_name or "rice")
+    crop_name, crop_profile = resolve_crop_profile(crop_name, crop_profile, default_crop="rice")
 
     rules = get_irrigation_rules()
     crit_moisture = _safe_float(rules.get("critical_moisture"), 12.0)

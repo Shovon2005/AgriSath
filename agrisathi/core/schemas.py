@@ -77,9 +77,16 @@ CODE_TO_WATER_SOURCE: Dict[int, str] = {
 }
 
 
-_SOIL_MAP = {"1": "Clay", "clay": "Clay", "2": "Loamy", "loamy": "Loamy", "3": "Sandy", "sandy": "Sandy"}
-_STAGE_MAP = {"1": "Seedling", "seedling": "Seedling", "2": "Vegetative", "vegetative": "Vegetative", "3": "Flowering", "flowering": "Flowering", "4": "Maturity", "maturity": "Maturity"}
-_SOURCE_MAP = {"1": "Groundwater", "groundwater": "Groundwater", "2": "Rainwater", "rainwater": "Rainwater", "3": "Canal", "canal": "Canal", "4": "River", "river": "River"}
+def _build_canonical_map(str_to_code: Dict[str, int], code_to_str: Dict[int, str]) -> Dict[str, str]:
+    m = {str(k): v for k, v in code_to_str.items()}
+    for s, code in str_to_code.items():
+        m[s] = code_to_str[code]
+    return m
+
+
+_SOIL_MAP = _build_canonical_map(SOIL_TYPE_TO_CODE, CODE_TO_SOIL_TYPE)
+_STAGE_MAP = _build_canonical_map(GROWTH_STAGE_TO_CODE, CODE_TO_GROWTH_STAGE)
+_SOURCE_MAP = _build_canonical_map(WATER_SOURCE_TO_CODE, CODE_TO_WATER_SOURCE)
 
 
 def _clean_str(val: Any) -> str:
@@ -87,10 +94,16 @@ def _clean_str(val: Any) -> str:
     return s[:-2] if s.endswith(".0") else s
 
 
-def safe_float(val: Any, default: float) -> float:
-    """Null-safe float parser respecting valid 0.0 values."""
+def safe_float(val: Any, default: float = 0.0) -> float:
+    """Null-safe float parser respecting valid 0.0 values and percentage strings."""
     if val is None:
         return default
+    if isinstance(val, str):
+        val = val.strip()
+        if not val:
+            return default
+        if val.endswith("%"):
+            val = val[:-1].strip()
     try:
         f = float(val)
         return default if (math.isnan(f) or math.isinf(f)) else f

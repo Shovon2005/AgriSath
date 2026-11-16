@@ -21,6 +21,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 
 from agrisathi.core.exceptions import ReportGenerationError
+from agrisathi.core.schemas import safe_float
 
 
 PRIMARY_GREEN = colors.HexColor("#1b5e20")
@@ -152,13 +153,7 @@ def generate_pdf_advisory_report(
         # 2. Hero Recommendation Box
         crop_val = prediction_result.get("recommended_crop") or "Target Crop"
         crop = html.escape(str(crop_val).title())
-        conf_val = prediction_result.get("confidence")
-        try:
-            if isinstance(conf_val, str):
-                conf_val = conf_val.rstrip("%").strip()
-            conf = float(conf_val) if conf_val is not None else 95.0
-        except (ValueError, TypeError):
-            conf = 95.0
+        conf = safe_float(prediction_result.get("confidence"), 95.0)
 
         crop_profile = (advisory_data.get("crop_profile") or {}) if isinstance(advisory_data, dict) else {}
         crop_desc = html.escape(str(crop_profile.get("description") or "Target crop determined optimal by Random Forest model."))
@@ -384,13 +379,8 @@ def generate_pdf_advisory_report(
                 if not isinstance(f_item, dict):
                     continue
                 f_name = html.escape(str(f_item.get("feature") or "-"))
-                try:
-                    imp_val = f_item.get("impact_percentage")
-                    if isinstance(imp_val, str):
-                        imp_val = imp_val.rstrip("%").strip()
-                    f_imp = f"{float(imp_val):.1f}%" if imp_val is not None else "-"
-                except (ValueError, TypeError):
-                    f_imp = str(f_item.get("impact_percentage") or "-")
+                imp_val = f_item.get("impact_percentage")
+                f_imp = f"{safe_float(imp_val):.1f}%" if imp_val is not None else "-"
 
                 f_dir_val = f_item.get("direction")
                 f_dir = html.escape(str(f_dir_val).capitalize() if f_dir_val is not None else "-")

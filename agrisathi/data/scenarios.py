@@ -124,6 +124,11 @@ def get_farm_scenario(key: str) -> Optional[Dict[str, Any]]:
     return scenarios.get(key.strip().lower())
 
 
+def _persist_scenarios(scenarios: Dict[str, Any]):
+    with open(Config.SCENARIOS_PATH, "w", encoding="utf-8") as f:
+        json.dump({"version": "1.0", "scenarios": scenarios}, f, indent=2)
+
+
 def save_farm_scenario(key: str, scenario_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Dynamically validate, sanitize, and save/update a farm scenario in the persistent JSON store.
@@ -160,10 +165,7 @@ def save_farm_scenario(key: str, scenario_data: Dict[str, Any]) -> Dict[str, Any
     }
 
     scenarios[clean_key] = entry
-    path = Config.SCENARIOS_PATH
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump({"version": "1.0", "scenarios": scenarios}, f, indent=2)
-
+    _persist_scenarios(scenarios)
     _SCENARIOS_CACHE = scenarios
     return entry
 
@@ -181,9 +183,6 @@ def delete_farm_scenario(key: str) -> bool:
         return False
 
     del scenarios[clean_key]
-    path = Config.SCENARIOS_PATH
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump({"version": "1.0", "scenarios": scenarios}, f, indent=2)
-
+    _persist_scenarios(scenarios)
     _SCENARIOS_CACHE = scenarios
     return True

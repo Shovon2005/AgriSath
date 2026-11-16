@@ -164,11 +164,7 @@ def fetch_weather_data(
     # Dynamic Regional Baseline Matching
     baselines = get_regional_weather_baselines()
     loc_lower = loc_clean.lower()
-    preset = baselines.get("default", _DEFAULT_FALLBACK_PRESETS["default"])
-    for k, v in baselines.items():
-        if k in loc_lower:
-            preset = v
-            break
+    preset = next((v for k, v in baselines.items() if k in loc_lower), baselines.get("default", _DEFAULT_FALLBACK_PRESETS["default"]))
 
     return {
         "status": "cached_fallback",

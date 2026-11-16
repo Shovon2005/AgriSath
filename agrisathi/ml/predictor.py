@@ -16,7 +16,12 @@ from agrisathi.core.schemas import (
     canonical_growth_stage,
     canonical_water_source,
 )
-from agrisathi.ml.explain import explain_local_prediction, generate_shap_waterfall
+from agrisathi.ml.explain import (
+    explain_local_prediction,
+    generate_shap_waterfall,
+    get_tree_explainer,
+    _canonicalize_df,
+)
 from agrisathi.utils.logger import get_logger
 
 logger = get_logger("agrisathi.ml.predictor")
@@ -118,12 +123,22 @@ class CropPredictor:
             # Primary confidence
             confidence = top_probabilities[0]["percentage"] if top_probabilities else 100.0
 
-            # Local Explainability (SHAP)
+            # Local Explainability (SHAP computed once)
+            explanation = None
+            try:
+                preprocessor = self.pipeline.named_steps["preprocessor"]
+                rf_model = self.pipeline.named_steps["model"]
+                Xt = preprocessor.transform(_canonicalize_df(input_df))
+                explanation = get_tree_explainer(rf_model)(Xt)
+            except Exception:
+                explanation = None
+
             explanations = explain_local_prediction(
                 pipeline=self.pipeline,
                 input_df=input_df,
                 predicted_crop=predicted_crop,
                 top_k=top_k,
+                explanation=explanation,
             )
 
             # SHAP Waterfall data and narrative
@@ -133,6 +148,7 @@ class CropPredictor:
                 predicted_crop=predicted_crop,
                 top_k=top_k,
                 farm_data=sanitized_data,
+                explanation=explanation,
             )
 
             return {

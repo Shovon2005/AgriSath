@@ -90,6 +90,7 @@ def explain_local_prediction(
     input_df: pd.DataFrame,
     predicted_crop: str,
     top_k: int = 5,
+    explanation: Any = None,
 ) -> List[Dict[str, Any]]:
     """
     Compute local SHAP feature contributions for the specific farm input and predicted crop.
@@ -106,11 +107,12 @@ def explain_local_prediction(
 
         # Transform single input with guaranteed canonical categorical strings
         clean_df = _canonicalize_df(input_df)
-        Xt = preprocessor.transform(clean_df)
         feature_names = preprocessor.get_feature_names_out()
 
-        explainer = get_tree_explainer(rf_model)
-        explanation = explainer(Xt)
+        if explanation is None:
+            Xt = preprocessor.transform(clean_df)
+            explainer = get_tree_explainer(rf_model)
+            explanation = explainer(Xt)
 
         # Explanation values shape: (1, n_features, n_classes)
         if len(explanation.values.shape) == 3:
@@ -233,12 +235,37 @@ def synthesize_explanation_narrative(
     return " ".join(narrative_parts)
 
 
+def _build_waterfall_result(
+    base_val: float,
+    final_val: float,
+    steps: List[Dict[str, Any]],
+    narrative: str,
+    crop: str,
+) -> Dict[str, Any]:
+    svg = generate_waterfall_svg({
+        "base_value": round(base_val, 3),
+        "final_value": round(final_val, 3),
+        "steps": steps,
+        "crop": crop.title(),
+    })
+    return {
+        "base_value": round(base_val, 4),
+        "final_value": round(final_val, 4),
+        "prediction_probability": round(final_val, 4),
+        "confidence_pct": round(final_val * 100, 1),
+        "steps": steps,
+        "natural_language_explanation": narrative,
+        "svg_plot": svg,
+    }
+
+
 def generate_shap_waterfall(
     pipeline,
     input_df: pd.DataFrame,
     predicted_crop: str,
     top_k: int = 6,
     farm_data: Dict[str, Any] = None,
+    explanation: Any = None,
 ) -> Dict[str, Any]:
     """
     Computes rigorous SHAP Waterfall data tracking base value E[f(x)], step-by-step feature pushes,
@@ -256,11 +283,12 @@ def generate_shap_waterfall(
 
         # Canonicalize categoricals
         clean_df = _canonicalize_df(input_df)
-        Xt = preprocessor.transform(clean_df)
         feature_names = preprocessor.get_feature_names_out()
 
-        explainer = get_tree_explainer(rf_model)
-        explanation = explainer(Xt)
+        if explanation is None:
+            Xt = preprocessor.transform(clean_df)
+            explainer = get_tree_explainer(rf_model)
+            explanation = explainer(Xt)
 
         # Extract base value E[f(x)]
         if hasattr(explanation, "base_values"):
@@ -336,22 +364,7 @@ def generate_shap_waterfall(
             farm_data=farm_data,
         )
 
-        svg = generate_waterfall_svg({
-            "base_value": round(base_val, 3),
-            "final_value": round(final_val, 3),
-            "steps": waterfall_steps,
-            "crop": predicted_crop.title(),
-        })
-
-        return {
-            "base_value": round(base_val, 4),
-            "final_value": round(final_val, 4),
-            "prediction_probability": round(final_val, 4),
-            "confidence_pct": round(final_val * 100, 1),
-            "steps": waterfall_steps,
-            "natural_language_explanation": narrative,
-            "svg_plot": svg,
-        }
+        return _build_waterfall_result(base_val, final_val, waterfall_steps, narrative, predicted_crop)
 
     except Exception as e:
         logger.warning("SHAP Waterfall computation fallback: %s", e)
@@ -397,22 +410,7 @@ def generate_shap_waterfall(
             farm_data=farm_data,
         )
 
-        svg = generate_waterfall_svg({
-            "base_value": round(base_val, 3),
-            "final_value": round(final_val, 3),
-            "steps": fallback_steps,
-            "crop": predicted_crop.title(),
-        })
-
-        return {
-            "base_value": base_val,
-            "final_value": final_val,
-            "prediction_probability": final_val,
-            "confidence_pct": round(final_val * 100, 1),
-            "steps": fallback_steps,
-            "natural_language_explanation": narrative,
-            "svg_plot": svg,
-        }
+        return _build_waterfall_result(base_val, final_val, fallback_steps, narrative, predicted_crop)
 
 
 def generate_waterfall_svg(waterfall_data: Dict[str, Any]) -> str:
