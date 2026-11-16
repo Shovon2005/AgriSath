@@ -42,3 +42,41 @@ def test_generate_pdf_with_dataframes():
     pdf_bytes = generate_pdf_advisory_report(prediction, advisory)
     assert isinstance(pdf_bytes, bytes)
     assert pdf_bytes.startswith(b"%PDF-")
+
+
+def test_generate_pdf_with_nulls_and_empty_payloads():
+    # Completely empty dicts
+    pdf_empty = generate_pdf_advisory_report({}, {})
+    assert isinstance(pdf_empty, bytes)
+    assert pdf_empty.startswith(b"%PDF-")
+
+    # Dicts populated with None
+    null_pred = {
+        "recommended_crop": None,
+        "confidence": None,
+        "probabilities": None,
+        "important_features": None,
+    }
+    null_adv = {
+        "soil": {"issues": None, "score": None, "status": None},
+        "fertilizer": {"recommendations": None, "commercial_fertilizers": None},
+        "irrigation": {"recommended_actions": None},
+        "risks": {"risks": None},
+        "crop_profile": None,
+    }
+    pdf_nulls = generate_pdf_advisory_report(null_pred, null_adv)
+    assert isinstance(pdf_nulls, bytes)
+    assert pdf_nulls.startswith(b"%PDF-")
+
+
+def test_generate_pdf_single_page_layout(valid_farm_payload):
+    import re
+    sanitized = validate_farm_input(valid_farm_payload)
+    predictor = get_predictor()
+    prediction = predictor.predict(sanitized)
+    advisory = generate_full_advisory(sanitized, prediction["recommended_crop"])
+
+    pdf_bytes = generate_pdf_advisory_report(prediction, advisory)
+    pages = len(re.findall(rb'/Type\s*/Page\b', pdf_bytes))
+    assert pages == 1
+
