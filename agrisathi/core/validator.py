@@ -15,6 +15,8 @@ from agrisathi.core.schemas import (
     CODE_TO_SOIL_TYPE,
     CODE_TO_GROWTH_STAGE,
     CODE_TO_WATER_SOURCE,
+    canonical_season,
+    area_to_hectares,
 )
 
 
@@ -146,4 +148,72 @@ def validate_farm_input(raw_data: Dict[str, Any], allow_defaults: bool = False) 
 
     # Attach display metadata
     sanitized.update(display_info)
+
+    # Process extended agricultural parameters
+    # 1. Farm Area and Unit
+    raw_area = raw_data.get("farm_area")
+    raw_unit = str(raw_data.get("farm_area_unit") or "hectare").strip().lower()
+    if raw_area is not None and str(raw_area).strip() != "":
+        try:
+            area_val = float(raw_area)
+            if area_val <= 0 or math.isnan(area_val) or math.isinf(area_val):
+                area_val = 1.0
+        except (ValueError, TypeError):
+            area_val = 1.0
+    else:
+        area_val = 1.0
+
+    sanitized["farm_area"] = round(area_val, 2)
+    sanitized["farm_area_unit"] = "acre" if "acre" in raw_unit else "hectare"
+    sanitized["farm_area_ha"] = area_to_hectares(area_val, raw_unit)
+
+    # 2. Electrical Conductivity (EC in dS/m)
+    raw_ec = raw_data.get("electrical_conductivity") or raw_data.get("ec")
+    if raw_ec is not None and str(raw_ec).strip() != "":
+        try:
+            ec_val = float(raw_ec)
+            if ec_val < 0.0 or ec_val > 30.0 or math.isnan(ec_val) or math.isinf(ec_val):
+                ec_val = 0.6
+        except (ValueError, TypeError):
+            ec_val = 0.6
+    else:
+        ec_val = 0.6
+    sanitized["electrical_conductivity"] = round(ec_val, 2)
+    sanitized["ec"] = sanitized["electrical_conductivity"]
+
+    # 3. Organic Carbon (OC in %) vs Organic Matter (OM in %)
+    raw_oc = raw_data.get("organic_carbon") or raw_data.get("oc")
+    if raw_oc is not None and str(raw_oc).strip() != "":
+        try:
+            oc_val = float(raw_oc)
+            if oc_val < 0.0 or oc_val > 15.0 or math.isnan(oc_val) or math.isinf(oc_val):
+                oc_val = round(sanitized.get("organic_matter", 3.5) / 1.724, 2)
+        except (ValueError, TypeError):
+            oc_val = round(sanitized.get("organic_matter", 3.5) / 1.724, 2)
+    else:
+        oc_val = round(sanitized.get("organic_matter", 3.5) / 1.724, 2)
+    sanitized["organic_carbon"] = round(oc_val, 2)
+    sanitized["oc"] = sanitized["organic_carbon"]
+
+    # 4. Location and Season
+    loc_val = str(raw_data.get("location") or "Local Farm").strip()
+    sanitized["location"] = loc_val or "Local Farm"
+
+    season_raw = raw_data.get("season")
+    sanitized["season"] = canonical_season(season_raw)
+
+    # 5. Expected Rainfall (24-48h forecast)
+    raw_exp_rain = raw_data.get("expected_rainfall_24h") or raw_data.get("forecast_rainfall")
+    if raw_exp_rain is not None and str(raw_exp_rain).strip() != "":
+        try:
+            exp_rain_val = float(raw_exp_rain)
+            if exp_rain_val < 0.0 or math.isnan(exp_rain_val) or math.isinf(exp_rain_val):
+                exp_rain_val = 0.0
+        except (ValueError, TypeError):
+            exp_rain_val = 0.0
+    else:
+        exp_rain_val = 0.0
+    sanitized["expected_rainfall_24h"] = round(exp_rain_val, 1)
+
     return sanitized
+

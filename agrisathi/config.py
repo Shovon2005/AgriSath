@@ -15,6 +15,11 @@ class Config:
     DATA_DIR = BASE_DIR / "data"
     DATASET_PATH = BASE_DIR / "Crop_recommendationV2.csv"
     CROP_PROFILES_PATH = DATA_DIR / "crop_agronomic_profiles.json"
+    HISTORY_DB_PATH = DATA_DIR / "history.db"
+
+    # Open-Meteo Weather API (free, reliable, no API key required)
+    WEATHER_API_BASE_URL = os.getenv("WEATHER_API_BASE_URL", "https://api.open-meteo.com/v1/forecast")
+    GEOCODING_API_BASE_URL = os.getenv("GEOCODING_API_BASE_URL", "https://geocoding-api.open-meteo.com/v1/search")
 
     # Model paths
     MODEL_DIR = BASE_DIR / "model"
