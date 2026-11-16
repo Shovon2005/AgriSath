@@ -41,6 +41,31 @@ def test_fallback_global_importances():
     assert globals_imp[0]["importance"] > 0
 
 
+def test_global_importances_none_pipeline():
+    # Calling with None or invalid pipeline must return safe default feature definitions without raising exception
+    res = get_global_importances(None, top_k=4)
+    assert len(res) == 4
+    assert res[0]["importance"] > 0
+    assert "narrative" in res[0]
+
+
+def test_tree_explainer_cache_invalidation():
+    from sklearn.ensemble import RandomForestClassifier
+    from agrisathi.ml.explain import get_tree_explainer
+    rf1 = RandomForestClassifier(n_estimators=5, random_state=1)
+    rf1.fit([[1, 2], [3, 4]], [0, 1])
+    rf2 = RandomForestClassifier(n_estimators=5, random_state=2)
+    rf2.fit([[5, 6], [7, 8]], [0, 1])
+
+    exp1 = get_tree_explainer(rf1)
+    exp1_again = get_tree_explainer(rf1)
+    assert exp1 is exp1_again  # cached
+
+    exp2 = get_tree_explainer(rf2)
+    assert exp2 is not exp1  # invalidated on new model
+
+
+
 def test_explain_local_prediction_with_integer_categoricals(valid_farm_payload):
     import pandas as pd
     sanitized = validate_farm_input(valid_farm_payload)
