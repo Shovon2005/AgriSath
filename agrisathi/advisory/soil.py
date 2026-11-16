@@ -41,6 +41,12 @@ def assess_soil_health(
     score = 100
 
     # 1. pH Assessment
+    crop_ph_outside = False
+    if crop_profile:
+        min_c_ph = crop_profile.get("min_ph", 5.5)
+        max_c_ph = crop_profile.get("max_ph", 7.5)
+        crop_ph_outside = (ph < min_c_ph or ph > max_c_ph)
+
     if ph < 5.0:
         issues.append("Soil is strongly acidic (pH < 5.0), inducing aluminum/iron toxicity.")
         actions.append("Apply agricultural lime (calcium carbonate) or dolomite at 1.5 - 2.5 t/ha to buffer acidity.")
@@ -58,20 +64,23 @@ def assess_soil_health(
         actions.append("Incorporate acidic organic amendments like peat or composted pine mulch.")
         score -= 10
     else:
-        issues.append("Soil pH is within the optimal agronomic range (6.0 - 7.5).")
+        if crop_ph_outside:
+            crop_title = crop_profile.get("display_name", "Target crop")
+            issues.append(f"Soil pH ({ph:.1f}) is within standard agricultural baseline (6.0 - 7.5), but suboptimal for {crop_title}.")
+        else:
+            issues.append("Soil pH is within the optimal agronomic range (6.0 - 7.5).")
 
     # Crop-specific pH tolerance
-    if crop_profile:
+    if crop_profile and crop_ph_outside:
         min_c_ph = crop_profile.get("min_ph", 5.5)
         max_c_ph = crop_profile.get("max_ph", 7.5)
-        if ph < min_c_ph or ph > max_c_ph:
-            crop_title = crop_profile.get("display_name", "Target crop")
-            issues.append(f"Current pH {ph} is outside ideal range ({min_c_ph} - {max_c_ph}) for {crop_title}.")
-            if ph < min_c_ph:
-                actions.append(f"Current pH {ph} is below optimal ({min_c_ph} - {max_c_ph}) for {crop_title}; apply agricultural lime to buffer acidity.")
-            else:
-                actions.append(f"Current pH {ph} exceeds optimal ({min_c_ph} - {max_c_ph}) for {crop_title}; incorporate gypsum or sulfur-based amendments.")
-            score -= 10
+        crop_title = crop_profile.get("display_name", "Target crop")
+        issues.append(f"Current pH {ph} is outside ideal range ({min_c_ph} - {max_c_ph}) for {crop_title}.")
+        if ph < min_c_ph:
+            actions.append(f"Current pH {ph} is below optimal ({min_c_ph} - {max_c_ph}) for {crop_title}; apply agricultural lime to buffer acidity.")
+        else:
+            actions.append(f"Current pH {ph} exceeds optimal ({min_c_ph} - {max_c_ph}) for {crop_title}; incorporate gypsum or sulfur-based amendments.")
+        score -= 10
 
     # 2. Organic Matter (OM) Assessment
     if om < 1.5:
@@ -88,6 +97,7 @@ def assess_soil_health(
     # 3. Macro-nutrient Baseline Check
     if n < 30:
         issues.append("Nitrogen level is relatively low (< 30 mg/kg).")
+        actions.append("Apply organic compost, well-decomposed manure, or basal nitrogenous fertilizer to restore the soil nitrogen pool.")
         score -= 10
     elif n > 140:
         issues.append(f"Nitrogen level is excessively high ({n:.1f} mg/kg); risk of vegetative lodging and delayed harvest.")
@@ -96,6 +106,7 @@ def assess_soil_health(
 
     if p < 25:
         issues.append("Phosphorus level is relatively low (< 25 mg/kg).")
+        actions.append("Incorporate rock phosphate, bone meal, or single superphosphate (SSP) to support root proliferation.")
         score -= 10
     elif p > 100:
         issues.append(f"Phosphorus level is very high ({p:.1f} mg/kg); risk of zinc/iron micronutrient lockup.")
@@ -104,9 +115,11 @@ def assess_soil_health(
 
     if k < 30:
         issues.append("Potassium level is relatively low (< 30 mg/kg).")
+        actions.append("Apply muriate of potash (MOP) or incorporate potassium-rich crop residues/biochar.")
         score -= 10
     elif k > 140:
         issues.append(f"Potassium level is elevated ({k:.1f} mg/kg); competitive inhibition with calcium and magnesium uptake.")
+        actions.append("Avoid potash applications to prevent cation antagonism with magnesium uptake.")
         score -= 5
 
     # 4. Soil Texture Synergy

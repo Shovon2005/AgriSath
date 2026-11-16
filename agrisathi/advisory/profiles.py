@@ -47,6 +47,12 @@ FERTILIZER_CONVERSIONS = {
 _PROFILES_CACHE: Optional[Dict[str, Any]] = None
 
 
+def reset_profiles_cache():
+    """Reset cached crop profiles."""
+    global _PROFILES_CACHE
+    _PROFILES_CACHE = None
+
+
 def get_crop_profiles() -> Dict[str, Any]:
     """Load and return crop agronomic profiles (cached)."""
     global _PROFILES_CACHE
@@ -59,14 +65,16 @@ def get_crop_profiles() -> Dict[str, Any]:
     return _PROFILES_CACHE
 
 
-def get_crop_profile(crop_name: str) -> Dict[str, Any]:
-    """Retrieve profile for a specific crop (case-insensitive)."""
+def get_crop_profile(crop_name: Optional[str] = None) -> Dict[str, Any]:
+    """Retrieve profile for a specific crop (case-insensitive and null-safe)."""
     profiles = get_crop_profiles()
-    key = crop_name.strip().lower()
+    raw_str = str(crop_name or "rice").strip()
+    key = raw_str.lower()
     if key not in profiles:
         # Fallback profile for unknown crop
+        display = raw_str.title() if raw_str else "Target Crop"
         return {
-            "display_name": crop_name.title(),
+            "display_name": display,
             "category": "General Crop",
             "opt_n": 80,
             "opt_p": 40,

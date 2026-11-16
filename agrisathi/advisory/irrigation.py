@@ -51,7 +51,12 @@ def calculate_irrigation_advisory(
     high_et = (temperature > 32.0 and humidity < 50.0) or (wind_speed > 6.0 and temperature > 28.0)
 
     # 1. Critical Water Scarcity
-    if moisture < 15.0:
+    if moisture < 12.0:
+        priority = "High"
+        message = f"Critical soil moisture depletion ({moisture:.1f}%). Immediate irrigation required to prevent permanent wilting."
+        actions.append("Initiate deep irrigation immediately (40-50 mm equivalent depth).")
+        actions.append("Prioritize early morning or evening application to minimize atmospheric evaporation loss.")
+    elif moisture < 15.0:
         if crop_demand == "High" or growth_stage == "Flowering":
             priority = "High"
             message = f"Immediate irrigation required. {crop_title} is undergoing acute moisture stress at critical growth stage."
@@ -114,7 +119,9 @@ def calculate_irrigation_advisory(
         actions.append("Clay soil is heavily saturated; ensure active field drainage channels to prevent root asphyxiation.")
 
     # Growth stage adjustments
-    if growth_stage == "Maturity" and moisture >= 18.0:
+    if growth_stage == "Seedling" and priority in ("High", "Medium"):
+        actions.append("Seedling stage has shallow rooting depth: maintain light, uniform surface moisture to avoid seedling desiccation.")
+    elif growth_stage == "Maturity" and moisture >= 18.0:
         actions.append("Crop has reached Maturity stage: gradually reduce irrigation volume to encourage uniform ripening and avoid pre-harvest mold.")
 
     # Water source guidance
