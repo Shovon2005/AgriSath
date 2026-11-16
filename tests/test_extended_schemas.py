@@ -5,6 +5,9 @@ Unit tests for extended domain schemas, season mappings, and farm area conversio
 import pytest
 from agrisathi.core.schemas import (
     Season,
+    SoilType,
+    GrowthStage,
+    WaterSourceType,
     canonical_season,
     area_to_hectares,
     EXTENDED_FEATURE_DEFINITIONS,
@@ -99,3 +102,6 @@ def test_extended_schemas_definitions():
     assert Season.RABI.value == "Rabi"
     assert Season.ZAID.value == "Zaid"
     assert Season.WHOLE_YEAR.value == "Whole Year"
+    assert SoilType.CLAY.value == "Clay"
+    assert GrowthStage.SEEDLING.value == "Seedling"
+    assert WaterSourceType.GROUNDWATER.value == "Groundwater"

@@ -12,7 +12,7 @@ Tests the unified decision support pipeline across all 6 core modules:
 import pytest
 from agrisathi.core.validator import validate_farm_input
 from agrisathi.ml.predictor import get_predictor
-from agrisathi.advisory.engine import generate_full_advisory
+from agrisathi.advisory.engine import generate_full_advisory, run_full_pipeline
 from agrisathi.reports.pdf_generator import generate_pdf_advisory_report
 from agrisathi.data.history import get_recent_predictions
 from agrisathi.advisory.irrigation import calculate_irrigation_advisory
@@ -217,3 +217,16 @@ def test_fertilizer_farm_area_scaling():
     assert p2["total_farm_requirements"]["urea_bags_50kg"] >= p1["total_farm_requirements"]["urea_bags_50kg"]
     assert "vermicompost_tonnes" in p1["organic_alternatives"]
     assert "compost_fym_tonnes" in p1["organic_alternatives"]
+
+
+def test_run_full_pipeline_orchestration(valid_farm_payload):
+    """Verify that run_full_pipeline returns sanitized inputs, prediction, and full advisory in one call."""
+    sanitized, prediction, advisory = run_full_pipeline(valid_farm_payload)
+    assert sanitized["N"] == valid_farm_payload["N"]
+    assert "recommended_crop" in prediction
+    assert "confidence" in prediction
+    assert advisory["crop_name"] == prediction["recommended_crop"]
+    assert "soil" in advisory
+    assert "fertilizer" in advisory
+    assert "irrigation" in advisory
+    assert "risks" in advisory

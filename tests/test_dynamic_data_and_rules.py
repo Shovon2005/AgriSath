@@ -231,9 +231,11 @@ def test_whatif_categorical_human_readable_labels():
 def test_whatif_empty_string_ignored():
     """Verify What-If gracefully ignores empty string adjustments without parameter corruption."""
     base_data = get_scenario_parameters_map()["rice"]
+    orig_temp = base_data.get("temperature", 21.0)
     res = simulate_what_if(base_data, {"temperature": ""})
     # Empty string should not change temperature or be added as change
     assert not any(c["field"] == "temperature" for c in res["changes_applied"])
+    assert res["simulated_prediction"]["input_data"]["temperature"] == orig_temp
 
 
 def test_scenario_key_validation():
