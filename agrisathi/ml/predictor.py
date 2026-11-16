@@ -15,6 +15,9 @@ from agrisathi.core.schemas import (
     CODE_TO_SOIL_TYPE,
     CODE_TO_GROWTH_STAGE,
     CODE_TO_WATER_SOURCE,
+    canonical_soil_type,
+    canonical_growth_stage,
+    canonical_water_source,
 )
 from agrisathi.ml.explain import explain_local_prediction
 from agrisathi.utils.logger import get_logger
@@ -67,12 +70,12 @@ class CropPredictor:
             row = {}
             for col in FEATURE_NAMES:
                 val = sanitized_data[col]
-                if col == "soil_type" and isinstance(val, int):
-                    val = CODE_TO_SOIL_TYPE.get(val, "Loamy")
-                elif col == "growth_stage" and isinstance(val, int):
-                    val = CODE_TO_GROWTH_STAGE.get(val, "Vegetative")
-                elif col == "water_source_type" and isinstance(val, int):
-                    val = CODE_TO_WATER_SOURCE.get(val, "Groundwater")
+                if col == "soil_type":
+                    val = canonical_soil_type(sanitized_data.get("soil_type_label", val))
+                elif col == "growth_stage":
+                    val = canonical_growth_stage(sanitized_data.get("growth_stage_label", val))
+                elif col == "water_source_type":
+                    val = canonical_water_source(sanitized_data.get("water_source_type_label", val))
                 row[col] = val
 
             input_df = pd.DataFrame([row], columns=FEATURE_NAMES)

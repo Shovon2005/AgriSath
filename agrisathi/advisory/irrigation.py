@@ -5,6 +5,11 @@ Estimates water stress indices based on soil moisture, climate parameters, and c
 
 from typing import Dict, Any, List
 from agrisathi.advisory.profiles import get_crop_profile
+from agrisathi.core.schemas import (
+    canonical_soil_type,
+    canonical_growth_stage,
+    canonical_water_source,
+)
 
 
 def calculate_irrigation_advisory(
@@ -27,8 +32,9 @@ def calculate_irrigation_advisory(
     crop_demand = crop_profile.get("water_demand", "Medium")
     crop_title = crop_profile.get("display_name", crop_name or "Target Crop")
 
-    soil_type = farm_data.get("soil_type_label") or farm_data.get("soil_type", "Loamy")
-    growth_stage = farm_data.get("growth_stage_label") or farm_data.get("growth_stage", "Vegetative")
+    soil_type = canonical_soil_type(farm_data.get("soil_type_label") or farm_data.get("soil_type", "Loamy"))
+    growth_stage = canonical_growth_stage(farm_data.get("growth_stage_label") or farm_data.get("growth_stage", "Vegetative"))
+    water_source = canonical_water_source(farm_data.get("water_source_type_label") or farm_data.get("water_source_type", "Groundwater"))
 
     actions: List[str] = []
 
@@ -37,7 +43,7 @@ def calculate_irrigation_advisory(
 
     # 1. Critical Water Scarcity
     if moisture < 15.0:
-        if crop_demand == "High" or growth_stage in ("Flowering", 3):
+        if crop_demand == "High" or growth_stage == "Flowering":
             priority = "High"
             message = f"Immediate irrigation required. {crop_title} is undergoing acute moisture stress at critical growth stage."
             actions.append("Initiate deep irrigation immediately (40-50 mm equivalent depth).")
@@ -85,6 +91,16 @@ def calculate_irrigation_advisory(
     # Special note on sandy soils
     if soil_type == "Sandy" and priority in ("High", "Medium"):
         actions.append("Sandy soil has rapid percolation: apply frequent, smaller irrigation volumes rather than heavy flood irrigation.")
+
+    # Growth stage adjustments
+    if growth_stage == "Maturity" and moisture >= 18.0:
+        actions.append("Crop has reached Maturity stage: gradually reduce irrigation volume to encourage uniform ripening and avoid pre-harvest mold.")
+
+    # Water source guidance
+    if water_source == "Rainwater" and rainfall < 40.0:
+        actions.append("Rainwater harvesting reserves may be limited under dry conditions; verify secondary irrigation access.")
+    elif water_source == "Groundwater" and moisture < 20.0:
+        actions.append("Monitor groundwater salinity/EC levels before heavy pumping during dry spells.")
 
     return {
         "priority": priority,

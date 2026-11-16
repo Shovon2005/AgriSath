@@ -7,7 +7,13 @@ import numpy as np
 import pandas as pd
 import shap
 
-from agrisathi.core.schemas import FEATURE_MAP, CATEGORICAL_FEATURES
+from agrisathi.core.schemas import (
+    FEATURE_MAP,
+    CATEGORICAL_FEATURES,
+    canonical_soil_type,
+    canonical_growth_stage,
+    canonical_water_source,
+)
 from agrisathi.utils.logger import get_logger
 
 logger = get_logger("agrisathi.ml.explain")
@@ -60,8 +66,16 @@ def explain_local_prediction(
 
         class_idx = classes.index(predicted_crop)
 
-        # Transform single input
-        Xt = preprocessor.transform(input_df)
+        # Transform single input with guaranteed canonical categorical strings
+        clean_df = input_df.copy()
+        if "soil_type" in clean_df.columns:
+            clean_df["soil_type"] = clean_df["soil_type"].apply(canonical_soil_type)
+        if "growth_stage" in clean_df.columns:
+            clean_df["growth_stage"] = clean_df["growth_stage"].apply(canonical_growth_stage)
+        if "water_source_type" in clean_df.columns:
+            clean_df["water_source_type"] = clean_df["water_source_type"].apply(canonical_water_source)
+
+        Xt = preprocessor.transform(clean_df)
         feature_names = preprocessor.get_feature_names_out()
 
         explainer = get_tree_explainer(rf_model)

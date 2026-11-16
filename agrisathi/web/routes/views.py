@@ -124,6 +124,16 @@ def download_report():
             as_attachment=True,
             download_name=f"AgriSathi_Advisory_{prediction['recommended_crop']}.pdf",
         )
+    except ValidationError as e:
+        logger.warning("Validation failure on /download-report: %s", e.details)
+        return render_template(
+            "index.html",
+            error=e.message,
+            error_details=e.details,
+            form_data=raw_data,
+            demo_data={},
+            active_preset="",
+        ), 422
     except Exception as e:
         logger.error("Download report failed: %s", e)
         return render_template("error.html", error_message=f"PDF generation error: {e}"), 500

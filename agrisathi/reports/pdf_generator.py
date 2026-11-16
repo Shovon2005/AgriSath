@@ -142,7 +142,7 @@ def generate_pdf_advisory_report(
 
         # 2. Hero Recommendation Box
         crop = prediction_result.get("recommended_crop", "").title()
-        conf = prediction_result.get("confidence", 95.0)
+        conf = float(prediction_result.get("confidence", 95.0))
         crop_profile = advisory_data.get("crop_profile", {})
         crop_desc = crop_profile.get("description", "Target crop determined optimal by Random Forest model.")
 
@@ -255,8 +255,15 @@ def generate_pdf_advisory_report(
 
         # 5. Explainable AI (XAI) & Alternative Predictions Table
         story.append(Paragraph("3. Explainable AI Feature Attribution & Alternative Crops", section_style))
-        xai_features = prediction_result.get("important_features", [])[:4]
-        probs = prediction_result.get("probabilities", [])[:4]
+        raw_xai = prediction_result.get("important_features", [])
+        if hasattr(raw_xai, "to_dict"):
+            raw_xai = raw_xai.to_dict("records")
+        xai_features = raw_xai[:4] if isinstance(raw_xai, list) else []
+
+        raw_probs = prediction_result.get("probabilities", [])
+        if hasattr(raw_probs, "to_dict"):
+            raw_probs = raw_probs.to_dict("records")
+        probs = raw_probs[:4] if isinstance(raw_probs, list) else []
 
         xai_rows = [[
             Paragraph("Top Influencing Feature", table_header),
@@ -271,10 +278,16 @@ def generate_pdf_advisory_report(
             p_item = probs[i] if i < len(probs) else {}
 
             f_name = f_item.get("feature", "-")
-            f_imp = f"{f_item.get('impact_percentage', 0):.1f}%" if f_item else "-"
+            try:
+                f_imp = f"{float(f_item.get('impact_percentage', 0)):.1f}%" if f_item else "-"
+            except (ValueError, TypeError):
+                f_imp = str(f_item.get("impact_percentage", "-"))
             f_dir = f_item.get("direction", "-").capitalize() if f_item else "-"
             c_name = p_item.get("crop", "-").title() if p_item else "-"
-            c_prob = f"{p_item.get('percentage', 0):.1f}%" if p_item else "-"
+            try:
+                c_prob = f"{float(p_item.get('percentage', 0)):.1f}%" if p_item else "-"
+            except (ValueError, TypeError):
+                c_prob = str(p_item.get("percentage", "-"))
 
             xai_rows.append([
                 Paragraph(f_name, table_cell),

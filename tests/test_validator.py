@@ -4,6 +4,11 @@ Unit tests for input validator.
 
 import pytest
 from agrisathi.core.validator import validate_farm_input, normalize_categorical
+from agrisathi.core.schemas import (
+    canonical_soil_type,
+    canonical_growth_stage,
+    canonical_water_source,
+)
 from agrisathi.core.exceptions import ValidationError
 
 
@@ -40,12 +45,37 @@ def test_validate_invalid_categorical(valid_farm_payload):
 
 
 def test_normalize_categorical_variants():
-    # Codes and text
+    # Codes, floats, and text
     assert normalize_categorical("soil_type", "Clay") == (1, "Clay")
     assert normalize_categorical("soil_type", 1) == (1, "Clay")
+    assert normalize_categorical("soil_type", 1.0) == (1, "Clay")
+    assert normalize_categorical("soil_type", "1.0") == (1, "Clay")
     assert normalize_categorical("soil_type", "sandy") == (3, "Sandy")
-    assert normalize_categorical("growth_stage", "Maturity") == (3, "Flowering")
-    assert normalize_categorical("water_source_type", "River") == (3, "Canal")
+    assert normalize_categorical("growth_stage", "Maturity") == (4, "Maturity")
+    assert normalize_categorical("growth_stage", 4) == (4, "Maturity")
+    assert normalize_categorical("growth_stage", 4.0) == (4, "Maturity")
+    assert normalize_categorical("water_source_type", "River") == (4, "River")
+    assert normalize_categorical("water_source_type", 4) == (4, "River")
+    assert normalize_categorical("water_source_type", "4.0") == (4, "River")
+
+
+def test_canonical_resolvers():
+    assert canonical_soil_type("1.0") == "Clay"
+    assert canonical_soil_type(1) == "Clay"
+    assert canonical_soil_type("clay") == "Clay"
+    assert canonical_soil_type(3) == "Sandy"
+    assert canonical_growth_stage(4) == "Maturity"
+    assert canonical_growth_stage("maturity") == "Maturity"
+    assert canonical_water_source(4) == "River"
+    assert canonical_water_source("river") == "River"
+
+
+def test_validate_allow_defaults(valid_farm_payload):
+    del valid_farm_payload["temperature"]
+    del valid_farm_payload["co2_concentration"]
+    res = validate_farm_input(valid_farm_payload, allow_defaults=True)
+    assert res["temperature"] == 25.0
+    assert res["co2_concentration"] == 400.0
 
 
 def test_non_dict_payload():

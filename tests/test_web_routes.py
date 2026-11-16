@@ -48,3 +48,10 @@ def test_predict_validation_failure(client, valid_farm_payload):
     response = client.post("/predict", data=valid_farm_payload)
     assert response.status_code == 422
     assert b"Input Validation Notice" in response.data
+
+
+def test_download_report_validation_failure(client, valid_farm_payload):
+    valid_farm_payload["ph"] = 25.0  # Invalid pH
+    response = client.post("/download-report", data=valid_farm_payload)
+    assert response.status_code == 422
+    assert b"Input Validation Notice" in response.data

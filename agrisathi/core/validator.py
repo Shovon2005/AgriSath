@@ -20,12 +20,14 @@ from agrisathi.core.schemas import (
 def normalize_categorical(field_name: str, raw_value: Any) -> Tuple[int, str]:
     """
     Normalize categorical value into (integer_code, display_string).
-    Accepts both integer codes (1, 2, 3) and string representations ("Loamy", "Clay").
+    Accepts integer codes (1, 2, 3, 4), floats (1.0, 2.0), and string representations ("Loamy", "Clay").
     """
     str_val = str(raw_value).strip().lower()
+    if str_val.endswith(".0"):
+        str_val = str_val[:-2]
 
     if field_name == "soil_type":
-        # Check direct code
+        # Check direct code or string
         if str_val in ("1", "clay"):
             return 1, "Clay"
         if str_val in ("2", "loamy"):
@@ -42,8 +44,10 @@ def normalize_categorical(field_name: str, raw_value: Any) -> Tuple[int, str]:
             return 1, "Seedling"
         if str_val in ("2", "vegetative"):
             return 2, "Vegetative"
-        if str_val in ("3", "flowering", "4", "maturity"):
+        if str_val in ("3", "flowering"):
             return 3, "Flowering"
+        if str_val in ("4", "maturity"):
+            return 4, "Maturity"
         raise ValidationError(
             f"Invalid growth_stage '{raw_value}'. Allowed values: Seedling, Vegetative, Flowering, Maturity.",
             {"field": field_name, "value": raw_value},
@@ -54,8 +58,10 @@ def normalize_categorical(field_name: str, raw_value: Any) -> Tuple[int, str]:
             return 1, "Groundwater"
         if str_val in ("2", "rainwater"):
             return 2, "Rainwater"
-        if str_val in ("3", "canal", "4", "river"):
+        if str_val in ("3", "canal"):
             return 3, "Canal"
+        if str_val in ("4", "river"):
+            return 4, "River"
         raise ValidationError(
             f"Invalid water_source_type '{raw_value}'. Allowed values: Groundwater, Rainwater, Canal, River.",
             {"field": field_name, "value": raw_value},
@@ -64,7 +70,7 @@ def normalize_categorical(field_name: str, raw_value: Any) -> Tuple[int, str]:
     raise ValidationError(f"Unknown categorical field '{field_name}'", {"field": field_name})
 
 
-def validate_farm_input(raw_data: Dict[str, Any]) -> Dict[str, Any]:
+def validate_farm_input(raw_data: Dict[str, Any], allow_defaults: bool = False) -> Dict[str, Any]:
     """
     Validates and normalizes raw form/API data.
     Returns sanitized dictionary containing all 22 typed features and readable labels.
@@ -77,14 +83,22 @@ def validate_farm_input(raw_data: Dict[str, Any]) -> Dict[str, Any]:
     errors: Dict[str, str] = {}
 
     for name in FEATURE_NAMES:
+        spec = FEATURE_MAP[name]
         if name not in raw_data:
-            errors[name] = f"Missing required parameter '{name}'."
-            continue
+            if allow_defaults:
+                val = spec.default
+            else:
+                errors[name] = f"Missing required parameter '{name}'."
+                continue
+        else:
+            val = raw_data[name]
 
-        val = raw_data[name]
         if val is None or (isinstance(val, str) and not val.strip()):
-            errors[name] = f"Field '{name}' cannot be empty."
-            continue
+            if allow_defaults:
+                val = spec.default
+            else:
+                errors[name] = f"Field '{name}' cannot be empty."
+                continue
 
         spec = FEATURE_MAP[name]
 

@@ -20,3 +20,25 @@ def test_generate_pdf_report(valid_farm_payload):
     assert len(pdf_bytes) > 1000
     # PDF magic byte signature
     assert pdf_bytes.startswith(b"%PDF-")
+
+
+def test_generate_pdf_with_dataframes():
+    import pandas as pd
+    prediction = {
+        "recommended_crop": "rice",
+        "confidence": 92.5,
+        "probabilities": pd.DataFrame([{"crop": "rice", "percentage": 92.5}]),
+        "important_features": pd.DataFrame([
+            {"feature": "Rainfall", "impact_percentage": 25.0, "direction": "positive"}
+        ]),
+    }
+    advisory = {
+        "soil": {"status": "Good", "issues": ["Healthy"]},
+        "fertilizer": {"recommendations": ["Sufficient"]},
+        "irrigation": {"priority": "Low", "message": "Optimal"},
+        "risks": {"risks": ["Low risk"]},
+        "crop_profile": {"display_name": "Rice (Oryza sativa)"},
+    }
+    pdf_bytes = generate_pdf_advisory_report(prediction, advisory)
+    assert isinstance(pdf_bytes, bytes)
+    assert pdf_bytes.startswith(b"%PDF-")

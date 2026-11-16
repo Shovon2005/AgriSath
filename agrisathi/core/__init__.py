@@ -20,6 +20,9 @@ from agrisathi.core.schemas import (
     CODE_TO_GROWTH_STAGE,
     WATER_SOURCE_TO_CODE,
     CODE_TO_WATER_SOURCE,
+    canonical_soil_type,
+    canonical_growth_stage,
+    canonical_water_source,
 )
 
 __all__ = [
@@ -40,4 +43,7 @@ __all__ = [
     "CODE_TO_GROWTH_STAGE",
     "WATER_SOURCE_TO_CODE",
     "CODE_TO_WATER_SOURCE",
+    "canonical_soil_type",
+    "canonical_growth_stage",
+    "canonical_water_source",
 ]

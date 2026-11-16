@@ -159,3 +159,28 @@ def test_full_advisory_engine(valid_farm_payload):
     assert "irrigation" in advisory
     assert "risks" in advisory
     assert advisory["crop_name"] == "rice"
+
+
+def test_irrigation_advisory_canonical_resolution():
+    # Numeric soil_type code 3 (Sandy) and maturity growth stage 4
+    payload = {
+        "soil_moisture": 12.0,
+        "temperature": 32.0,
+        "humidity": 45.0,
+        "rainfall": 10.0,
+        "soil_type": 3,
+        "growth_stage": 4,
+        "water_source_type": 2,  # Rainwater
+    }
+    result = calculate_irrigation_advisory(payload, "chickpea")
+    assert any("Sandy soil" in act for act in result["recommended_actions"])
+    assert any("Rainwater harvesting reserves" in act for act in result["recommended_actions"])
+
+
+def test_soil_health_canonical_texture_lookup():
+    # Lowercase string and float code
+    res_str = assess_soil_health({"ph": 6.5, "organic_matter": 3.0, "soil_type": "sandy"})
+    res_code = assess_soil_health({"ph": 6.5, "organic_matter": 3.0, "soil_type": 3.0})
+    assert res_str["soil_texture"] == "Sandy"
+    assert res_code["soil_texture"] == "Sandy"
+    assert res_str["texture_characteristics"]["water_retention"] == "Low"

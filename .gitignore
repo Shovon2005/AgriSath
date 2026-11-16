@@ -42,3 +42,8 @@ htmlcov/
 
 # Logs
 *.log
+
+# Generated artifacts
+*.pdf
+demo_advisory_report.pdf
+

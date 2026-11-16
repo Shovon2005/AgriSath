@@ -5,6 +5,7 @@ Analyzes soil reaction (pH), organic matter, texture, and nutrient retention.
 
 from typing import Dict, Any, List
 from agrisathi.advisory.profiles import SOIL_PROPERTIES
+from agrisathi.core.schemas import canonical_soil_type
 
 
 def assess_soil_health(
@@ -20,10 +21,8 @@ def assess_soil_health(
     n = float(farm_data.get("N", 50))
     p = float(farm_data.get("P", 50))
     k = float(farm_data.get("K", 50))
-    soil_type = farm_data.get("soil_type_label") or farm_data.get("soil_type", "Loamy")
-    if isinstance(soil_type, int):
-        from agrisathi.core.schemas import CODE_TO_SOIL_TYPE
-        soil_type = CODE_TO_SOIL_TYPE.get(soil_type, "Loamy")
+    raw_soil = farm_data.get("soil_type_label") or farm_data.get("soil_type", "Loamy")
+    soil_type = canonical_soil_type(raw_soil)
 
     issues: List[str] = []
     actions: List[str] = []

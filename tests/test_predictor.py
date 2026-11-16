@@ -33,3 +33,16 @@ def test_predict_arid_chickpea(arid_farm_payload):
     assert result["recommended_crop"] in ("chickpea", "mothbeans", "lentil", "blackgram")
     assert len(result["probabilities"]) == 5
     assert len(result["important_features"]) == 5
+
+
+def test_predict_float_and_lowercase_categoricals(valid_farm_payload):
+    # Pass float codes and lowercase strings directly
+    payload = dict(valid_farm_payload)
+    payload["soil_type"] = 1.0  # Float 1.0
+    payload["growth_stage"] = "vegetative"  # Lowercase string
+    payload["water_source_type"] = "3.0"  # String float code
+    predictor = get_predictor()
+    result = predictor.predict(payload)
+    assert result["recommended_crop"] in ("rice", "jute")
+    assert result["confidence"] > 0
+    assert len(result["important_features"]) == 5

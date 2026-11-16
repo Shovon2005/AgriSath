@@ -44,27 +44,75 @@ GROWTH_STAGE_TO_CODE: Dict[str, int] = {
     "seedling": 1,
     "vegetative": 2,
     "flowering": 3,
-    "maturity": 3,  # Map maturity to flowering/late stage
+    "maturity": 4,
 }
 
 CODE_TO_GROWTH_STAGE: Dict[int, str] = {
     1: "Seedling",
     2: "Vegetative",
     3: "Flowering",
+    4: "Maturity",
 }
 
 WATER_SOURCE_TO_CODE: Dict[str, int] = {
     "groundwater": 1,
     "rainwater": 2,
     "canal": 3,
-    "river": 3,  # Surface water channel
+    "river": 4,
 }
 
 CODE_TO_WATER_SOURCE: Dict[int, str] = {
     1: "Groundwater",
     2: "Rainwater",
     3: "Canal",
+    4: "River",
 }
+
+
+def canonical_soil_type(val: Any) -> str:
+    """Normalize any soil type representation (code, string, float) to 'Clay' | 'Loamy' | 'Sandy'."""
+    s = str(val).strip().lower()
+    if s.endswith(".0"):
+        s = s[:-2]
+    if s in ("1", "clay"):
+        return "Clay"
+    if s in ("2", "loamy"):
+        return "Loamy"
+    if s in ("3", "sandy"):
+        return "Sandy"
+    return "Loamy"
+
+
+def canonical_growth_stage(val: Any) -> str:
+    """Normalize any growth stage representation to 'Seedling' | 'Vegetative' | 'Flowering' | 'Maturity'."""
+    s = str(val).strip().lower()
+    if s.endswith(".0"):
+        s = s[:-2]
+    if s in ("1", "seedling"):
+        return "Seedling"
+    if s in ("2", "vegetative"):
+        return "Vegetative"
+    if s in ("3", "flowering"):
+        return "Flowering"
+    if s in ("4", "maturity"):
+        return "Maturity"
+    return "Vegetative"
+
+
+def canonical_water_source(val: Any) -> str:
+    """Normalize any water source representation to 'Groundwater' | 'Rainwater' | 'Canal' | 'River'."""
+    s = str(val).strip().lower()
+    if s.endswith(".0"):
+        s = s[:-2]
+    if s in ("1", "groundwater"):
+        return "Groundwater"
+    if s in ("2", "rainwater"):
+        return "Rainwater"
+    if s in ("3", "canal"):
+        return "Canal"
+    if s in ("4", "river"):
+        return "River"
+    return "Groundwater"
 
 
 @dataclass(frozen=True)
@@ -98,9 +146,9 @@ FEATURE_DEFINITIONS: List[FeatureSpec] = [
     FeatureSpec("crop_density", "Crop Density", "%", "float", 0.0, 100.0, 15.0, "Plant canopy coverage percentage"),
     FeatureSpec("pest_pressure", "Pest Pressure", "%", "float", 0.0, 100.0, 20.0, "Pest/disease incidence index"),
     FeatureSpec("fertilizer_usage", "Fertilizer Usage", "kg/ha", "float", 0.0, 1000.0, 100.0, "Annual fertilizer application rate"),
-    FeatureSpec("growth_stage", "Growth Stage", "", "category", 1, 3, 1, "Phenological crop stage"),
+    FeatureSpec("growth_stage", "Growth Stage", "", "category", 1, 4, 1, "Phenological crop stage"),
     FeatureSpec("urban_area_proximity", "Urban Area Proximity", "km", "float", 0.0, 500.0, 15.0, "Distance to nearest urban market"),
-    FeatureSpec("water_source_type", "Water Source", "", "category", 1, 3, 1, "Primary irrigation water source"),
+    FeatureSpec("water_source_type", "Water Source", "", "category", 1, 4, 1, "Primary irrigation water source"),
     FeatureSpec("frost_risk", "Frost Risk", "%", "float", 0.0, 100.0, 5.0, "Seasonal frost probability index"),
     FeatureSpec("water_usage_efficiency", "Water Usage Efficiency", "ratio", "float", 0.0, 20.0, 2.5, "Crop water use efficiency ratio"),
 ]
