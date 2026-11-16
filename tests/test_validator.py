@@ -81,3 +81,41 @@ def test_validate_allow_defaults(valid_farm_payload):
 def test_non_dict_payload():
     with pytest.raises(ValidationError):
         validate_farm_input("not a dict")
+
+
+def test_validate_rejects_nan_and_inf(valid_farm_payload):
+    # Reject float NaN
+    valid_farm_payload["ph"] = float("nan")
+    with pytest.raises(ValidationError) as exc_info:
+        validate_farm_input(valid_farm_payload)
+    assert "ph" in exc_info.value.details
+    assert "finite real number" in exc_info.value.details["ph"]
+
+    # Reject string 'nan'
+    valid_farm_payload["ph"] = "nan"
+    with pytest.raises(ValidationError) as exc_info:
+        validate_farm_input(valid_farm_payload)
+    assert "ph" in exc_info.value.details
+
+    # Reject float inf
+    valid_farm_payload["ph"] = float("inf")
+    with pytest.raises(ValidationError) as exc_info:
+        validate_farm_input(valid_farm_payload)
+    assert "ph" in exc_info.value.details
+
+
+def test_validate_rejects_boolean_values(valid_farm_payload):
+    # Reject boolean for numeric feature
+    valid_farm_payload["ph"] = True
+    with pytest.raises(ValidationError) as exc_info:
+        validate_farm_input(valid_farm_payload)
+    assert "ph" in exc_info.value.details
+    assert "not boolean" in exc_info.value.details["ph"]
+
+    # Reject boolean for categorical feature
+    valid_farm_payload["ph"] = 6.5
+    valid_farm_payload["soil_type"] = False
+    with pytest.raises(ValidationError) as exc_info:
+        validate_farm_input(valid_farm_payload)
+    assert "soil_type" in exc_info.value.details
+

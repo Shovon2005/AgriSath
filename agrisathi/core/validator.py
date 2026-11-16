@@ -2,6 +2,7 @@
 Input validation and sanitization for farm parameters.
 """
 
+import math
 from typing import Dict, Any, Tuple
 from agrisathi.core.exceptions import ValidationError
 from agrisathi.core.schemas import (
@@ -22,6 +23,12 @@ def normalize_categorical(field_name: str, raw_value: Any) -> Tuple[int, str]:
     Normalize categorical value into (integer_code, display_string).
     Accepts integer codes (1, 2, 3, 4), floats (1.0, 2.0), and string representations ("Loamy", "Clay").
     """
+    if isinstance(raw_value, bool):
+        raise ValidationError(
+            f"Invalid {field_name} '{raw_value}'. Booleans are not allowed.",
+            {"field": field_name, "value": raw_value},
+        )
+
     str_val = str(raw_value).strip().lower()
     if str_val.endswith(".0"):
         str_val = str_val[:-2]
@@ -110,10 +117,18 @@ def validate_farm_input(raw_data: Dict[str, Any], allow_defaults: bool = False) 
             except ValidationError as e:
                 errors[name] = e.message
         else:
+            if isinstance(val, bool):
+                errors[name] = f"Field '{name}' must be a valid number, not boolean."
+                continue
+
             try:
                 numeric_val = float(val)
             except (ValueError, TypeError):
                 errors[name] = f"Field '{name}' must be a valid number."
+                continue
+
+            if math.isnan(numeric_val) or math.isinf(numeric_val):
+                errors[name] = f"Field '{name}' must be a finite real number."
                 continue
 
             # Boundary checks
