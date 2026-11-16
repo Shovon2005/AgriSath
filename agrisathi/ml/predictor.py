@@ -2,7 +2,7 @@
 High-precision crop prediction service.
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any
 from pathlib import Path
 import threading
 import joblib
@@ -12,9 +12,6 @@ from agrisathi.config import Config
 from agrisathi.core.exceptions import ModelNotFoundError, PredictionError
 from agrisathi.core.schemas import (
     FEATURE_NAMES,
-    CODE_TO_SOIL_TYPE,
-    CODE_TO_GROWTH_STAGE,
-    CODE_TO_WATER_SOURCE,
     canonical_soil_type,
     canonical_growth_stage,
     canonical_water_source,
@@ -148,9 +145,6 @@ class CropPredictor:
                 "explanation_narrative": waterfall.get("natural_language_explanation", ""),
                 "input_data": sanitized_data,
             }
-
-
-
         except Exception as e:
             logger.error("Inference failed: %s", e, exc_info=True)
             raise PredictionError(f"Prediction engine failed: {e}") from e

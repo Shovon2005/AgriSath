@@ -10,18 +10,8 @@ from agrisathi.core.schemas import (
     canonical_soil_type,
     canonical_growth_stage,
     canonical_water_source,
+    safe_float as _safe_float,
 )
-
-
-def _safe_float(val: Any, default: float) -> float:
-    """Null-safe float parser respecting valid 0.0 values."""
-    if val is None:
-        return default
-    try:
-        f = float(val)
-        return default if (f != f or f == float("inf") or f == float("-inf")) else f
-    except (ValueError, TypeError):
-        return default
 
 
 def calculate_irrigation_advisory(

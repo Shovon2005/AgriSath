@@ -9,13 +9,12 @@ Tests the unified decision support pipeline across all 6 core modules:
 6. Integrated Dashboard, Weather API, SQLite History, and PDF Report Export
 """
 
-import io
 import pytest
 from agrisathi.core.validator import validate_farm_input
 from agrisathi.ml.predictor import get_predictor
 from agrisathi.advisory.engine import generate_full_advisory
 from agrisathi.reports.pdf_generator import generate_pdf_advisory_report
-from agrisathi.data.history import get_recent_predictions, get_prediction_by_id
+from agrisathi.data.history import get_recent_predictions
 from agrisathi.advisory.irrigation import calculate_irrigation_advisory
 from agrisathi.advisory.fertilizer import calculate_fertilizer_guidance
 

@@ -3,9 +3,8 @@ Unit tests for Explainable AI (Module 5): SHAP Waterfall plot and What-If analys
 Verifies waterfall step calculations, natural language synthesis, and interactive simulation.
 """
 
-import pytest
 from agrisathi.ml.predictor import get_predictor
-from agrisathi.ml.explain import generate_shap_waterfall, synthesize_explanation_narrative
+from agrisathi.ml.explain import synthesize_explanation_narrative
 from agrisathi.ml.whatif import simulate_what_if
 
 

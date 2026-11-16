@@ -29,6 +29,35 @@ def reset_explainer_cache():
     _EXPLAINER_CACHE = None
 
 
+def _canonicalize_df(df: pd.DataFrame) -> pd.DataFrame:
+    """Ensure dataframe categoricals use canonical string representations."""
+    clean_df = df.copy()
+    if "soil_type" in clean_df.columns:
+        clean_df["soil_type"] = clean_df["soil_type"].apply(canonical_soil_type)
+    if "growth_stage" in clean_df.columns:
+        clean_df["growth_stage"] = clean_df["growth_stage"].apply(canonical_growth_stage)
+    if "water_source_type" in clean_df.columns:
+        clean_df["water_source_type"] = clean_df["water_source_type"].apply(canonical_water_source)
+    return clean_df
+
+
+def _default_importances(top_k: int) -> List[Dict[str, Any]]:
+    """Generate balanced default feature importance entries for fallback."""
+    k = max(1, top_k)
+    return [
+        {
+            "feature": spec.display_name,
+            "raw_name": spec.name,
+            "shap_value": 1.0 / k,
+            "importance": 1.0 / k,
+            "impact_percentage": round(100.0 / k, 1),
+            "direction": "positive",
+            "narrative": f"{spec.display_name} is an essential farm indicator.",
+        }
+        for spec in FEATURE_DEFINITIONS[:k]
+    ]
+
+
 def clean_feature_label(raw_feature_name: str) -> str:
     """Format raw pipeline feature name into readable label."""
     name = raw_feature_name.replace("numeric__", "").replace("categorical__", "")
@@ -76,14 +105,7 @@ def explain_local_prediction(
         class_idx = classes.index(predicted_crop)
 
         # Transform single input with guaranteed canonical categorical strings
-        clean_df = input_df.copy()
-        if "soil_type" in clean_df.columns:
-            clean_df["soil_type"] = clean_df["soil_type"].apply(canonical_soil_type)
-        if "growth_stage" in clean_df.columns:
-            clean_df["growth_stage"] = clean_df["growth_stage"].apply(canonical_growth_stage)
-        if "water_source_type" in clean_df.columns:
-            clean_df["water_source_type"] = clean_df["water_source_type"].apply(canonical_water_source)
-
+        clean_df = _canonicalize_df(input_df)
         Xt = preprocessor.transform(clean_df)
         feature_names = preprocessor.get_feature_names_out()
 
@@ -139,18 +161,7 @@ def get_global_importances(pipeline, top_k: int = 5) -> List[Dict[str, Any]]:
         preprocessor = getattr(pipeline, "named_steps", {}).get("preprocessor") if pipeline else None
 
         if rf_model is None or preprocessor is None:
-            return [
-                {
-                    "feature": spec.display_name,
-                    "raw_name": spec.name,
-                    "shap_value": 1.0 / top_k,
-                    "importance": 1.0 / top_k,
-                    "impact_percentage": round(100.0 / top_k, 1),
-                    "direction": "positive",
-                    "narrative": f"{spec.display_name} is an essential farm indicator.",
-                }
-                for spec in FEATURE_DEFINITIONS[:top_k]
-            ]
+            return _default_importances(top_k)
 
         feature_names = preprocessor.get_feature_names_out()
         importances = getattr(rf_model, "feature_importances_", None)
@@ -174,18 +185,7 @@ def get_global_importances(pipeline, top_k: int = 5) -> List[Dict[str, Any]]:
         return items[:top_k]
     except Exception as e:
         logger.warning("Global importance fallback extraction failed: %s", e)
-        return [
-            {
-                "feature": spec.display_name,
-                "raw_name": spec.name,
-                "shap_value": 1.0 / top_k,
-                "importance": 1.0 / top_k,
-                "impact_percentage": round(100.0 / top_k, 1),
-                "direction": "positive",
-                "narrative": f"{spec.display_name} is an essential farm indicator.",
-            }
-            for spec in FEATURE_DEFINITIONS[:top_k]
-        ]
+        return _default_importances(top_k)
 
 
 def synthesize_explanation_narrative(
@@ -208,7 +208,6 @@ def synthesize_explanation_narrative(
 
     rainfall = farm_data.get("rainfall")
     temp = farm_data.get("temperature")
-    soil = farm_data.get("soil_type_label") or farm_data.get("soil_type")
 
     narrative_parts = [
         f"{crop_title} was recommended with {confidence:.1f}% AI confidence because the prevailing agro-climatic conditions are well-aligned with the crop's physiological requirements."
@@ -256,14 +255,7 @@ def generate_shap_waterfall(
         class_idx = classes.index(predicted_crop)
 
         # Canonicalize categoricals
-        clean_df = input_df.copy()
-        if "soil_type" in clean_df.columns:
-            clean_df["soil_type"] = clean_df["soil_type"].apply(canonical_soil_type)
-        if "growth_stage" in clean_df.columns:
-            clean_df["growth_stage"] = clean_df["growth_stage"].apply(canonical_growth_stage)
-        if "water_source_type" in clean_df.columns:
-            clean_df["water_source_type"] = clean_df["water_source_type"].apply(canonical_water_source)
-
+        clean_df = _canonicalize_df(input_df)
         Xt = preprocessor.transform(clean_df)
         feature_names = preprocessor.get_feature_names_out()
 

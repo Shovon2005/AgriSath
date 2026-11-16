@@ -11,7 +11,6 @@ from agrisathi.ml.predictor import get_predictor
 from agrisathi.ml.whatif import simulate_what_if
 from agrisathi.advisory.profiles import (
     get_crop_profiles,
-    get_crop_profile,
     update_crop_profile,
     get_agronomic_rules,
     update_agronomic_rules,
@@ -30,7 +29,6 @@ from agrisathi.data.scenarios import (
     get_farm_scenario,
     save_farm_scenario,
     delete_farm_scenario,
-    reload_farm_scenarios,
 )
 from agrisathi.data.history import (
     save_prediction_record,

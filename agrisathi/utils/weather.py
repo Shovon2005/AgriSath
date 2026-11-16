@@ -8,7 +8,6 @@ from typing import Dict, Any, Optional
 import urllib.request
 import urllib.parse
 import json
-from pathlib import Path
 from agrisathi.config import Config
 from agrisathi.utils.logger import get_logger
 

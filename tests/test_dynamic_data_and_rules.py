@@ -5,39 +5,25 @@ and verification of bug fixes across AgriSathi modules.
 
 import pytest
 import json
-from pathlib import Path
 from agrisathi.config import Config
 from agrisathi.advisory.profiles import (
     get_agronomic_rules,
-    get_soil_properties,
     get_fertilizer_conversions,
-    get_organic_guidelines,
-    get_soil_thresholds,
-    get_irrigation_rules,
     get_risk_rules,
-    update_agronomic_rules,
     reload_agronomic_rules,
-    get_crop_profiles,
-    get_crop_profile,
 )
 from agrisathi.advisory.soil import assess_soil_health
 from agrisathi.advisory.fertilizer import calculate_fertilizer_guidance
 from agrisathi.advisory.irrigation import calculate_irrigation_advisory
 from agrisathi.advisory.risk import assess_environmental_risks
 from agrisathi.advisory.comparison import build_crop_comparison_matrix
-from agrisathi.utils.weather import (
-    get_regional_weather_baselines,
-    update_weather_baselines,
-    reload_weather_baselines,
-    fetch_weather_data,
-)
+from agrisathi.utils.weather import fetch_weather_data
 from agrisathi.data.scenarios import (
     get_farm_scenarios,
     get_scenario_parameters_map,
     get_farm_scenario,
     save_farm_scenario,
     delete_farm_scenario,
-    reload_farm_scenarios,
 )
 from agrisathi.core.exceptions import ValidationError
 from agrisathi.core.validator import validate_farm_input
@@ -245,7 +231,6 @@ def test_whatif_categorical_human_readable_labels():
 def test_whatif_empty_string_ignored():
     """Verify What-If gracefully ignores empty string adjustments without parameter corruption."""
     base_data = get_scenario_parameters_map()["rice"]
-    orig_temp = base_data.get("temperature", 21.0)
     res = simulate_what_if(base_data, {"temperature": ""})
     # Empty string should not change temperature or be added as change
     assert not any(c["field"] == "temperature" for c in res["changes_applied"])

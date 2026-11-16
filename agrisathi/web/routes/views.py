@@ -18,7 +18,6 @@ from agrisathi.data.history import (
 from agrisathi.data.scenarios import (
     get_farm_scenarios,
     get_scenario_parameters_map,
-    get_farm_scenario,
 )
 from agrisathi.utils.logger import get_logger
 

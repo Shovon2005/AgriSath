@@ -90,3 +90,12 @@ def test_validator_oc_derives_om(valid_farm_payload):
     sanitized = validate_farm_input(payload)
     assert sanitized["organic_carbon"] == 0.85
     assert sanitized["organic_matter"] == round(0.85 * 1.724, 2)
+
+
+def test_extended_schemas_definitions():
+    assert len(EXTENDED_FEATURE_DEFINITIONS) == 7
+    assert "farm_area" in ALL_FEATURE_MAP
+    assert Season.KHARIF.value == "Kharif"
+    assert Season.RABI.value == "Rabi"
+    assert Season.ZAID.value == "Zaid"
+    assert Season.WHOLE_YEAR.value == "Whole Year"

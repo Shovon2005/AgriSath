@@ -6,18 +6,7 @@ using dynamic agronomic thresholds.
 
 from typing import Dict, Any, List
 from agrisathi.advisory.profiles import get_soil_properties, get_soil_thresholds, get_crop_profile
-from agrisathi.core.schemas import canonical_soil_type
-
-
-def _safe_float(val: Any, default: float) -> float:
-    """Null-safe float parser respecting valid 0.0 values."""
-    if val is None:
-        return default
-    try:
-        f = float(val)
-        return default if (f != f or f == float("inf") or f == float("-inf")) else f
-    except (ValueError, TypeError):
-        return default
+from agrisathi.core.schemas import canonical_soil_type, safe_float as _safe_float
 
 
 def assess_soil_health(
@@ -84,7 +73,6 @@ def assess_soil_health(
     # Dynamic Threshold Values
     ph_strong_acid = th_ph.get("strongly_acidic", 5.0)
     ph_slight_acid = th_ph.get("slightly_acidic", 6.0)
-    ph_opt_min = th_ph.get("optimal_min", 6.0)
     ph_opt_max = th_ph.get("optimal_max", 7.5)
     ph_mod_alkaline = th_ph.get("moderately_alkaline", 8.5)
 
@@ -106,9 +94,11 @@ def assess_soil_health(
 
     # 1. pH Assessment
     crop_ph_outside = False
+    min_c_ph, max_c_ph, crop_title = 5.5, 7.5, "Target crop"
     if crop_profile:
         min_c_ph = float(crop_profile.get("min_ph", 5.5))
         max_c_ph = float(crop_profile.get("max_ph", 7.5))
+        crop_title = crop_profile.get("display_name", "Target crop")
         crop_ph_outside = (ph < min_c_ph or ph > max_c_ph)
 
     if ph < ph_strong_acid:
@@ -129,16 +119,12 @@ def assess_soil_health(
         score -= 10
     else:
         if crop_ph_outside:
-            crop_title = crop_profile.get("display_name", "Target crop")
             issues.append(f"Soil pH ({ph:.1f}) is within standard agricultural baseline (6.0 - 7.5), but suboptimal for {crop_title}.")
         else:
             issues.append("Soil pH is within the optimal agronomic range (6.0 - 7.5).")
 
     # Crop-specific pH tolerance
     if crop_profile and crop_ph_outside:
-        min_c_ph = float(crop_profile.get("min_ph", 5.5))
-        max_c_ph = float(crop_profile.get("max_ph", 7.5))
-        crop_title = crop_profile.get("display_name", "Target crop")
         issues.append(f"Current pH {ph} is outside ideal range ({min_c_ph} - {max_c_ph}) for {crop_title}.")
         if ph < min_c_ph:
             actions.append(f"Current pH {ph} is below optimal ({min_c_ph} - {max_c_ph}) for {crop_title}; apply agricultural lime to buffer acidity.")

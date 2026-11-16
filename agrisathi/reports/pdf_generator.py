@@ -29,7 +29,6 @@ LIGHT_GREEN = colors.HexColor("#e8f5e9")
 DARK_GRAY = colors.HexColor("#212121")
 LIGHT_GRAY = colors.HexColor("#f5f5f5")
 BORDER_GRAY = colors.HexColor("#e0e0e0")
-AMBER_WARN = colors.HexColor("#e65100")
 
 
 def generate_pdf_advisory_report(
@@ -265,10 +264,7 @@ def generate_pdf_advisory_report(
         irrig = (advisory_data.get("irrigation") or {}) if isinstance(advisory_data, dict) else {}
         risks = (advisory_data.get("risks") or {}) if isinstance(advisory_data, dict) else {}
 
-        irrig_actions_list = (irrig.get("recommended_actions") or []) if isinstance(irrig, dict) else []
         risk_warnings_list = (risks.get("risks") or []) if isinstance(risks, dict) else []
-
-        irrig_actions = "<br/>".join([f"• {html.escape(str(act))}" for act in irrig_actions_list[:2]]) or "• Maintain standard moisture monitoring."
         risk_warnings = "<br/>".join([f"• {html.escape(str(r))}" for r in risk_warnings_list[:2]]) or "• No acute environmental hazards detected."
 
         irrig_prio = html.escape(str(irrig.get('priority', 'Low')))
@@ -277,8 +273,6 @@ def generate_pdf_advisory_report(
         irrig_litres = irrig.get('water_quantity_litres', 0)
         irrig_m3 = irrig.get('water_quantity_m3', 0.0)
         etc_val = irrig.get('daily_water_requirement_mm', 4.2)
-
-        irrig_et = html.escape(str(irrig.get('evapotranspiration_risk', 'Normal')))
         irrig_msg = html.escape(str(irrig.get('message', 'Maintain adequate irrigation.')))
         risk_level = html.escape(str(risks.get('overall_risk_level', 'Normal')))
 

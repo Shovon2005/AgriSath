@@ -10,17 +10,7 @@ from agrisathi.advisory.profiles import (
     get_organic_guidelines,
     get_crop_profile,
 )
-
-
-def _safe_float(val: Any, default: float) -> float:
-    """Null-safe float parser respecting valid 0.0 values."""
-    if val is None:
-        return default
-    try:
-        f = float(val)
-        return default if (f != f or f == float("inf") or f == float("-inf")) else f
-    except (ValueError, TypeError):
-        return default
+from agrisathi.core.schemas import safe_float as _safe_float
 
 
 def calculate_fertilizer_guidance(
@@ -168,7 +158,6 @@ def calculate_fertilizer_guidance(
 
     # Surplus checks using dynamic surplus multiplier
     if current_n > opt_n * surplus_mult and opt_n > 0:
-        crop_category = crop_profile.get("category", "")
         if crop_category == "Pulses":
             recommendations.append(
                 f"Soil Nitrogen ({current_n:.0f} mg/kg) exceeds pulse demand ({opt_n:.0f} mg/kg); "

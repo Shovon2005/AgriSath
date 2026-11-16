@@ -2,7 +2,6 @@
 Flask Application Factory for AgriSathi.
 """
 
-from pathlib import Path
 from flask import Flask, render_template, jsonify, request
 from agrisathi.config import Config, config
 from agrisathi.web.routes.views import views_bp

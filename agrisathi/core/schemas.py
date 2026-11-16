@@ -2,6 +2,7 @@
 Domain schemas, feature definitions, and categorical mappings for AgriSathi.
 """
 
+import math
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Any, List
@@ -76,50 +77,40 @@ CODE_TO_WATER_SOURCE: Dict[int, str] = {
 }
 
 
+_SOIL_MAP = {"1": "Clay", "clay": "Clay", "2": "Loamy", "loamy": "Loamy", "3": "Sandy", "sandy": "Sandy"}
+_STAGE_MAP = {"1": "Seedling", "seedling": "Seedling", "2": "Vegetative", "vegetative": "Vegetative", "3": "Flowering", "flowering": "Flowering", "4": "Maturity", "maturity": "Maturity"}
+_SOURCE_MAP = {"1": "Groundwater", "groundwater": "Groundwater", "2": "Rainwater", "rainwater": "Rainwater", "3": "Canal", "canal": "Canal", "4": "River", "river": "River"}
+
+
+def _clean_str(val: Any) -> str:
+    s = str(val).strip().lower()
+    return s[:-2] if s.endswith(".0") else s
+
+
+def safe_float(val: Any, default: float) -> float:
+    """Null-safe float parser respecting valid 0.0 values."""
+    if val is None:
+        return default
+    try:
+        f = float(val)
+        return default if (math.isnan(f) or math.isinf(f)) else f
+    except (ValueError, TypeError):
+        return default
+
+
 def canonical_soil_type(val: Any) -> str:
     """Normalize any soil type representation (code, string, float) to 'Clay' | 'Loamy' | 'Sandy'."""
-    s = str(val).strip().lower()
-    if s.endswith(".0"):
-        s = s[:-2]
-    if s in ("1", "clay"):
-        return "Clay"
-    if s in ("2", "loamy"):
-        return "Loamy"
-    if s in ("3", "sandy"):
-        return "Sandy"
-    return "Loamy"
+    return _SOIL_MAP.get(_clean_str(val), "Loamy")
 
 
 def canonical_growth_stage(val: Any) -> str:
     """Normalize any growth stage representation to 'Seedling' | 'Vegetative' | 'Flowering' | 'Maturity'."""
-    s = str(val).strip().lower()
-    if s.endswith(".0"):
-        s = s[:-2]
-    if s in ("1", "seedling"):
-        return "Seedling"
-    if s in ("2", "vegetative"):
-        return "Vegetative"
-    if s in ("3", "flowering"):
-        return "Flowering"
-    if s in ("4", "maturity"):
-        return "Maturity"
-    return "Vegetative"
+    return _STAGE_MAP.get(_clean_str(val), "Vegetative")
 
 
 def canonical_water_source(val: Any) -> str:
     """Normalize any water source representation to 'Groundwater' | 'Rainwater' | 'Canal' | 'River'."""
-    s = str(val).strip().lower()
-    if s.endswith(".0"):
-        s = s[:-2]
-    if s in ("1", "groundwater"):
-        return "Groundwater"
-    if s in ("2", "rainwater"):
-        return "Rainwater"
-    if s in ("3", "canal"):
-        return "Canal"
-    if s in ("4", "river"):
-        return "River"
-    return "Groundwater"
+    return _SOURCE_MAP.get(_clean_str(val), "Groundwater")
 
 
 def canonical_season(val: Any) -> str:

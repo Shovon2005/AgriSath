@@ -2,8 +2,6 @@
 Unit and integration tests for ML pipeline and training.
 """
 
-from pathlib import Path
-import pandas as pd
 from agrisathi.config import Config
 from agrisathi.ml.dataset import load_dataset
 from agrisathi.ml.pipeline import build_pipeline

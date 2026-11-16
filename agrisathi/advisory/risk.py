@@ -6,18 +6,7 @@ using dynamic agronomic risk thresholds.
 
 from typing import Dict, Any, List
 from agrisathi.advisory.profiles import get_crop_profile, get_risk_rules
-from agrisathi.core.schemas import canonical_soil_type
-
-
-def _safe_float(val: Any, default: float) -> float:
-    """Null-safe float parser respecting valid 0.0 values."""
-    if val is None:
-        return default
-    try:
-        f = float(val)
-        return default if (f != f or f == float("inf") or f == float("-inf")) else f
-    except (ValueError, TypeError):
-        return default
+from agrisathi.core.schemas import canonical_soil_type, safe_float as _safe_float
 
 
 def assess_environmental_risks(

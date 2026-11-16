@@ -15,6 +15,13 @@ from agrisathi.core.schemas import (
 from agrisathi.ml.predictor import get_predictor
 
 
+_CANONICAL_CATEGORICAL_MAP = {
+    "soil_type": (canonical_soil_type, 2),
+    "growth_stage": (canonical_growth_stage, 2),
+    "water_source_type": (canonical_water_source, 1),
+}
+
+
 def simulate_what_if(
     baseline_data: Dict[str, Any],
     adjustments: Dict[str, Any],
@@ -45,20 +52,10 @@ def simulate_what_if(
         # Remove cached display label to prevent stale label shadowing
         modified_data.pop(f"{field}_label", None)
 
-        if field in ("soil_type", "growth_stage", "water_source_type"):
-            old_display = sanitized_base.get(f"{field}_label")
-            if field == "soil_type":
-                new_display = canonical_soil_type(new_val)
-                if not old_display:
-                    old_display = canonical_soil_type(sanitized_base.get(field, 2))
-            elif field == "growth_stage":
-                new_display = canonical_growth_stage(new_val)
-                if not old_display:
-                    old_display = canonical_growth_stage(sanitized_base.get(field, 2))
-            else:  # water_source_type
-                new_display = canonical_water_source(new_val)
-                if not old_display:
-                    old_display = canonical_water_source(sanitized_base.get(field, 1))
+        if field in _CANONICAL_CATEGORICAL_MAP:
+            canon_fn, default_val = _CANONICAL_CATEGORICAL_MAP[field]
+            old_display = sanitized_base.get(f"{field}_label") or canon_fn(sanitized_base.get(field, default_val))
+            new_display = canon_fn(new_val)
 
             if old_display != new_display:
                 modified_data[field] = new_display

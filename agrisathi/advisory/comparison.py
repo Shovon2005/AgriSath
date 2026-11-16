@@ -5,18 +5,7 @@ Generates multi-attribute comparison matrix and ranking evaluations for top reco
 
 from typing import Dict, Any, List
 from agrisathi.advisory.profiles import get_crop_profile
-from agrisathi.core.schemas import canonical_soil_type, canonical_season
-
-
-def _safe_float(val: Any, default: float) -> float:
-    """Null-safe float parser respecting valid 0.0 values."""
-    if val is None:
-        return default
-    try:
-        f = float(val)
-        return default if (f != f or f == float("inf") or f == float("-inf")) else f
-    except (ValueError, TypeError):
-        return default
+from agrisathi.core.schemas import canonical_soil_type, canonical_season, safe_float as _safe_float
 
 
 def build_crop_comparison_matrix(

@@ -3,8 +3,7 @@ Unit tests for Weather Client and Historical Prediction Persistence (Phase 7).
 Verifies weather client fallback, SQLite prediction storage, querying, and filtering.
 """
 
-import pytest
-from agrisathi.utils.weather import fetch_weather_data, geocode_location
+from agrisathi.utils.weather import fetch_weather_data
 from agrisathi.data.history import (
     save_prediction_record,
     get_recent_predictions,

@@ -4,7 +4,6 @@ Verifies fertility classification (Low, Medium, High), EC salinity checks,
 OC organic carbon evaluations, deficiency/excess diagnosis, and improvement suggestions.
 """
 
-import pytest
 from agrisathi.advisory.soil import assess_soil_health
 
 
