@@ -15,11 +15,18 @@ def build_crop_comparison_matrix(
 ) -> Dict[str, Any]:
     """
     Builds a structured side-by-side suitability comparison matrix for the top-N recommended crops.
-    Evaluates season fit, soil texture affinity, water demand, pH tolerance, and expected yield.
+    Evaluates season fit, soil texture affinity, water demand, pH tolerance, and thermal regime.
+    Guaranteed null-safe with consistent schema even on empty inputs.
     """
     selected_crops = top_crops[:limit] if top_crops else []
     if not selected_crops:
-        return {"items": [], "summary": "No crop predictions available for comparison."}
+        return {
+            "items": [],
+            "comparison_rows": [],
+            "summary": "No crop predictions available for comparison.",
+            "primary_crop": "",
+            "top_three": [],
+        }
 
     farm_soil = canonical_soil_type(farm_data.get("soil_type_label") or farm_data.get("soil_type", "Loamy"))
     farm_season = canonical_season(farm_data.get("season", "Whole Year"))
@@ -31,7 +38,12 @@ def build_crop_comparison_matrix(
 
     for rank, item in enumerate(selected_crops, start=1):
         crop_id = str(item.get("crop", "")).lower()
-        confidence = float(item.get("percentage") or (float(item.get("probability", 0.0)) * 100))
+        pct = item.get("percentage")
+        if pct is not None:
+            confidence = float(pct)
+        else:
+            confidence = float(item.get("probability", 0.0)) * 100.0
+
         profile = get_crop_profile(crop_id)
 
         # 1. Season Fit
@@ -46,16 +58,16 @@ def build_crop_comparison_matrix(
         soil_fit = "Optimal" if farm_soil in ideal_soils else "Moderate"
 
         # 3. pH Fit
-        min_ph = profile.get("min_ph", 5.5)
-        max_ph = profile.get("max_ph", 7.5)
+        min_ph = float(profile.get("min_ph", 5.5))
+        max_ph = float(profile.get("max_ph", 7.5))
         if min_ph <= farm_ph <= max_ph:
             ph_fit = f"Optimal ({min_ph} - {max_ph})"
         else:
             ph_fit = f"Suboptimal (Needs {min_ph} - {max_ph})"
 
         # 4. Thermal Regime
-        min_temp = profile.get("min_temp", 15.0)
-        max_temp = profile.get("max_temp", 35.0)
+        min_temp = float(profile.get("min_temp", 15.0))
+        max_temp = float(profile.get("max_temp", 35.0))
         temp_fit = "Suitable" if (min_temp <= farm_temp <= max_temp) else "Marginal"
 
         # 5. Key Advantage Narrative
@@ -105,4 +117,3 @@ def build_crop_comparison_matrix(
         "primary_crop": matrix_rows[0]["crop"] if matrix_rows else "",
         "top_three": [row["crop"] for row in matrix_rows[:3]],
     }
-

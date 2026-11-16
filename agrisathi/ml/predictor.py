@@ -87,11 +87,11 @@ class CropPredictor:
             for col in FEATURE_NAMES:
                 val = sanitized_data[col]
                 if col == "soil_type":
-                    val = canonical_soil_type(sanitized_data.get("soil_type_label", val))
+                    val = canonical_soil_type(val)
                 elif col == "growth_stage":
-                    val = canonical_growth_stage(sanitized_data.get("growth_stage_label", val))
+                    val = canonical_growth_stage(val)
                 elif col == "water_source_type":
-                    val = canonical_water_source(sanitized_data.get("water_source_type_label", val))
+                    val = canonical_water_source(val)
                 row[col] = val
 
             input_df = pd.DataFrame([row], columns=FEATURE_NAMES)

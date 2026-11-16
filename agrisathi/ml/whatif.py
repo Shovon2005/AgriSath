@@ -33,8 +33,10 @@ def simulate_what_if(
     for field, new_val in adjustments.items():
         if field in supported_fields and new_val is not None:
             old_val = sanitized_base.get(field)
+            # Remove cached display label to prevent stale label shadowing
+            modified_data.pop(f"{field}_label", None)
             try:
-                if isinstance(old_val, (int, float)) and isinstance(new_val, (int, float, str)):
+                if isinstance(old_val, (int, float)) and isinstance(new_val, (int, float, str)) and field not in ("soil_type", "growth_stage", "water_source_type"):
                     num_new = float(new_val)
                     modified_data[field] = num_new
                     applied_changes.append({

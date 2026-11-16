@@ -174,7 +174,9 @@ def validate_farm_input(raw_data: Dict[str, Any], allow_defaults: bool = False) 
     sanitized["farm_area_ha"] = area_to_hectares(area_val, raw_unit)
 
     # 2. Electrical Conductivity (EC in dS/m)
-    raw_ec = raw_data.get("electrical_conductivity") or raw_data.get("ec")
+    raw_ec = raw_data.get("electrical_conductivity")
+    if raw_ec is None:
+        raw_ec = raw_data.get("ec")
     if raw_ec is not None and str(raw_ec).strip() != "":
         try:
             ec_val = float(raw_ec)
@@ -188,7 +190,9 @@ def validate_farm_input(raw_data: Dict[str, Any], allow_defaults: bool = False) 
     sanitized["ec"] = sanitized["electrical_conductivity"]
 
     # 3. Organic Carbon (OC in %) vs Organic Matter (OM in %)
-    raw_oc = raw_data.get("organic_carbon") or raw_data.get("oc")
+    raw_oc = raw_data.get("organic_carbon")
+    if raw_oc is None:
+        raw_oc = raw_data.get("oc")
     if raw_oc is not None and str(raw_oc).strip() != "":
         try:
             oc_val = float(raw_oc)
@@ -209,7 +213,9 @@ def validate_farm_input(raw_data: Dict[str, Any], allow_defaults: bool = False) 
     sanitized["season"] = canonical_season(season_raw)
 
     # 5. Expected Rainfall (24-48h forecast)
-    raw_exp_rain = raw_data.get("expected_rainfall_24h") or raw_data.get("forecast_rainfall")
+    raw_exp_rain = raw_data.get("expected_rainfall_24h")
+    if raw_exp_rain is None:
+        raw_exp_rain = raw_data.get("forecast_rainfall")
     if raw_exp_rain is not None and str(raw_exp_rain).strip() != "":
         try:
             exp_rain_val = float(raw_exp_rain)
