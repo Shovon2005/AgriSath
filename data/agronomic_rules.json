@@ -95,6 +95,20 @@
       "max": 140.0,
       "fertility_medium": 25.0,
       "fertility_high": 45.0
+    },
+    "score_classification": {
+      "good_min": 85,
+      "needs_attention_min": 60
+    },
+    "fertility_breakpoints": {
+      "ph_optimal_min": 6.0,
+      "ph_optimal_max": 7.8,
+      "ph_acceptable_min": 5.2,
+      "ph_acceptable_max": 8.5,
+      "ec_good_max": 1.8,
+      "score_severe_min": 45,
+      "points_high_min": 9,
+      "points_medium_min": 5
     }
   },
   "irrigation_rules": {
@@ -106,6 +120,51 @@
     "rec_depth_high_mm": 45.0,
     "rec_depth_med_mm": 30.0,
     "rainfall_suppress_heavy_mm": 15.0,
-    "rainfall_suppress_light_mm": 5.0
+    "rainfall_suppress_light_mm": 5.0,
+    "et_high_temp_c": 32.0,
+    "et_low_humidity": 50.0,
+    "et_wind_speed_mps": 6.0,
+    "et_wind_temp_c": 28.0,
+    "abundant_rainfall_mm": 150.0,
+    "low_rainfall_et_mm": 60.0,
+    "rainwater_reserve_min_rain_mm": 40.0,
+    "groundwater_dry_moisture": 20.0,
+    "maturity_reduction_moisture": 18.0
+  },
+  "environmental_risk_rules": {
+    "frost": {
+      "severe_frost_index": 60.0,
+      "severe_temp_c": 4.0,
+      "moderate_frost_index": 35.0,
+      "moderate_temp_c": 8.0
+    },
+    "pest": {
+      "severe_pest_index": 65.0,
+      "moderate_pest_index": 35.0
+    },
+    "fungal": {
+      "high_humidity": 85.0,
+      "warm_temp_c": 24.0
+    },
+    "heat": {
+      "extreme_temp_c": 42.0,
+      "high_temp_c": 38.0
+    },
+    "drought": {
+      "critical_moisture": 12.0,
+      "critical_rainfall": 50.0,
+      "moderate_moisture": 16.0,
+      "moderate_rainfall": 80.0
+    },
+    "waterlogging": {
+      "excessive_rainfall": 300.0,
+      "high_moisture": 40.0
+    },
+    "wind": {
+      "lodging_speed_mps": 14.0
+    },
+    "urban_proximity": {
+      "peri_urban_distance_km": 5.0
+    }
   }
 }

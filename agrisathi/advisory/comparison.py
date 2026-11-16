@@ -8,6 +8,17 @@ from agrisathi.advisory.profiles import get_crop_profile
 from agrisathi.core.schemas import canonical_soil_type, canonical_season
 
 
+def _safe_float(val: Any, default: float) -> float:
+    """Null-safe float parser respecting valid 0.0 values."""
+    if val is None:
+        return default
+    try:
+        f = float(val)
+        return default if (f != f or f == float("inf") or f == float("-inf")) else f
+    except (ValueError, TypeError):
+        return default
+
+
 def build_crop_comparison_matrix(
     top_crops: List[Dict[str, Any]],
     farm_data: Dict[str, Any],
@@ -18,6 +29,7 @@ def build_crop_comparison_matrix(
     Evaluates season fit, soil texture affinity, water demand, pH tolerance, and thermal regime.
     Guaranteed null-safe with consistent schema even on empty inputs.
     """
+    farm_data = farm_data or {}
     selected_crops = top_crops[:limit] if top_crops else []
     if not selected_crops:
         return {
@@ -30,9 +42,9 @@ def build_crop_comparison_matrix(
 
     farm_soil = canonical_soil_type(farm_data.get("soil_type_label") or farm_data.get("soil_type", "Loamy"))
     farm_season = canonical_season(farm_data.get("season", "Whole Year"))
-    farm_ph = float(farm_data.get("ph", 6.5))
-    farm_rainfall = float(farm_data.get("rainfall", 100.0))
-    farm_temp = float(farm_data.get("temperature", 25.0))
+    farm_ph = _safe_float(farm_data.get("ph"), 6.5)
+    farm_rainfall = _safe_float(farm_data.get("rainfall"), 100.0)
+    farm_temp = _safe_float(farm_data.get("temperature"), 25.0)
 
     matrix_rows: List[Dict[str, Any]] = []
 

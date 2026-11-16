@@ -9,6 +9,17 @@ from agrisathi.advisory.profiles import get_soil_properties, get_soil_thresholds
 from agrisathi.core.schemas import canonical_soil_type
 
 
+def _safe_float(val: Any, default: float) -> float:
+    """Null-safe float parser respecting valid 0.0 values."""
+    if val is None:
+        return default
+    try:
+        f = float(val)
+        return default if (f != f or f == float("inf") or f == float("-inf")) else f
+    except (ValueError, TypeError):
+        return default
+
+
 def assess_soil_health(
     farm_data: Dict[str, Any],
     crop_name: str = None,
@@ -20,6 +31,8 @@ def assess_soil_health(
     Accepts crop_name (str) and/or crop_profile (dict or str).
     Uses dynamic agronomic thresholds and parameters.
     """
+    farm_data = farm_data or {}
+
     if isinstance(crop_name, dict) and crop_profile is None:
         crop_profile = crop_name
         crop_name = None
@@ -39,24 +52,26 @@ def assess_soil_health(
     th_n = thresholds.get("nitrogen", {})
     th_p = thresholds.get("phosphorus", {})
     th_k = thresholds.get("potassium", {})
+    th_score = thresholds.get("score_classification", {})
+    th_fert = thresholds.get("fertility_breakpoints", {})
 
-    ph = float(farm_data.get("ph", 6.5))
-    om = float(farm_data.get("organic_matter", 3.5))
+    ph = _safe_float(farm_data.get("ph"), 6.5)
+    om = _safe_float(farm_data.get("organic_matter"), 3.5)
 
     # Null-safe extraction that respects valid 0.0 values
     raw_oc = farm_data.get("organic_carbon")
     if raw_oc is None:
         raw_oc = farm_data.get("oc")
-    oc = float(raw_oc) if raw_oc is not None else round(om / 1.724, 2)
+    oc = _safe_float(raw_oc, round(om / 1.724, 2)) if raw_oc is not None else round(om / 1.724, 2)
 
     raw_ec = farm_data.get("electrical_conductivity")
     if raw_ec is None:
         raw_ec = farm_data.get("ec")
-    ec = float(raw_ec) if raw_ec is not None else 0.6
+    ec = _safe_float(raw_ec, 0.6) if raw_ec is not None else 0.6
 
-    n = float(farm_data.get("N", 50))
-    p = float(farm_data.get("P", 50))
-    k = float(farm_data.get("K", 50))
+    n = _safe_float(farm_data.get("N"), 50.0)
+    p = _safe_float(farm_data.get("P"), 50.0)
+    k = _safe_float(farm_data.get("K"), 50.0)
     raw_soil = farm_data.get("soil_type_label") or farm_data.get("soil_type", "Loamy")
     soil_type = canonical_soil_type(raw_soil)
 
@@ -199,9 +214,12 @@ def assess_soil_health(
     texture_info = soil_props.get(soil_type, soil_props.get("Loamy", {}))
 
     score = max(10, min(100, score))
-    if score >= 85:
+    good_min = int(th_score.get("good_min", 85))
+    needs_attn_min = int(th_score.get("needs_attention_min", 60))
+
+    if score >= good_min:
         status = "Good"
-    elif score >= 60:
+    elif score >= needs_attn_min:
         status = "Needs Attention"
     else:
         status = "Poor"
@@ -228,20 +246,29 @@ def assess_soil_health(
     elif oc >= oc_crit_low:
         fertility_points += 1
 
-    if 6.0 <= ph <= 7.8:
+    fert_ph_opt_min = _safe_float(th_fert.get("ph_optimal_min"), 6.0)
+    fert_ph_opt_max = _safe_float(th_fert.get("ph_optimal_max"), 7.8)
+    fert_ph_acc_min = _safe_float(th_fert.get("ph_acceptable_min"), 5.2)
+    fert_ph_acc_max = _safe_float(th_fert.get("ph_acceptable_max"), 8.5)
+    fert_ec_good = _safe_float(th_fert.get("ec_good_max"), 1.8)
+    score_severe_min = int(th_fert.get("score_severe_min", 45))
+    pts_high_min = int(th_fert.get("points_high_min", 9))
+    pts_med_min = int(th_fert.get("points_medium_min", 5))
+
+    if fert_ph_opt_min <= ph <= fert_ph_opt_max:
         fertility_points += 2
-    elif 5.2 <= ph <= 8.5:
+    elif fert_ph_acc_min <= ph <= fert_ph_acc_max:
         fertility_points += 1
 
-    if ec < 1.8:
+    if ec < fert_ec_good:
         fertility_points += 1
 
     # Salinity and severe degradation capping
-    if ec > ec_severe or score < 45:
+    if ec > ec_severe or score < score_severe_min:
         fertility_class = "Low"
-    elif fertility_points >= 9 and len(deficiencies) == 0:
+    elif fertility_points >= pts_high_min and len(deficiencies) == 0:
         fertility_class = "High"
-    elif fertility_points >= 5:
+    elif fertility_points >= pts_med_min:
         fertility_class = "Medium"
     else:
         fertility_class = "Low"

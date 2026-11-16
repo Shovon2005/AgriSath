@@ -121,7 +121,53 @@ _DEFAULT_IRRIGATION_RULES = {
     "rec_depth_high_mm": 45.0,
     "rec_depth_med_mm": 30.0,
     "rainfall_suppress_heavy_mm": 15.0,
-    "rainfall_suppress_light_mm": 5.0
+    "rainfall_suppress_light_mm": 5.0,
+    "et_high_temp_c": 32.0,
+    "et_low_humidity": 50.0,
+    "et_wind_speed_mps": 6.0,
+    "et_wind_temp_c": 28.0,
+    "abundant_rainfall_mm": 150.0,
+    "low_rainfall_et_mm": 60.0,
+    "rainwater_reserve_min_rain_mm": 40.0,
+    "groundwater_dry_moisture": 20.0,
+    "maturity_reduction_moisture": 18.0,
+}
+
+_DEFAULT_RISK_RULES = {
+    "frost": {
+        "severe_frost_index": 60.0,
+        "severe_temp_c": 4.0,
+        "moderate_frost_index": 35.0,
+        "moderate_temp_c": 8.0,
+    },
+    "pest": {
+        "severe_pest_index": 65.0,
+        "moderate_pest_index": 35.0,
+    },
+    "fungal": {
+        "high_humidity": 85.0,
+        "warm_temp_c": 24.0,
+    },
+    "heat": {
+        "extreme_temp_c": 42.0,
+        "high_temp_c": 38.0,
+    },
+    "drought": {
+        "critical_moisture": 12.0,
+        "critical_rainfall": 50.0,
+        "moderate_moisture": 16.0,
+        "moderate_rainfall": 80.0,
+    },
+    "waterlogging": {
+        "excessive_rainfall": 300.0,
+        "high_moisture": 40.0,
+    },
+    "wind": {
+        "lodging_speed_mps": 14.0,
+    },
+    "urban_proximity": {
+        "peri_urban_distance_km": 5.0,
+    },
 }
 
 
@@ -148,6 +194,7 @@ def reload_agronomic_rules() -> Dict[str, Any]:
             "organic_fertilizer_guidelines": _DEFAULT_ORGANIC_GUIDELINES,
             "soil_thresholds": _DEFAULT_SOIL_THRESHOLDS,
             "irrigation_rules": _DEFAULT_IRRIGATION_RULES,
+            "environmental_risk_rules": _DEFAULT_RISK_RULES,
         }
 
     # Update module-level convenience dictionaries
@@ -168,6 +215,25 @@ def get_agronomic_rules() -> Dict[str, Any]:
     global _RULES_CACHE
     if _RULES_CACHE is None:
         reload_agronomic_rules()
+    return _RULES_CACHE
+
+
+def update_agronomic_rules(new_rules: Dict[str, Any]) -> Dict[str, Any]:
+    """Dynamically update agronomic rules and persist to configuration JSON."""
+    global _RULES_CACHE
+    current_rules = get_agronomic_rules()
+    for section, values in new_rules.items():
+        if isinstance(values, dict) and section in current_rules and isinstance(current_rules[section], dict):
+            current_rules[section].update(values)
+        else:
+            current_rules[section] = values
+
+    path = Config.AGRONOMIC_RULES_PATH
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(current_rules, f, indent=2)
+
+    _RULES_CACHE = current_rules
+    reload_agronomic_rules()
     return _RULES_CACHE
 
 
@@ -199,6 +265,12 @@ def get_irrigation_rules() -> Dict[str, Any]:
     """Retrieve dynamic irrigation scheduling parameters."""
     rules = get_agronomic_rules()
     return rules.get("irrigation_rules", _DEFAULT_IRRIGATION_RULES)
+
+
+def get_risk_rules() -> Dict[str, Any]:
+    """Retrieve dynamic multi-hazard environmental risk thresholds."""
+    rules = get_agronomic_rules()
+    return rules.get("environmental_risk_rules", _DEFAULT_RISK_RULES)
 
 
 # Module-level exported dictionaries for backward-compatibility

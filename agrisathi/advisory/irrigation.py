@@ -13,6 +13,17 @@ from agrisathi.core.schemas import (
 )
 
 
+def _safe_float(val: Any, default: float) -> float:
+    """Null-safe float parser respecting valid 0.0 values."""
+    if val is None:
+        return default
+    try:
+        f = float(val)
+        return default if (f != f or f == float("inf") or f == float("-inf")) else f
+    except (ValueError, TypeError):
+        return default
+
+
 def calculate_irrigation_advisory(
     farm_data: Dict[str, Any],
     crop_name: str = None,
@@ -23,6 +34,8 @@ def calculate_irrigation_advisory(
     Accepts crop_name (str) and/or crop_profile (dict or str).
     Uses dynamic irrigation rules.
     """
+    farm_data = farm_data or {}
+
     if isinstance(crop_name, dict) and crop_profile is None:
         crop_profile = crop_name
         crop_name = None
@@ -35,21 +48,32 @@ def calculate_irrigation_advisory(
         crop_profile = get_crop_profile(crop_name or "rice")
 
     rules = get_irrigation_rules()
-    crit_moisture = float(rules.get("critical_moisture", 12.0))
-    stress_moisture = float(rules.get("acute_stress_moisture", 15.0))
-    mod_moisture = float(rules.get("moderate_moisture", 22.0))
-    surplus_moisture = float(rules.get("surplus_moisture", 35.0))
-    waterlogged_moisture = float(rules.get("waterlogged_moisture", 45.0))
-    rec_depth_high = float(rules.get("rec_depth_high_mm", 45.0))
-    rec_depth_med = float(rules.get("rec_depth_med_mm", 30.0))
-    suppress_heavy = float(rules.get("rainfall_suppress_heavy_mm", 15.0))
-    suppress_light = float(rules.get("rainfall_suppress_light_mm", 5.0))
+    crit_moisture = _safe_float(rules.get("critical_moisture"), 12.0)
+    stress_moisture = _safe_float(rules.get("acute_stress_moisture"), 15.0)
+    mod_moisture = _safe_float(rules.get("moderate_moisture"), 22.0)
+    surplus_moisture = _safe_float(rules.get("surplus_moisture"), 35.0)
+    waterlogged_moisture = _safe_float(rules.get("waterlogged_moisture"), 45.0)
+    rec_depth_high = _safe_float(rules.get("rec_depth_high_mm"), 45.0)
+    rec_depth_med = _safe_float(rules.get("rec_depth_med_mm"), 30.0)
+    suppress_heavy = _safe_float(rules.get("rainfall_suppress_heavy_mm"), 15.0)
+    suppress_light = _safe_float(rules.get("rainfall_suppress_light_mm"), 5.0)
 
-    moisture = float(farm_data.get("soil_moisture", 25.0))
-    temperature = float(farm_data.get("temperature", 25.0))
-    humidity = float(farm_data.get("humidity", 70.0))
-    rainfall = float(farm_data.get("rainfall", 100.0))
-    wind_speed = float(farm_data.get("wind_speed", 3.0))
+    # Dynamic climate & irrigation thresholds
+    et_high_temp = _safe_float(rules.get("et_high_temp_c"), 32.0)
+    et_low_hum = _safe_float(rules.get("et_low_humidity"), 50.0)
+    et_wind_speed = _safe_float(rules.get("et_wind_speed_mps"), 6.0)
+    et_wind_temp = _safe_float(rules.get("et_wind_temp_c"), 28.0)
+    abundant_rain = _safe_float(rules.get("abundant_rainfall_mm"), 150.0)
+    low_rain_et = _safe_float(rules.get("low_rainfall_et_mm"), 60.0)
+    rainwater_min_rain = _safe_float(rules.get("rainwater_reserve_min_rain_mm"), 40.0)
+    gw_dry_moist = _safe_float(rules.get("groundwater_dry_moisture"), 20.0)
+    maturity_red_moist = _safe_float(rules.get("maturity_reduction_moisture"), 18.0)
+
+    moisture = _safe_float(farm_data.get("soil_moisture"), 25.0)
+    temperature = _safe_float(farm_data.get("temperature"), 25.0)
+    humidity = _safe_float(farm_data.get("humidity"), 70.0)
+    rainfall = _safe_float(farm_data.get("rainfall"), 100.0)
+    wind_speed = _safe_float(farm_data.get("wind_speed"), 3.0)
 
     crop_demand = crop_profile.get("water_demand", "Medium")
     crop_title = crop_profile.get("display_name", crop_name or "Target Crop")
@@ -61,7 +85,7 @@ def calculate_irrigation_advisory(
     actions: List[str] = []
 
     # Evapotranspiration index
-    high_et = (temperature > 32.0 and humidity < 50.0) or (wind_speed > 6.0 and temperature > 28.0)
+    high_et = (temperature > et_high_temp and humidity < et_low_hum) or (wind_speed > et_wind_speed and temperature > et_wind_temp)
 
     # 1. Critical Water Scarcity
     if moisture < crit_moisture:
@@ -105,7 +129,7 @@ def calculate_irrigation_advisory(
             priority = "Low"
             message = "Soil is heavily water-saturated. Cease all irrigation and inspect drainage to prevent root hypoxia."
             actions.append("Ensure drainage ditches are clear to evacuate ponding surface water.")
-        elif rainfall > 150.0:
+        elif rainfall > abundant_rain:
             priority = "Low"
             message = "Soil moisture is abundant following significant rainfall. No irrigation required."
             if soil_type == "Clay":
@@ -114,7 +138,7 @@ def calculate_irrigation_advisory(
             priority = "Low"
             message = "Soil moisture is surplus. Cease irrigation to avoid root hypoxia and fungal rot."
             actions.append("Facilitate surface runoff drainage if water pools.")
-        elif high_et and rainfall < 60.0:
+        elif high_et and rainfall < low_rain_et:
             priority = "Medium"
             message = "Soil moisture is currently adequate, but rapid evaporative loss necessitates scheduling irrigation within 3-4 days."
             actions.append("Monitor root zone moisture and prepare irrigation supply.")
@@ -134,20 +158,20 @@ def calculate_irrigation_advisory(
     # Growth stage adjustments
     if growth_stage == "Seedling" and priority in ("High", "Medium"):
         actions.append("Seedling stage has shallow rooting depth: maintain light, uniform surface moisture to avoid seedling desiccation.")
-    elif growth_stage == "Maturity" and moisture >= 18.0:
+    elif growth_stage == "Maturity" and moisture >= maturity_red_moist:
         actions.append("Crop has reached Maturity stage: gradually reduce irrigation volume to encourage uniform ripening and avoid pre-harvest mold.")
 
     # Water source guidance
-    if water_source == "Rainwater" and rainfall < 40.0:
+    if water_source == "Rainwater" and rainfall < rainwater_min_rain:
         actions.append("Rainwater harvesting reserves may be limited under dry conditions; verify secondary irrigation access.")
-    elif water_source == "Groundwater" and moisture < 20.0:
+    elif water_source == "Groundwater" and moisture < gw_dry_moist:
         actions.append("Monitor groundwater salinity/EC levels before heavy pumping during dry spells.")
 
     # 4. Daily Crop Evapotranspiration (ETc) estimation via FAO-56 Penman/Hargreaves principles
     base_et0 = max(1.5, min(8.5, 0.16 * (temperature + 4.0) * (1.0 - (humidity / 160.0)) + (wind_speed * 0.12)))
 
     # Stage crop coefficient Kc
-    kc_mid = float(crop_profile.get("kc_mid", 1.05))
+    kc_mid = _safe_float(crop_profile.get("kc_mid"), 1.05)
     if growth_stage == "Seedling":
         kc = round(kc_mid * 0.45, 2)
     elif growth_stage == "Vegetative":
@@ -160,7 +184,7 @@ def calculate_irrigation_advisory(
     etc_mm_day = round(base_et0 * kc, 1)
 
     # 5. Farm Area Water Volume Calculation (in Litres and m³)
-    raw_area_ha = float(farm_data.get("farm_area_ha") or 1.0)
+    raw_area_ha = _safe_float(farm_data.get("farm_area_ha"), 1.0)
     farm_area_ha = max(0.01, raw_area_ha)
 
     # Recommended irrigation depth in mm
@@ -181,7 +205,7 @@ def calculate_irrigation_advisory(
     raw_rain = farm_data.get("expected_rainfall_24h")
     if raw_rain is None:
         raw_rain = farm_data.get("forecast_rainfall")
-    expected_rain = float(raw_rain if raw_rain is not None else 0.0)
+    expected_rain = _safe_float(raw_rain, 0.0)
 
     rainfall_suppressed = False
 

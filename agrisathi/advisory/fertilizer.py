@@ -12,6 +12,17 @@ from agrisathi.advisory.profiles import (
 )
 
 
+def _safe_float(val: Any, default: float) -> float:
+    """Null-safe float parser respecting valid 0.0 values."""
+    if val is None:
+        return default
+    try:
+        f = float(val)
+        return default if (f != f or f == float("inf") or f == float("-inf")) else f
+    except (ValueError, TypeError):
+        return default
+
+
 def calculate_fertilizer_guidance(
     farm_data: Dict[str, Any],
     crop_name: str = None,
@@ -22,6 +33,8 @@ def calculate_fertilizer_guidance(
     Accepts crop_name (str) and/or crop_profile (dict or str).
     Uses dynamic conversions and organic guidelines.
     """
+    farm_data = farm_data or {}
+
     if isinstance(crop_name, dict) and crop_profile is None:
         crop_profile = crop_name
         crop_name = None
@@ -36,21 +49,21 @@ def calculate_fertilizer_guidance(
     conversions = get_fertilizer_conversions()
     guidelines = get_organic_guidelines()
 
-    urea_n_fraction = float(conversions.get("urea_n_fraction", 0.46))
-    dap_n_fraction = float(conversions.get("dap_n_fraction", 0.18))
-    dap_p_fraction = float(conversions.get("dap_p_fraction", 0.46))
-    ssp_p_fraction = float(conversions.get("ssp_p_fraction", 0.16))
-    mop_k_fraction = float(conversions.get("mop_k_fraction", 0.60))
-    bag_weight = float(conversions.get("commercial_bag_weight_kg", 50.0))
-    surplus_mult = float(conversions.get("surplus_multiplier", 1.5))
+    urea_n_fraction = _safe_float(conversions.get("urea_n_fraction"), 0.46)
+    dap_n_fraction = _safe_float(conversions.get("dap_n_fraction"), 0.18)
+    dap_p_fraction = _safe_float(conversions.get("dap_p_fraction"), 0.46)
+    ssp_p_fraction = _safe_float(conversions.get("ssp_p_fraction"), 0.16)
+    mop_k_fraction = _safe_float(conversions.get("mop_k_fraction"), 0.60)
+    bag_weight = _safe_float(conversions.get("commercial_bag_weight_kg"), 50.0)
+    surplus_mult = _safe_float(conversions.get("surplus_multiplier"), 1.5)
 
-    current_n = float(farm_data.get("N", 50))
-    current_p = float(farm_data.get("P", 50))
-    current_k = float(farm_data.get("K", 50))
+    current_n = _safe_float(farm_data.get("N"), 50.0)
+    current_p = _safe_float(farm_data.get("P"), 50.0)
+    current_k = _safe_float(farm_data.get("K"), 50.0)
 
-    opt_n = float(crop_profile.get("opt_n", 80))
-    opt_p = float(crop_profile.get("opt_p", 40))
-    opt_k = float(crop_profile.get("opt_k", 40))
+    opt_n = _safe_float(crop_profile.get("opt_n"), 80.0)
+    opt_p = _safe_float(crop_profile.get("opt_p"), 40.0)
+    opt_k = _safe_float(crop_profile.get("opt_k"), 40.0)
 
     crop_title = crop_profile.get("display_name", crop_name or "Target Crop")
 
@@ -84,7 +97,7 @@ def calculate_fertilizer_guidance(
     mop_rounded = round(mop_kg_ha, 1)
 
     # 5. Farm Area Scaling (Total kg & commercial bags)
-    raw_area_ha = float(farm_data.get("farm_area_ha") or 1.0)
+    raw_area_ha = _safe_float(farm_data.get("farm_area_ha"), 1.0)
     farm_area_ha = max(0.01, raw_area_ha)
 
     total_urea_kg = round(urea_rounded * farm_area_ha, 1)
@@ -99,11 +112,11 @@ def calculate_fertilizer_guidance(
 
     # 6. Organic Alternatives and Bio-fertilizers
     crop_category = crop_profile.get("category", "General")
-    ph = float(farm_data.get("ph", 6.5))
+    ph = _safe_float(farm_data.get("ph"), 6.5)
 
-    fym_rate = float(guidelines.get("fym", {}).get("rate_per_ha_tonnes", 10.0))
-    vermicompost_rate = float(guidelines.get("vermicompost", {}).get("rate_per_ha_tonnes", 3.0))
-    neem_rate = float(guidelines.get("neem_cake", {}).get("rate_per_ha_kg", 250.0))
+    fym_rate = _safe_float(guidelines.get("fym", {}).get("rate_per_ha_tonnes"), 10.0)
+    vermicompost_rate = _safe_float(guidelines.get("vermicompost", {}).get("rate_per_ha_tonnes"), 3.0)
+    neem_rate = _safe_float(guidelines.get("neem_cake", {}).get("rate_per_ha_kg"), 250.0)
     bio_text = guidelines.get("biofertilizers", {})
 
     organic_alternatives = {
