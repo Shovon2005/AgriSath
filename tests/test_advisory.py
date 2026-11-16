@@ -1,5 +1,5 @@
 """
-Comprehensive unit tests for Agronomic Advisory Engines.
+Comprehensive unit tests for Agronomic Advisory Engines and edge cases.
 """
 
 from agrisathi.core.validator import validate_farm_input
@@ -38,6 +38,21 @@ def test_soil_health_acidic_and_low_om():
     assert len(result["corrective_actions"]) > 0
 
 
+def test_soil_health_alkaline_and_nutrient_lockup():
+    alkaline_payload = {
+        "ph": 8.8,
+        "organic_matter": 2.2,
+        "N": 25,
+        "P": 15,
+        "K": 20,
+        "soil_type": "Clay"
+    }
+    result = assess_soil_health(alkaline_payload)
+    assert result["status"] == "Poor"
+    assert any("alkaline" in i.lower() for i in result["issues"])
+    assert len(result["corrective_actions"]) > 0
+
+
 def test_fertilizer_recommendations_with_deficit(valid_farm_payload):
     sanitized = validate_farm_input(valid_farm_payload)
     # Low N, P, K
@@ -55,6 +70,15 @@ def test_fertilizer_recommendations_with_deficit(valid_farm_payload):
     assert len(result["application_schedule"]) == 3
 
 
+def test_fertilizer_recommendations_no_deficit():
+    rich_farm = {"N": 150, "P": 100, "K": 100}
+    result = calculate_fertilizer_guidance(rich_farm, "chickpea")
+    assert result["deficits"]["N"] == 0.0
+    assert result["deficits"]["P"] == 0.0
+    assert result["deficits"]["K"] == 0.0
+    assert result["commercial_fertilizers"]["urea_kg_ha"] == 0.0
+
+
 def test_irrigation_high_priority_dry_soil():
     dry_payload = {
         "soil_moisture": 11.0,
@@ -70,6 +94,34 @@ def test_irrigation_high_priority_dry_soil():
     assert len(result["recommended_actions"]) >= 2
 
 
+def test_irrigation_moderate_and_surplus_conditions():
+    # Moderate condition
+    mod_payload = {
+        "soil_moisture": 18.0,
+        "temperature": 28.0,
+        "humidity": 60.0,
+        "rainfall": 10.0,
+        "wind_speed": 3.0,
+        "soil_type": "Loamy",
+        "growth_stage": "Vegetative"
+    }
+    res_mod = calculate_irrigation_advisory(mod_payload, "chickpea")
+    assert res_mod["priority"] in ("Low", "Medium")
+
+    # Surplus condition
+    surplus_payload = {
+        "soil_moisture": 40.0,
+        "temperature": 24.0,
+        "humidity": 85.0,
+        "rainfall": 180.0,
+        "wind_speed": 2.0,
+        "soil_type": "Clay",
+        "growth_stage": "Vegetative"
+    }
+    res_surplus = calculate_irrigation_advisory(surplus_payload, "chickpea")
+    assert res_surplus["priority"] == "Low"
+
+
 def test_risk_assessment_frost_and_pest():
     high_risk_payload = {
         "frost_risk": 85.0,
@@ -82,6 +134,19 @@ def test_risk_assessment_frost_and_pest():
     result = assess_environmental_risks(high_risk_payload, "rice")
     assert result["overall_risk_level"] == "Critical"
     assert result["high_risk_count"] == 2
+    assert len(result["risk_matrix"]) >= 3
+
+
+def test_risk_assessment_moderate_and_heat():
+    heat_payload = {
+        "frost_risk": 40.0,
+        "pest_pressure": 40.0,
+        "temperature": 43.0,
+        "humidity": 40.0,
+        "wind_speed": 15.0,
+        "urban_area_proximity": 3.0
+    }
+    result = assess_environmental_risks(heat_payload, "cotton")
     assert len(result["risk_matrix"]) >= 3
 
 

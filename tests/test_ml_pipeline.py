@@ -36,3 +36,12 @@ def test_artifacts_exist():
     assert Config.FEATURE_INFO_PATH.exists()
     assert Config.FEATURE_INFO_JSON_PATH.exists()
     assert Config.MODEL_METRICS_PATH.exists()
+
+
+def test_train_and_evaluate_routine():
+    # Run with small sample or test_size and save_artifacts=False
+    pipeline, metrics = train_and_evaluate(test_size=0.3, random_state=42, save_artifacts=False)
+    assert pipeline is not None
+    assert metrics["accuracy"] > 0.95
+    assert metrics["sample_count"] == 2200
+
