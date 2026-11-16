@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriSathi | Historical Advisory Reports</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .history-table th {
+            background: #1b5e20;
+            color: #ffffff;
+            padding: 12px 14px;
+            font-size: 0.88rem;
+            text-align: left;
+        }
+        .history-table td {
+            padding: 12px 14px;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #eeeeee;
+            color: #333333;
+        }
+        .history-table tr:hover {
+            background: #f9fbe7;
+        }
+        .badge-fert {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.78rem;
+        }
+        .fert-high { background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; }
+        .fert-med { background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
+        .fert-low { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+    </style>
+</head>
+<body>
+
+<header class="navbar">
+    <div class="logo">
+        <div class="logo-icon">
+            <i class="fa-solid fa-seedling"></i>
+        </div>
+        <div>
+            <h2>AgriSathi</h2>
+            <span>Precision Agriculture</span>
+        </div>
+    </div>
+    <div style="display: flex; gap: 15px; align-items: center;">
+        <a href="/" style="color: #2e7d32; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+            <i class="fa-solid fa-plus-circle"></i> New Farm Advisory
+        </a>
+        <div class="ai-status">
+            <span class="status-dot"></span>
+            History Engine Online
+        </div>
+    </div>
+</header>
+
+<section class="result-hero" style="padding: 35px 20px;">
+    <div class="result-hero-content">
+        <div class="result-badge">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            Historical Agronomic Records
+        </div>
+        <h1>Past Advisory <span>Predictions Archive</span></h1>
+        <p>Review previously generated soil health assessments, crop recommendations, water allocations, and download official PDF reports.</p>
+    </div>
+</section>
+
+<main class="container" style="max-width: 1100px; margin: 30px auto; padding: 0 20px;">
+
+    <!-- Filter / Quick Actions -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+        <div style="font-weight: 700; color: #1b5e20; font-size: 1.1rem;">
+            <i class="fa-solid fa-database"></i> Saved Assessments ({{ history|length }})
+        </div>
+        <div>
+            <a href="/history" style="padding: 6px 12px; background: white; border: 1px solid #81c784; border-radius: 6px; color: #1b5e20; text-decoration: none; font-size: 0.85rem; font-weight: 600; margin-right: 6px;">All Crops</a>
+            <a href="/history?crop=rice" style="padding: 6px 12px; background: white; border: 1px solid #81c784; border-radius: 6px; color: #1b5e20; text-decoration: none; font-size: 0.85rem;">Rice</a>
+            <a href="/history?crop=chickpea" style="padding: 6px 12px; background: white; border: 1px solid #81c784; border-radius: 6px; color: #1b5e20; text-decoration: none; font-size: 0.85rem;">Chickpea</a>
+            <a href="/history?crop=cotton" style="padding: 6px 12px; background: white; border: 1px solid #81c784; border-radius: 6px; color: #1b5e20; text-decoration: none; font-size: 0.85rem;">Cotton</a>
+            <a href="/history?crop=maize" style="padding: 6px 12px; background: white; border: 1px solid #81c784; border-radius: 6px; color: #1b5e20; text-decoration: none; font-size: 0.85rem;">Maize</a>
+        </div>
+    </div>
+
+    {% if history %}
+    <div style="overflow-x: auto;">
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th># ID</th>
+                    <th>Date & Time</th>
+                    <th>Location & Season</th>
+                    <th>Recommended Crop</th>
+                    <th>Confidence</th>
+                    <th>Soil Fertility</th>
+                    <th>Irrigation Demand</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in history %}
+                <tr>
+                    <td><strong>#{{ item.id }}</strong></td>
+                    <td>{{ item.timestamp[:16]|replace("T", " ") }}</td>
+                    <td>
+                        <strong>{{ item.location }}</strong><br/>
+                        <small style="color: #666666;">{{ item.season }} ({{ item.farm_area }} ha)</small>
+                    </td>
+                    <td>
+                        <strong style="color: #1b5e20; font-size: 0.95rem;">
+                            <i class="fa-solid fa-wheat-awn"></i> {{ item.crop }}
+                        </strong>
+                    </td>
+                    <td>
+                        <strong>{{ item.confidence }}%</strong>
+                    </td>
+                    <td>
+                        <span class="badge-fert {% if item.fertility_class == 'High' %}fert-high{% elif item.fertility_class == 'Medium' %}fert-med{% else %}fert-low{% endif %}">
+                            {{ item.fertility_class }} ({{ item.soil_score }}/100)
+                        </span>
+                    </td>
+                    <td>
+                        <span style="font-weight: 600; color: {% if item.irrigation_priority == 'High' %}#c62828{% elif item.irrigation_priority == 'Medium' %}#f57f17{% else %}#2e7d32{% endif %};">
+                            {{ item.irrigation_priority }} Priority
+                        </span>
+                    </td>
+                    <td>
+                        <form action="/download-report" method="POST" style="display: inline-block; margin: 0;">
+                            {% if item.inputs %}
+                                {% for k, v in item.inputs.items() %}
+                                <input type="hidden" name="{{ k }}" value="{{ v }}">
+                                {% endfor %}
+                            {% endif %}
+                            <button type="submit" style="padding: 6px 10px; background: #1b5e20; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.78rem;">
+                                <i class="fa-solid fa-file-pdf"></i> PDF
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="background: white; padding: 40px; text-align: center; border-radius: 12px; border: 1px dashed #bdbdbd; margin-top: 20px;">
+        <i class="fa-solid fa-inbox" style="font-size: 3rem; color: #bdbdbd; margin-bottom: 12px;"></i>
+        <h3 style="color: #424242; margin-bottom: 8px;">No Historical Records Found</h3>
+        <p style="color: #757575; font-size: 0.9rem; margin-bottom: 20px;">Generate your first precision agriculture recommendation to begin saving assessments.</p>
+        <a href="/" style="display: inline-block; padding: 10px 20px; background: #1b5e20; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">
+            <i class="fa-solid fa-seedling"></i> Start First Assessment
+        </a>
+    </div>
+    {% endif %}
+
+</main>
+
+<footer>
+    <div>
+        <i class="fa-solid fa-seedling"></i>
+        AgriSathi
+    </div>
+    <p>Explainable AI-Driven Intelligent Decision Support Framework for Precision Agriculture</p>
+    <span>© 2026 AgriSathi</span>
+</footer>
+
+</body>
+</html>

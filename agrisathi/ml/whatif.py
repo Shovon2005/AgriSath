@@ -5,7 +5,7 @@ and observe sensitivity shifts in crop recommendations.
 """
 
 from typing import Dict, Any, List
-from agrisathi.core.validator import validate_farm_input
+from agrisathi.core.validator import validate_farm_input, FEATURE_NAMES
 from agrisathi.ml.predictor import get_predictor
 
 
@@ -19,17 +19,17 @@ def simulate_what_if(
     """
     predictor = get_predictor()
 
-    # Validate and sanitize baseline
-    sanitized_base = validate_farm_input(baseline_data)
+    # Validate and sanitize baseline with sensible defaults allowed for what-if exploration
+    sanitized_base = validate_farm_input(baseline_data, allow_defaults=True)
     base_prediction = predictor.predict(sanitized_base)
 
     # Apply adjustments over baseline
-    modified_data = dict(baseline_data)
+    modified_data = dict(sanitized_base)
     applied_changes: List[Dict[str, Any]] = []
 
     for field, new_val in adjustments.items():
-        if field in sanitized_base and new_val is not None:
-            old_val = sanitized_base[field]
+        if field in FEATURE_NAMES and new_val is not None:
+            old_val = sanitized_base.get(field)
             try:
                 if isinstance(old_val, (int, float)) and isinstance(new_val, (int, float, str)):
                     num_new = float(new_val)
@@ -52,7 +52,7 @@ def simulate_what_if(
                 modified_data[field] = new_val
 
     # Validate and predict on modified data
-    sanitized_mod = validate_farm_input(modified_data)
+    sanitized_mod = validate_farm_input(modified_data, allow_defaults=True)
     sim_prediction = predictor.predict(sanitized_mod)
 
     # Compare crop probabilities

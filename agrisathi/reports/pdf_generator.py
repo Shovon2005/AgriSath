@@ -128,15 +128,21 @@ def generate_pdf_advisory_report(
 
         # 1. Header Banner
         timestamp_str = datetime.now(timezone.utc).strftime("%B %d, %Y - %H:%M UTC")
+        input_data = (prediction_result.get("input_data") or {}) if isinstance(prediction_result, dict) else {}
+        loc_str = html.escape(str(input_data.get("location") or "Local Farm"))
+        season_str = html.escape(str(input_data.get("season") or "Whole Year"))
+        area_str = f"{input_data.get('farm_area', 1.0)} {input_data.get('farm_area_unit', 'ha')}"
+
         header_table = Table(
             [
                 [
                     Paragraph("<b>AgriSathi | Precision Agriculture</b>", title_style),
-                    Paragraph(f"<b>Report ID:</b> AGR-{int(datetime.now(timezone.utc).timestamp())}<br/><b>Date:</b> {timestamp_str}", subtitle_style),
+                    Paragraph(f"<b>Report ID:</b> AGR-{int(datetime.now(timezone.utc).timestamp())}<br/><b>Date:</b> {timestamp_str}<br/><b>Farm:</b> {loc_str} | <b>Season:</b> {season_str} ({area_str})", subtitle_style),
                 ]
             ],
-            colWidths=[4.4 * inch, 2.8 * inch],
+            colWidths=[4.2 * inch, 3.0 * inch],
         )
+
         header_table.setStyle(TableStyle([
             ("VALIGN", (0, 0), (-1, -1), "TOP"),
             ("ALIGN", (1, 0), (1, 0), "RIGHT"),
@@ -165,6 +171,13 @@ def generate_pdf_advisory_report(
             [Paragraph(f"Model Confidence: <b>{conf:.1f}%</b> | Scientific Name: <i>{crop_sci_name}</i>", ParagraphStyle("Conf", parent=body_style, alignment=1, fontSize=8))],
             [Paragraph(crop_desc, ParagraphStyle("Desc", parent=body_style, alignment=1, textColor=colors.HexColor("#444444"), fontSize=7.5))],
         ]
+
+        xai_narrative = html.escape(str(prediction_result.get("explanation_narrative") or ""))
+        if xai_narrative:
+            hero_data.append([
+                Paragraph(f"<b>AI Reasoning:</b> <i>{xai_narrative}</i>", ParagraphStyle("Narrative", parent=body_style, alignment=1, textColor=PRIMARY_GREEN, fontSize=7.5))
+            ])
+
         hero_table = Table(hero_data, colWidths=[7.2 * inch])
         hero_table.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, -1), LIGHT_GREEN),
@@ -187,41 +200,55 @@ def generate_pdf_advisory_report(
         fert_items = "<br/>".join([f"• {html.escape(str(rec))}" for rec in fert_recs[:3]]) or "• Nutrient status adequate."
 
         comm_fert = (fert.get("commercial_fertilizers") or {}) if isinstance(fert, dict) else {}
+        total_fert = (fert.get("total_farm_requirements") or {}) if isinstance(fert, dict) else {}
+        organic_fert = (fert.get("organic_alternatives") or {}) if isinstance(fert, dict) else {}
         deficits = (fert.get("deficits") or {}) if isinstance(fert, dict) else {}
 
+        urea_kg = comm_fert.get('urea_kg_ha', 0)
+        urea_bags = total_fert.get('urea_bags_50kg', 0)
+        dap_kg = comm_fert.get('dap_kg_ha', 0)
+        dap_bags = total_fert.get('dap_bags_50kg', 0)
+        mop_kg = comm_fert.get('mop_kg_ha', 0)
+        mop_bags = total_fert.get('mop_bags_50kg', 0)
+
         fert_box = (
-            f"<b>Commercial Dosage Prescription:</b><br/>"
-            f"• <b>Urea (46% N):</b> {comm_fert.get('urea_kg_ha', 0)} kg/ha<br/>"
-            f"• <b>DAP (18% N, 46% P₂O₅):</b> {comm_fert.get('dap_kg_ha', 0)} kg/ha<br/>"
-            f"• <b>MOP (60% K₂O):</b> {comm_fert.get('mop_kg_ha', 0)} kg/ha"
+            f"<b>Commercial Prescription (Rate & Total Bags):</b><br/>"
+            f"• <b>Urea (46% N):</b> {urea_kg} kg/ha ({urea_bags} bags of 50kg)<br/>"
+            f"• <b>DAP (18-46-0):</b> {dap_kg} kg/ha ({dap_bags} bags) or SSP: {comm_fert.get('ssp_kg_ha', 0)} kg/ha<br/>"
+            f"• <b>MOP (60% K₂O):</b> {mop_kg} kg/ha ({mop_bags} bags)<br/>"
+            f"• <b>Organic Compost / FYM:</b> {organic_fert.get('compost_fym_tonnes', 10)} tonnes total"
         )
 
         soil_status = html.escape(str(soil.get('status', 'Good')))
+        fertility_class = html.escape(str(soil.get('fertility_class', 'Medium')))
         soil_texture = html.escape(str(soil.get('soil_texture', 'Loamy')))
+        ec_val = soil.get('electrical_conductivity', 0.6)
+        oc_val = soil.get('organic_carbon', round(soil.get('organic_matter', 3.0) / 1.724, 2))
 
         two_col_data = [
             [
-                Paragraph("<b>Soil Condition Profile</b>", body_bold),
-                Paragraph("<b>Fertilizer Guidance (NPK)</b>", body_bold),
+                Paragraph("<b>Soil Condition & Fertility Profile</b>", body_bold),
+                Paragraph("<b>Fertilizer Guidance (NPK & Organics)</b>", body_bold),
             ],
             [
                 Paragraph(
-                    f"<b>Condition:</b> {soil_status} (Health Score: {soil.get('score', 80)}/100)<br/>"
-                    f"<b>Texture:</b> {soil_texture}<br/>"
-                    f"<b>Reaction (pH):</b> {soil.get('ph', 6.5)} | <b>Organic Matter:</b> {soil.get('organic_matter', 3.0)}%<br/><br/>"
+                    f"<b>Fertility Rating:</b> <b>{fertility_class}</b> (Health Score: {soil.get('score', 80)}/100)<br/>"
+                    f"<b>Texture:</b> {soil_texture} | <b>Condition:</b> {soil_status}<br/>"
+                    f"<b>Reaction (pH):</b> {soil.get('ph', 6.5)} | <b>EC:</b> {ec_val} dS/m | <b>OC:</b> {oc_val}%<br/><br/>"
                     f"<b>Key Observations:</b><br/>{soil_items}",
                     table_cell,
                 ),
                 Paragraph(
                     f"{fert_box}<br/><br/>"
-                    f"<b>Nutrient Deficits:</b> N: {deficits.get('N', 0)} kg/ha | "
-                    f"P: {deficits.get('P', 0)} kg/ha | "
+                    f"<b>Nutrient Deficits:</b> N: {deficits.get('N', 0)} | "
+                    f"P: {deficits.get('P', 0)} | "
                     f"K: {deficits.get('K', 0)} kg/ha<br/><br/>"
                     f"<b>Advisory Notes:</b><br/>{fert_items}",
                     table_cell,
                 ),
             ]
         ]
+
         two_col_table = Table(two_col_data, colWidths=[3.5 * inch, 3.7 * inch])
         two_col_table.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), LIGHT_GRAY),
@@ -245,22 +272,28 @@ def generate_pdf_advisory_report(
         risk_warnings = "<br/>".join([f"• {html.escape(str(r))}" for r in risk_warnings_list[:2]]) or "• No acute environmental hazards detected."
 
         irrig_prio = html.escape(str(irrig.get('priority', 'Low')))
+        irrig_req = html.escape(str(irrig.get('irrigation_required', 'Scheduled')))
+        irrig_timing = html.escape(str(irrig.get('next_irrigation_time', 'Within 48 hours')))
+        irrig_litres = irrig.get('water_quantity_litres', 0)
+        irrig_m3 = irrig.get('water_quantity_m3', 0.0)
+        etc_val = irrig.get('daily_water_requirement_mm', 4.2)
+
         irrig_et = html.escape(str(irrig.get('evapotranspiration_risk', 'Normal')))
         irrig_msg = html.escape(str(irrig.get('message', 'Maintain adequate irrigation.')))
         risk_level = html.escape(str(risks.get('overall_risk_level', 'Normal')))
 
         water_risk_data = [
             [
-                Paragraph("<b>Smart Irrigation Advisory</b>", body_bold),
-                Paragraph("<b>Hazard & Risk Assessment</b>", body_bold),
+                Paragraph("<b>Smart Irrigation Advisory & Water Volume</b>", body_bold),
+                Paragraph("<b>Hazard & Environmental Risk Matrix</b>", body_bold),
             ],
             [
                 Paragraph(
-                    f"<b>Priority:</b> {irrig_prio}<br/>"
-                    f"<b>Soil Moisture:</b> {irrig.get('soil_moisture', 25)}%<br/>"
-                    f"<b>Evapotranspiration Risk:</b> {irrig_et}<br/><br/>"
-                    f"<b>Directive:</b> {irrig_msg}<br/><br/>"
-                    f"<b>Action Plan:</b><br/>{irrig_actions}",
+                    f"<b>Requirement:</b> {irrig_req} (Priority: {irrig_prio})<br/>"
+                    f"<b>Water Requirement:</b> {etc_val} mm/day | <b>Soil Moisture:</b> {irrig.get('soil_moisture', 25)}%<br/>"
+                    f"<b>Volume Required:</b> <b>{irrig_litres:,} Litres</b> ({irrig_m3} m³)<br/>"
+                    f"<b>Next Irrigation Window:</b> <i>{irrig_timing}</i><br/><br/>"
+                    f"<b>Action Directive:</b> {irrig_msg}",
                     table_cell,
                 ),
                 Paragraph(
@@ -271,6 +304,7 @@ def generate_pdf_advisory_report(
                 ),
             ]
         ]
+
         water_risk_table = Table(water_risk_data, colWidths=[3.5 * inch, 3.7 * inch])
         water_risk_table.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), LIGHT_GRAY),

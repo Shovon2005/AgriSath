@@ -83,10 +83,10 @@ Plus:
 - [x] **Step 48**: Run test suite and commit Phase 7 weather and persistence integration.
 
 ### Phase 8: Module 6 — Integrated Dashboard UI, PDF Report & System Verification (Steps 49 – 55)
-- [ ] **Step 49**: Update `templates/index.html` with new inputs (EC, OC, Farm Area, Location, Season, Weather Autofill button).
-- [ ] **Step 50**: Update `templates/result.html` to integrate all 6 modules: Soil Fertility (Low/Med/High), Top-3 Comparison Matrix, Water in Litres & Schedule, Fertilizer in Bags & Organics, SHAP Waterfall Plot, and What-If Analysis Simulator.
-- [ ] **Step 51**: Create `templates/history.html` for viewing past farm reports and one-click reload.
-- [ ] **Step 52**: Enhance PDF report generator in `agrisathi/reports/pdf_generator.py` to include EC, OC, fertility rating, farm area, water in litres, fertilizer bags, organic alternatives, top 3 comparison, and SHAP narrative.
-- [ ] **Step 53**: Write end-to-end integration tests in `tests/test_full_integrated_system.py` verifying full pipeline from weather to PDF.
-- [ ] **Step 54**: Run complete pytest suite across all tests, ensuring 100% pass rate.
-- [ ] **Step 55**: Final git commit to branch `sayan`, verifying clean working tree, updated documentation, and zero regressions.
+- [x] **Step 49**: Update `templates/index.html` with new inputs (EC, OC, Farm Area, Location, Season, Weather Autofill button).
+- [x] **Step 50**: Update `templates/result.html` to integrate all 6 modules: Soil Fertility (Low/Med/High), Top-3 Comparison Matrix, Water in Litres & Schedule, Fertilizer in Bags & Organics, SHAP Waterfall Plot, and What-If Analysis Simulator.
+- [x] **Step 51**: Create `templates/history.html` for viewing past farm reports and one-click reload.
+- [x] **Step 52**: Enhance PDF report generator in `agrisathi/reports/pdf_generator.py` to include EC, OC, fertility rating, farm area, water in litres, fertilizer bags, organic alternatives, top 3 comparison, and SHAP narrative.
+- [x] **Step 53**: Write end-to-end integration tests in `tests/test_full_integrated_system.py` verifying full pipeline from weather to PDF.
+- [x] **Step 54**: Run complete pytest suite across all tests, ensuring 100% pass rate.
+- [x] **Step 55**: Final git commit to branch `sayan`, verifying clean working tree, updated documentation, and zero regressions.

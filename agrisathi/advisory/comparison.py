@@ -100,7 +100,9 @@ def build_crop_comparison_matrix(
 
     return {
         "items": matrix_rows,
+        "comparison_rows": matrix_rows,
         "summary": " ".join(summary_parts),
         "primary_crop": matrix_rows[0]["crop"] if matrix_rows else "",
         "top_three": [row["crop"] for row in matrix_rows[:3]],
     }
+

@@ -31,10 +31,16 @@
             </div>
         </div>
 
-        <div class="ai-status">
-            <span class="status-dot"></span>
-            AI System Online
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <a href="/history" style="color: #2e7d32; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+                <i class="fa-solid fa-clock-rotate-left"></i> Past Reports
+            </a>
+            <div class="ai-status">
+                <span class="status-dot"></span>
+                AI System Online
+            </div>
         </div>
+
 
     </header>
 
@@ -233,6 +239,22 @@
                     </div>
 
                     <div class="input-group">
+                        <label>Organic Carbon (OC)</label>
+                        <input type="number" step="0.01" name="organic_carbon"
+                               value="{{ demo_data.get('organic_carbon') or (form_data.get('organic_carbon') if form_data else '') }}"
+                               placeholder="e.g. 0.75">
+                        <span>%</span>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Electrical Conductivity (EC)</label>
+                        <input type="number" step="0.01" name="electrical_conductivity"
+                               value="{{ demo_data.get('electrical_conductivity') or (form_data.get('electrical_conductivity') if form_data else '0.6') }}"
+                               placeholder="e.g. 0.6">
+                        <span>dS/m</span>
+                    </div>
+
+                    <div class="input-group">
 
                         <label>Soil Type</label>
 
@@ -249,6 +271,80 @@
                 </div>
 
             </section>
+
+
+            <!-- ================= FARM GEOGRAPHY & SCALE ================= -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+
+                    <div class="title-icon">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                    </div>
+
+                    <div>
+                        <h3>Farm Scale & Location Context</h3>
+                        <p>Define your farm size and location for precise fertilizer totals, water volume, and live weather.</p>
+                    </div>
+
+                </div>
+
+                <div class="form-grid">
+
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label>Farm Location / District</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="farm_location_input" name="location"
+                                   value="{{ demo_data.get('location') or (form_data.get('location') if form_data else 'Local Farm') }}"
+                                   placeholder="e.g. Punjab, West Bengal, Maharashtra, Delhi" style="flex: 1;">
+                            <button type="button" id="btn_autofill_weather"
+                                    style="padding: 8px 14px; background: #2e7d32; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600; white-space: nowrap;">
+                                <i class="fa-solid fa-cloud-bolt"></i> Live Weather
+                            </button>
+                        </div>
+                        <span id="weather_status_msg" style="font-size: 0.78rem; color: #2e7d32; margin-top: 4px; display: block;"></span>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Cropping Season</label>
+                        <select name="season">
+                            {% set cur_season = demo_data.get('season') or (form_data.get('season') if form_data else 'Whole Year') %}
+                            <option value="Kharif" {% if cur_season == 'Kharif' %}selected{% endif %}>Kharif (Monsoon/Autumn)</option>
+                            <option value="Rabi" {% if cur_season == 'Rabi' %}selected{% endif %}>Rabi (Winter/Spring)</option>
+                            <option value="Zaid" {% if cur_season == 'Zaid' %}selected{% endif %}>Zaid (Summer)</option>
+                            <option value="Whole Year" {% if cur_season == 'Whole Year' %}selected{% endif %}>Whole Year / Perennial</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Farm Area Size</label>
+                        <input type="number" step="0.01" name="farm_area"
+                               value="{{ demo_data.get('farm_area') or (form_data.get('farm_area') if form_data else '1.0') }}"
+                               placeholder="e.g. 2.5" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Area Unit</label>
+                        <select name="farm_area_unit">
+                            {% set cur_unit = demo_data.get('farm_area_unit') or (form_data.get('farm_area_unit') if form_data else 'hectare') %}
+                            <option value="hectare" {% if cur_unit == 'hectare' %}selected{% endif %}>Hectare (ha)</option>
+                            <option value="acre" {% if cur_unit == 'acre' %}selected{% endif %}>Acre</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Expected Rain (24-48h)</label>
+                        <input type="number" step="any" id="expected_rainfall_input" name="expected_rainfall_24h"
+                               value="{{ demo_data.get('expected_rainfall_24h') or (form_data.get('expected_rainfall_24h') if form_data else '0.0') }}"
+                               placeholder="e.g. 15.0">
+                        <span>mm</span>
+                    </div>
+
+                </div>
+
+            </section>
+
 
 
             <!-- ================= WEATHER ================= -->
@@ -475,6 +571,44 @@
 
     </footer>
 
+    <script>
+    document.getElementById('btn_autofill_weather')?.addEventListener('click', function() {
+        const loc = document.getElementById('farm_location_input').value.trim();
+        const statusMsg = document.getElementById('weather_status_msg');
+        statusMsg.textContent = "Connecting to Open-Meteo live API...";
+        statusMsg.style.color = "#1565c0";
+
+        fetch(`/api/v1/weather?location=${encodeURIComponent(loc || 'Local Farm')}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success' && data.weather) {
+                    const w = data.weather;
+                    const tempInput = document.querySelector('input[name="temperature"]');
+                    const humInput = document.querySelector('input[name="humidity"]');
+                    const rainInput = document.querySelector('input[name="rainfall"]');
+                    const windInput = document.querySelector('input[name="wind_speed"]');
+                    const expRainInput = document.getElementById('expected_rainfall_input');
+
+                    if (tempInput && w.temperature !== undefined) tempInput.value = w.temperature;
+                    if (humInput && w.humidity !== undefined) humInput.value = w.humidity;
+                    if (rainInput && w.rainfall !== undefined) rainInput.value = w.rainfall;
+                    if (windInput && w.wind_speed !== undefined) windInput.value = w.wind_speed;
+                    if (expRainInput && w.expected_rainfall_24h !== undefined) expRainInput.value = w.expected_rainfall_24h;
+
+                    statusMsg.textContent = `✓ Fetched for ${w.location}: ${w.temperature}°C, ${w.humidity}% RH, Rain: ${w.rainfall}mm, Forecast: ${w.expected_rainfall_24h}mm (${w.source})`;
+                    statusMsg.style.color = "#2e7d32";
+                } else {
+                    statusMsg.textContent = "Could not resolve live weather. Please enter values manually.";
+                    statusMsg.style.color = "#c62828";
+                }
+            })
+            .catch(err => {
+                statusMsg.textContent = "Network error connecting to weather service.";
+                statusMsg.style.color = "#c62828";
+            });
+    });
+    </script>
 </body>
+
 
 </html>
