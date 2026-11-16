@@ -12,6 +12,12 @@ from agrisathi.ml.whatif import simulate_what_if
 from agrisathi.advisory.profiles import get_crop_profiles
 from agrisathi.advisory.engine import generate_full_advisory
 from agrisathi.reports.pdf_generator import generate_pdf_advisory_report
+from agrisathi.utils.weather import fetch_weather_data
+from agrisathi.data.history import (
+    save_prediction_record,
+    get_recent_predictions,
+    get_prediction_by_id,
+)
 from agrisathi.utils.logger import get_logger
 
 logger = get_logger("agrisathi.api")
@@ -77,13 +83,20 @@ def predict():
         sanitized = validate_farm_input(payload)
         predictor = get_predictor()
         prediction = predictor.predict(sanitized)
-        advisory = generate_full_advisory(sanitized, prediction["recommended_crop"])
+        advisory = generate_full_advisory(
+            sanitized,
+            prediction["recommended_crop"],
+            top_crops=prediction.get("top_three"),
+        )
+        record_id = save_prediction_record(sanitized, prediction, advisory)
 
         return jsonify({
             "status": "success",
             "prediction": prediction,
             "advisory": advisory,
+            "record_id": record_id,
         }), 200
+
 
     except ValidationError as e:
         return jsonify({
@@ -174,3 +187,49 @@ def generate_report():
     except Exception as e:
         logger.error("API Report generation failed: %s", e)
         return jsonify({"error": "Report Generation Failed", "message": str(e)}), 500
+
+
+@api_bp.route("/weather", methods=["GET"])
+def get_weather():
+    """Retrieve current weather and forecast for given location or coordinates."""
+    location = request.args.get("location", "Local Farm")
+    lat = request.args.get("lat") or request.args.get("latitude")
+    lon = request.args.get("lon") or request.args.get("longitude")
+
+    lat_val = float(lat) if lat is not None else None
+    lon_val = float(lon) if lon is not None else None
+
+    weather = fetch_weather_data(location=location, latitude=lat_val, longitude=lon_val)
+    return jsonify({
+        "status": "success",
+        "weather": weather,
+    }), 200
+
+
+@api_bp.route("/history", methods=["GET"])
+def list_history():
+    """List historical prediction reports with optional crop filter."""
+    limit = int(request.args.get("limit", 20))
+    crop_filter = request.args.get("crop")
+    records = get_recent_predictions(limit=limit, crop_filter=crop_filter)
+    return jsonify({
+        "status": "success",
+        "count": len(records),
+        "history": records,
+    }), 200
+
+
+@api_bp.route("/history/<int:record_id>", methods=["GET"])
+def get_history_item(record_id: int):
+    """Retrieve detailed historical assessment by ID."""
+    rec = get_prediction_by_id(record_id)
+    if not rec:
+        return jsonify({
+            "error": "Not Found",
+            "message": f"Historical assessment record #{record_id} not found."
+        }), 404
+    return jsonify({
+        "status": "success",
+        "record": rec,
+    }), 200
+

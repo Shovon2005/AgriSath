@@ -75,12 +75,12 @@ Plus:
 - [x] **Step 42**: Run test suite and commit Phase 6 XAI enhancements.
 
 ### Phase 7: Real-Time Weather Integration & Historical Prediction Persistence (Steps 43 – 48)
-- [ ] **Step 43**: Implement Weather API client in `agrisathi/utils/weather.py` using Open-Meteo (temperature, humidity, rainfall, 48h forecast with offline fallback).
-- [ ] **Step 44**: Add API route `/api/v1/weather` for client-side location autofill in `agrisathi/web/routes/api.py`.
-- [ ] **Step 45**: Implement lightweight historical predictions repository in `agrisathi/data/history.py` using SQLite database `data/history.db`.
-- [ ] **Step 46**: Add `/history` and `/api/v1/history` endpoints for viewing, searching, and reloading past predictions.
-- [ ] **Step 47**: Write unit tests in `tests/test_weather_and_history.py` testing weather fetching and history CRUD.
-- [ ] **Step 48**: Run test suite and commit Phase 7 weather and persistence integration.
+- [x] **Step 43**: Implement Weather API client in `agrisathi/utils/weather.py` using Open-Meteo (temperature, humidity, rainfall, 48h forecast with offline fallback).
+- [x] **Step 44**: Add API route `/api/v1/weather` for client-side location autofill in `agrisathi/web/routes/api.py`.
+- [x] **Step 45**: Implement lightweight historical predictions repository in `agrisathi/data/history.py` using SQLite database `data/history.db`.
+- [x] **Step 46**: Add `/history` and `/api/v1/history` endpoints for viewing, searching, and reloading past predictions.
+- [x] **Step 47**: Write unit tests in `tests/test_weather_and_history.py` testing weather fetching and history CRUD.
+- [x] **Step 48**: Run test suite and commit Phase 7 weather and persistence integration.
 
 ### Phase 8: Module 6 — Integrated Dashboard UI, PDF Report & System Verification (Steps 49 – 55)
 - [ ] **Step 49**: Update `templates/index.html` with new inputs (EC, OC, Farm Area, Location, Season, Weather Autofill button).
