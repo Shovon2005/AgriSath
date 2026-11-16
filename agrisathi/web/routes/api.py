@@ -5,6 +5,7 @@ RESTful JSON API Blueprint for AgriSathi.
 import io
 from flask import Blueprint, request, jsonify, send_file
 from agrisathi import __version__
+from agrisathi.core.schemas import safe_float
 from agrisathi.core.validator import validate_farm_input
 from agrisathi.core.exceptions import ValidationError, AgriSathiError
 from agrisathi.ml.predictor import get_predictor
@@ -16,7 +17,7 @@ from agrisathi.advisory.profiles import (
     update_agronomic_rules,
     reload_agronomic_rules,
 )
-from agrisathi.advisory.engine import generate_full_advisory
+from agrisathi.advisory.engine import run_full_pipeline, generate_full_advisory
 from agrisathi.reports.pdf_generator import generate_pdf_advisory_report
 from agrisathi.utils.weather import (
     fetch_weather_data,
@@ -211,13 +212,7 @@ def predict():
         }), 400
 
     try:
-        sanitized = validate_farm_input(payload)
-        prediction = get_predictor().predict(sanitized)
-        advisory = generate_full_advisory(
-            sanitized,
-            prediction["recommended_crop"],
-            top_crops=prediction.get("top_three"),
-        )
+        sanitized, prediction, advisory = run_full_pipeline(payload, predictor=get_predictor())
         record_id = save_prediction_record(sanitized, prediction, advisory)
 
         return jsonify({
@@ -289,13 +284,7 @@ def generate_report():
         }), 400
 
     try:
-        sanitized = validate_farm_input(payload)
-        prediction = get_predictor().predict(sanitized)
-        advisory = generate_full_advisory(
-            sanitized,
-            prediction["recommended_crop"],
-            top_crops=prediction.get("top_three"),
-        )
+        _, prediction, advisory = run_full_pipeline(payload, predictor=get_predictor())
         pdf_bytes = generate_pdf_advisory_report(prediction, advisory)
 
         return send_file(
@@ -328,8 +317,8 @@ def get_weather():
     lat = request.args.get("lat") or request.args.get("latitude")
     lon = request.args.get("lon") or request.args.get("longitude")
 
-    lat_val = float(lat) if lat is not None else None
-    lon_val = float(lon) if lon is not None else None
+    lat_val = safe_float(lat, None) if lat is not None else None
+    lon_val = safe_float(lon, None) if lon is not None else None
 
     weather = fetch_weather_data(location=location, latitude=lat_val, longitude=lon_val)
     return jsonify({
@@ -378,7 +367,10 @@ def reload_baselines():
 @api_bp.route("/history", methods=["GET"])
 def list_history():
     """List historical prediction reports with optional crop filter."""
-    limit = int(request.args.get("limit", 20))
+    try:
+        limit = int(request.args.get("limit", 20))
+    except (ValueError, TypeError):
+        limit = 20
     crop_filter = request.args.get("crop")
     records = get_recent_predictions(limit=limit, crop_filter=crop_filter)
     return jsonify({

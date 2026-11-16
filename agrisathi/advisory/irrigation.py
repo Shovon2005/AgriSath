@@ -182,9 +182,7 @@ def calculate_irrigation_advisory(
     daily_water_m3 = round(daily_water_litres / 1000.0, 1)
 
     # 6. Expected Rainfall (24-48h forecast) Integration (respecting 0.0)
-    raw_rain = farm_data.get("expected_rainfall_24h")
-    if raw_rain is None:
-        raw_rain = farm_data.get("forecast_rainfall")
+    raw_rain = farm_data.get("expected_rainfall_24h") if "expected_rainfall_24h" in farm_data else farm_data.get("forecast_rainfall")
     expected_rain = _safe_float(raw_rain, 0.0)
 
     rainfall_suppressed = False

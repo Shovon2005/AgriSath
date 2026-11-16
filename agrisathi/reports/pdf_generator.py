@@ -323,7 +323,7 @@ def generate_pdf_advisory_report(
             for item in comp_items[:3]:
                 r_num = item.get("rank", 1)
                 d_name = html.escape(str(item.get("display_name") or item.get("crop") or "Crop"))
-                c_conf = f"{float(item.get('confidence', 0.0)):.1f}%"
+                c_conf = f"{safe_float(item.get('confidence'), 0.0):.1f}%"
                 s_fit = html.escape(str(item.get("season_fit") or "Optimal"))
                 t_fit = html.escape(str(item.get("soil_fit") or "Moderate"))
                 w_dem = html.escape(str(item.get("water_demand") or "Medium"))

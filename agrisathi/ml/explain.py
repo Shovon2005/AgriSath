@@ -202,8 +202,12 @@ def synthesize_explanation_narrative(
     farm_data = farm_data or {}
     crop_title = predicted_crop.title()
 
-    positives = [c for c in contributions if c.get("direction") == "positive" and abs(c.get("shap_value", 0)) > 1e-4]
-    negatives = [c for c in contributions if c.get("direction") == "negative" and abs(c.get("shap_value", 0)) > 1e-4]
+    def _val(c):
+        sv = c.get("shap_value")
+        return sv if sv is not None else c.get("delta", 0.0)
+
+    positives = [c for c in contributions if c.get("direction") == "positive" and abs(_val(c)) > 1e-4]
+    negatives = [c for c in contributions if c.get("direction") == "negative" and abs(_val(c)) > 1e-4]
 
     pos_names = [p["feature"] for p in positives[:3]]
     neg_names = [n["feature"] for n in negatives[:2]]
@@ -216,9 +220,14 @@ def synthesize_explanation_narrative(
     ]
 
     if rainfall is not None and temp is not None:
-        narrative_parts.append(
-            f"Specifically, ambient temperature ({float(temp):.1f}°C) and precipitation ({float(rainfall):.0f} mm) created favorable growth conditions according to the trained decision forest."
-        )
+        try:
+            t_f = float(temp)
+            r_f = float(rainfall)
+            narrative_parts.append(
+                f"Specifically, ambient temperature ({t_f:.1f}°C) and precipitation ({r_f:.0f} mm) created favorable growth conditions according to the trained decision forest."
+            )
+        except (ValueError, TypeError):
+            pass
 
     if pos_names:
         pos_str = ", ".join(pos_names)
@@ -322,6 +331,8 @@ def generate_shap_waterfall(
                 "feature": clean_name,
                 "raw_feature": feat,
                 "delta": float(sv),
+                "shap_value": float(sv),
+                "direction": "positive" if sv >= 0 else "negative",
                 "abs_delta": abs(float(sv)),
             })
 
@@ -338,29 +349,32 @@ def generate_shap_waterfall(
             running = running + delta
             waterfall_steps.append({
                 "feature": step["feature"],
+                "shap_value": step["shap_value"],
                 "delta": round(delta, 4),
                 "formatted_delta": f"+{delta:.3f}" if delta >= 0 else f"{delta:.3f}",
                 "start": round(start, 4),
                 "end": round(running, 4),
-                "direction": "positive" if delta >= 0 else "negative",
+                "direction": step["direction"],
             })
 
         if remaining:
             start = running
             running = running + remaining_delta
+            rem_dir = "positive" if remaining_delta >= 0 else "negative"
             waterfall_steps.append({
                 "feature": f"Other {len(remaining)} Features",
+                "shap_value": remaining_delta,
                 "delta": round(remaining_delta, 4),
                 "formatted_delta": f"+{remaining_delta:.3f}" if remaining_delta >= 0 else f"{remaining_delta:.3f}",
                 "start": round(start, 4),
                 "end": round(running, 4),
-                "direction": "positive" if remaining_delta >= 0 else "negative",
+                "direction": rem_dir,
             })
 
         narrative = synthesize_explanation_narrative(
             predicted_crop=predicted_crop,
             confidence=round(final_val * 100, 1),
-            contributions=top_steps,
+            contributions=waterfall_steps,
             farm_data=farm_data,
         )
 
@@ -394,6 +408,7 @@ def generate_shap_waterfall(
             running = round(running + step_delta, 4)
             fallback_steps.append({
                 "feature": g.get("feature", "Farm Parameter"),
+                "shap_value": step_delta,
                 "delta": step_delta,
                 "formatted_delta": f"+{step_delta:.3f}",
                 "start": start_val,

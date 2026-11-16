@@ -96,7 +96,7 @@ def _clean_str(val: Any) -> str:
 
 def safe_float(val: Any, default: float = 0.0) -> float:
     """Null-safe float parser respecting valid 0.0 values and percentage strings."""
-    if val is None:
+    if val is None or isinstance(val, bool):
         return default
     if isinstance(val, str):
         val = val.strip()
@@ -140,9 +140,8 @@ def canonical_season(val: Any) -> str:
 
 def area_to_hectares(area: float, unit: str = "hectare") -> float:
     """Convert agricultural farm area in any unit (hectares, acres, bighas) to standard hectares."""
-    try:
-        val = float(area)
-    except (ValueError, TypeError):
+    val = safe_float(area, 1.0)
+    if val <= 0:
         return 1.0
     u = str(unit or "hectare").strip().lower()
     if "acre" in u:

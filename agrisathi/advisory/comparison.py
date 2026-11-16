@@ -38,12 +38,18 @@ def build_crop_comparison_matrix(
     matrix_rows: List[Dict[str, Any]] = []
 
     for rank, item in enumerate(selected_crops, start=1):
-        crop_id = str(item.get("crop", "")).lower()
-        pct = item.get("percentage")
-        if pct is not None:
-            confidence = float(pct)
+        if isinstance(item, str):
+            crop_id = item.strip().lower()
+            confidence = 100.0
+        elif isinstance(item, dict):
+            crop_id = str(item.get("crop", "")).strip().lower()
+            pct = item.get("percentage")
+            if pct is not None:
+                confidence = _safe_float(pct, 0.0)
+            else:
+                confidence = _safe_float(item.get("probability"), 0.0) * 100.0
         else:
-            confidence = float(item.get("probability", 0.0)) * 100.0
+            continue
 
         profile = get_crop_profile(crop_id)
 
@@ -59,16 +65,16 @@ def build_crop_comparison_matrix(
         soil_fit = "Optimal" if farm_soil in ideal_soils else "Moderate"
 
         # 3. pH Fit
-        min_ph = float(profile.get("min_ph", 5.5))
-        max_ph = float(profile.get("max_ph", 7.5))
+        min_ph = _safe_float(profile.get("min_ph"), 5.5)
+        max_ph = _safe_float(profile.get("max_ph"), 7.5)
         if min_ph <= farm_ph <= max_ph:
             ph_fit = f"Optimal ({min_ph} - {max_ph})"
         else:
             ph_fit = f"Suboptimal (Needs {min_ph} - {max_ph})"
 
         # 4. Thermal Regime
-        min_temp = float(profile.get("min_temp", 15.0))
-        max_temp = float(profile.get("max_temp", 35.0))
+        min_temp = _safe_float(profile.get("min_temp"), 15.0)
+        max_temp = _safe_float(profile.get("max_temp"), 35.0)
         temp_fit = "Suitable" if (min_temp <= farm_temp <= max_temp) else "Marginal"
 
         # 5. Key Advantage Narrative

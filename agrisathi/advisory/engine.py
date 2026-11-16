@@ -45,13 +45,15 @@ def generate_full_advisory(
 def run_full_pipeline(
     raw_data: Dict[str, Any],
     allow_defaults: bool = False,
+    predictor: Any = None,
 ) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
     """Unified pipeline executing input validation, ML crop inference, and complete agronomic advisory."""
     from agrisathi.core.validator import validate_farm_input
     from agrisathi.ml.predictor import get_predictor
 
     sanitized = validate_farm_input(raw_data, allow_defaults=allow_defaults)
-    prediction = get_predictor().predict(sanitized)
+    pred_engine = predictor if predictor is not None else get_predictor()
+    prediction = pred_engine.predict(sanitized)
     advisory = generate_full_advisory(
         sanitized,
         prediction["recommended_crop"],

@@ -46,15 +46,11 @@ def assess_soil_health(
     om = _safe_float(farm_data.get("organic_matter"), 3.5)
 
     # Null-safe extraction that respects valid 0.0 values
-    raw_oc = farm_data.get("organic_carbon")
-    if raw_oc is None:
-        raw_oc = farm_data.get("oc")
-    oc = _safe_float(raw_oc, round(om / 1.724, 2)) if raw_oc is not None else round(om / 1.724, 2)
+    raw_oc = farm_data.get("organic_carbon") if "organic_carbon" in farm_data else farm_data.get("oc")
+    oc = _safe_float(raw_oc, round(om / 1.724, 2))
 
-    raw_ec = farm_data.get("electrical_conductivity")
-    if raw_ec is None:
-        raw_ec = farm_data.get("ec")
-    ec = _safe_float(raw_ec, 0.6) if raw_ec is not None else 0.6
+    raw_ec = farm_data.get("electrical_conductivity") if "electrical_conductivity" in farm_data else farm_data.get("ec")
+    ec = _safe_float(raw_ec, 0.6)
 
     n = _safe_float(farm_data.get("N"), 50.0)
     p = _safe_float(farm_data.get("P"), 50.0)
@@ -94,8 +90,8 @@ def assess_soil_health(
     crop_ph_outside = False
     min_c_ph, max_c_ph, crop_title = 5.5, 7.5, "Target crop"
     if crop_profile:
-        min_c_ph = float(crop_profile.get("min_ph", 5.5))
-        max_c_ph = float(crop_profile.get("max_ph", 7.5))
+        min_c_ph = _safe_float(crop_profile.get("min_ph"), 5.5)
+        max_c_ph = _safe_float(crop_profile.get("max_ph"), 7.5)
         crop_title = crop_profile.get("display_name", "Target crop")
         crop_ph_outside = (ph < min_c_ph or ph > max_c_ph)
 
