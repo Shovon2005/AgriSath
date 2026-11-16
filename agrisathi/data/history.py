@@ -16,7 +16,7 @@ logger = get_logger("agrisathi.data.history")
 def get_db_connection() -> sqlite3.Connection:
     """Initialize SQLite database and return connection."""
     Config.ensure_directories()
-    conn = sqlite3.connect(str(Config.HISTORY_DB_PATH))
+    conn = sqlite3.connect(str(Config.HISTORY_DB_PATH), timeout=10.0)
     conn.row_factory = sqlite3.Row
     _init_db(conn)
     return conn
@@ -55,6 +55,7 @@ def save_prediction_record(
     advisory: Dict[str, Any],
 ) -> int:
     """Save an agronomic prediction assessment into SQLite history."""
+    conn = None
     try:
         conn = get_db_connection()
         ts = datetime.now(timezone.utc).isoformat()
@@ -81,6 +82,37 @@ def save_prediction_record(
             "irrigation_litres": irrig.get("water_quantity_litres", 0),
             "fertilizer": advisory.get("fertilizer", {}).get("recommendations", []),
             "risks": advisory.get("risks", {}).get("risks", []),
+            "soil_details": {
+                "status": str(soil.get("status") or "Good"),
+                "fertility_class": fert_class,
+                "score": score,
+                "ph": soil.get("ph"),
+                "electrical_conductivity": soil.get("electrical_conductivity"),
+                "organic_carbon": soil.get("organic_carbon"),
+                "organic_matter": soil.get("organic_matter"),
+                "soil_texture": soil.get("soil_texture"),
+                "deficiencies": soil.get("deficiencies", []),
+                "excesses": soil.get("excesses", []),
+                "corrective_actions": soil.get("corrective_actions", []),
+            },
+            "irrigation_details": {
+                "priority": irrig_prio,
+                "irrigation_required": irrig.get("irrigation_required", "Scheduled"),
+                "next_irrigation_time": irrig.get("next_irrigation_time", "Within 48 hours"),
+                "daily_water_requirement_mm": irrig.get("daily_water_requirement_mm", 0.0),
+                "water_quantity_litres": irrig.get("water_quantity_litres", 0),
+                "water_quantity_m3": irrig.get("water_quantity_m3", 0.0),
+                "recommended_actions": irrig.get("recommended_actions", []),
+            },
+            "fertilizer_details": {
+                "recommendations": advisory.get("fertilizer", {}).get("recommendations", []),
+                "commercial_fertilizers": advisory.get("fertilizer", {}).get("commercial_fertilizers", {}),
+                "total_farm_requirements": advisory.get("fertilizer", {}).get("total_farm_requirements", {}),
+                "organic_alternatives": advisory.get("fertilizer", {}).get("organic_alternatives", {}),
+                "application_schedule": advisory.get("fertilizer", {}).get("application_schedule", []),
+                "deficits": advisory.get("fertilizer", {}).get("deficits", {}),
+            },
+            "crop_comparison": advisory.get("crop_comparison", {}),
         }
 
         with conn:
@@ -98,10 +130,14 @@ def save_prediction_record(
     except Exception as e:
         logger.error("Failed to persist prediction history: %s", e)
         return -1
+    finally:
+        if conn is not None:
+            conn.close()
 
 
 def get_recent_predictions(limit: int = 20, crop_filter: Optional[str] = None) -> List[Dict[str, Any]]:
     """Retrieve recent predictions, optionally filtered by crop name."""
+    conn = None
     try:
         conn = get_db_connection()
         query = "SELECT * FROM predictions_history"
@@ -131,10 +167,14 @@ def get_recent_predictions(limit: int = 20, crop_filter: Optional[str] = None) -
     except Exception as e:
         logger.error("Failed to query prediction history: %s", e)
         return []
+    finally:
+        if conn is not None:
+            conn.close()
 
 
 def get_prediction_by_id(record_id: int) -> Optional[Dict[str, Any]]:
     """Retrieve a single historical prediction record by ID."""
+    conn = None
     try:
         conn = get_db_connection()
         cur = conn.execute("SELECT * FROM predictions_history WHERE id = ?", (record_id,))
@@ -148,10 +188,14 @@ def get_prediction_by_id(record_id: int) -> Optional[Dict[str, Any]]:
     except Exception as e:
         logger.error("Failed to fetch prediction %s: %s", record_id, e)
         return None
+    finally:
+        if conn is not None:
+            conn.close()
 
 
 def clear_history() -> bool:
     """Clear all records from prediction history."""
+    conn = None
     try:
         conn = get_db_connection()
         with conn:
@@ -160,3 +204,6 @@ def clear_history() -> bool:
     except Exception as e:
         logger.error("Failed to clear history: %s", e)
         return False
+    finally:
+        if conn is not None:
+            conn.close()

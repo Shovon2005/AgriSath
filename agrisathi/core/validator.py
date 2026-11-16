@@ -93,20 +93,26 @@ def validate_farm_input(raw_data: Dict[str, Any], allow_defaults: bool = False) 
 
     for name in FEATURE_NAMES:
         spec = FEATURE_MAP[name]
-        if name not in raw_data:
-            if allow_defaults:
-                val = spec.default
-            else:
-                errors[name] = f"Missing required parameter '{name}'."
-                continue
-        else:
-            val = raw_data[name]
+        val = raw_data.get(name) if name in raw_data else None
+
+        # Optional field: soil_moisture is optional in decision support (defaults to standard 30.0%)
+        if name == "soil_moisture" and (val is None or (isinstance(val, str) and not val.strip())):
+            val = spec.default
+
+        # Auto-derive organic_matter from organic_carbon if omitted or empty
+        if name == "organic_matter" and (val is None or (isinstance(val, str) and not val.strip())):
+            raw_oc_cand = raw_data.get("organic_carbon") or raw_data.get("oc")
+            if raw_oc_cand is not None and str(raw_oc_cand).strip() != "":
+                try:
+                    val = round(float(raw_oc_cand) * 1.724, 2)
+                except (ValueError, TypeError):
+                    pass
 
         if val is None or (isinstance(val, str) and not val.strip()):
             if allow_defaults:
                 val = spec.default
             else:
-                errors[name] = f"Field '{name}' cannot be empty."
+                errors[name] = f"Missing required parameter '{name}'." if name not in raw_data else f"Field '{name}' cannot be empty."
                 continue
 
         spec = FEATURE_MAP[name]
