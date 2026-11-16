@@ -223,18 +223,18 @@
                     </div>
 
                     <div class="input-group">
-                        <label>Soil Moisture</label>
+                        <label>Soil Moisture (optional)</label>
                         <input type="number" step="any" name="soil_moisture"
                                value="{{ demo_data.get('soil_moisture') or (form_data.get('soil_moisture') if form_data else '') }}"
-                               placeholder="e.g. 35" required>
+                               placeholder="e.g. 35 (defaults to 30%)">
                         <span>%</span>
                     </div>
 
                     <div class="input-group">
-                        <label>Organic Matter</label>
+                        <label>Organic Matter (or enter OC below)</label>
                         <input type="number" step="any" name="organic_matter"
                                value="{{ demo_data.get('organic_matter') or (form_data.get('organic_matter') if form_data else '') }}"
-                               placeholder="e.g. 4" required>
+                               placeholder="e.g. 3.5">
                         <span>%</span>
                     </div>
 

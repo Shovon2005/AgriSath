@@ -316,45 +316,80 @@ def generate_pdf_advisory_report(
         story.append(water_risk_table)
         story.append(Spacer(1, 5))
 
-        # 5. Explainable AI (XAI) & Alternative Predictions Table
-        story.append(Paragraph("3. Explainable AI Feature Attribution & Alternative Crops", section_style))
+        # 5. Top-3 Crop Suitability Comparison Matrix
+        story.append(Paragraph("3. Top-3 Crop Recommendations & Suitability Comparison", section_style))
+        crop_comp = (advisory_data.get("crop_comparison") or {}) if isinstance(advisory_data, dict) else {}
+        comp_items = crop_comp.get("comparison_rows") or crop_comp.get("items") or []
+
+        comp_rows = [[
+            Paragraph("Rank & Candidate Crop", table_header),
+            Paragraph("Match", table_header),
+            Paragraph("Season Fit", table_header),
+            Paragraph("Soil Texture Fit", table_header),
+            Paragraph("Water Demand", table_header),
+            Paragraph("Yield Potential", table_header),
+        ]]
+
+        if comp_items:
+            for item in comp_items[:3]:
+                r_num = item.get("rank", 1)
+                d_name = html.escape(str(item.get("display_name") or item.get("crop") or "Crop"))
+                c_conf = f"{float(item.get('confidence', 0.0)):.1f}%"
+                s_fit = html.escape(str(item.get("season_fit") or "Optimal"))
+                t_fit = html.escape(str(item.get("soil_fit") or "Moderate"))
+                w_dem = html.escape(str(item.get("water_demand") or "Medium"))
+                y_pot = html.escape(str(item.get("yield_potential") or "-"))
+
+                comp_rows.append([
+                    Paragraph(f"<b>#{r_num}</b> {d_name}", table_cell),
+                    Paragraph(c_conf, table_cell),
+                    Paragraph(s_fit, table_cell),
+                    Paragraph(t_fit, table_cell),
+                    Paragraph(w_dem, table_cell),
+                    Paragraph(y_pot, table_cell),
+                ])
+        else:
+            comp_rows.append([
+                Paragraph(f"<b>#1</b> {crop}", table_cell),
+                Paragraph(f"{conf:.1f}%", table_cell),
+                Paragraph("Optimal", table_cell),
+                Paragraph("Optimal", table_cell),
+                Paragraph("Medium", table_cell),
+                Paragraph("Standard Baseline", table_cell),
+            ])
+
+        comp_table = Table(comp_rows, colWidths=[1.7 * inch, 0.7 * inch, 1.2 * inch, 1.2 * inch, 1.1 * inch, 1.3 * inch])
+        comp_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), PRIMARY_GREEN),
+            ("GRID", (0, 0), (-1, -1), 0.5, BORDER_GRAY),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT_GRAY]),
+            ("PADDING", (0, 0), (-1, -1), 2.5),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ]))
+        story.append(comp_table)
+        story.append(Spacer(1, 4))
+
+        # 6. Explainable AI (XAI) Local Feature Attribution Table
+        story.append(Paragraph("4. Explainable AI Feature Attribution & Decision Rationale", section_style))
         raw_xai = prediction_result.get("important_features")
         if raw_xai is None:
             raw_xai = []
         elif hasattr(raw_xai, "to_dict"):
             raw_xai = raw_xai.to_dict("records")
-        xai_features = raw_xai[:4] if isinstance(raw_xai, list) else []
-
-        raw_probs = prediction_result.get("probabilities")
-        if raw_probs is None:
-            raw_probs = []
-        elif hasattr(raw_probs, "to_dict"):
-            raw_probs = raw_probs.to_dict("records")
-        probs = raw_probs[:4] if isinstance(raw_probs, list) else []
+        xai_features = raw_xai[:3] if isinstance(raw_xai, list) else []
 
         xai_rows = [[
-            Paragraph("Top Influencing Feature", table_header),
+            Paragraph("Influencing Farm Factor", table_header),
             Paragraph("Impact", table_header),
             Paragraph("Direction", table_header),
-            Paragraph("Alternative Crop", table_header),
-            Paragraph("Probability", table_header),
+            Paragraph("Agronomic Decision Rationale", table_header),
         ]]
 
-        row_count = max(len(xai_features), len(probs))
-        if row_count == 0:
-            xai_rows.append([
-                Paragraph("Overall Model Balance", table_cell),
-                Paragraph("100%", table_cell),
-                Paragraph("Optimal", table_cell),
-                Paragraph(crop, table_cell),
-                Paragraph(f"{conf:.1f}%", table_cell),
-            ])
-        else:
-            for i in range(row_count):
-                f_item = xai_features[i] if i < len(xai_features) and isinstance(xai_features[i], dict) else {}
-                p_item = probs[i] if i < len(probs) and isinstance(probs[i], dict) else {}
-
-                f_name = str(f_item.get("feature") or "-")
+        if xai_features:
+            for f_item in xai_features:
+                if not isinstance(f_item, dict):
+                    continue
+                f_name = html.escape(str(f_item.get("feature") or "-"))
                 try:
                     imp_val = f_item.get("impact_percentage")
                     if isinstance(imp_val, str):
@@ -364,37 +399,33 @@ def generate_pdf_advisory_report(
                     f_imp = str(f_item.get("impact_percentage") or "-")
 
                 f_dir_val = f_item.get("direction")
-                f_dir = str(f_dir_val).capitalize() if f_dir_val is not None else "-"
-
-                c_name_val = p_item.get("crop")
-                c_name = str(c_name_val).title() if c_name_val is not None else "-"
-
-                try:
-                    p_val = p_item.get("percentage")
-                    if isinstance(p_val, str):
-                        p_val = p_val.rstrip("%").strip()
-                    c_prob = f"{float(p_val):.1f}%" if p_val is not None else "-"
-                except (ValueError, TypeError):
-                    c_prob = str(p_item.get("percentage") or "-")
+                f_dir = html.escape(str(f_dir_val).capitalize() if f_dir_val is not None else "-")
+                f_narr = html.escape(str(f_item.get("narrative") or "Contributed positively to model prediction."))
 
                 xai_rows.append([
-                    Paragraph(html.escape(f_name), table_cell),
-                    Paragraph(html.escape(f_imp), table_cell),
-                    Paragraph(html.escape(f_dir), table_cell),
-                    Paragraph(html.escape(c_name), table_cell),
-                    Paragraph(html.escape(c_prob), table_cell),
+                    Paragraph(f_name, table_cell),
+                    Paragraph(f_imp, table_cell),
+                    Paragraph(f_dir, table_cell),
+                    Paragraph(f_narr, table_cell),
                 ])
+        else:
+            xai_rows.append([
+                Paragraph("Agro-Climatic Synergy", table_cell),
+                Paragraph("100.0%", table_cell),
+                Paragraph("Positive", table_cell),
+                Paragraph(f"Prevailing conditions are well-aligned with {crop} physiological demand.", table_cell),
+            ])
 
-        xai_table = Table(xai_rows, colWidths=[2.2 * inch, 0.8 * inch, 1.0 * inch, 1.8 * inch, 1.4 * inch])
+        xai_table = Table(xai_rows, colWidths=[1.8 * inch, 0.7 * inch, 1.0 * inch, 3.7 * inch])
         xai_table.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), PRIMARY_GREEN),
             ("GRID", (0, 0), (-1, -1), 0.5, BORDER_GRAY),
             ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT_GRAY]),
-            ("PADDING", (0, 0), (-1, -1), 3),
+            ("PADDING", (0, 0), (-1, -1), 2.5),
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ]))
         story.append(xai_table)
-        story.append(Spacer(1, 6))
+        story.append(Spacer(1, 4))
 
         # 6. Disclaimer Footer
         story.append(HRFlowable(width="100%", thickness=0.8, color=BORDER_GRAY, spaceBefore=3, spaceAfter=4))

@@ -93,3 +93,41 @@ def test_api_weather_and_history(client, valid_farm_payload):
     assert resp_h.status_code == 200
     data_h = resp_h.get_json()
     assert "history" in data_h
+
+
+def test_history_detail_view_and_pdf(client, valid_farm_payload):
+    clear_history()
+    # Create record via /predict
+    res_post = client.post("/predict", data=valid_farm_payload)
+    assert res_post.status_code == 200
+
+    recent = get_recent_predictions(limit=1)
+    assert len(recent) == 1
+    rec_id = recent[0]["id"]
+
+    # View history detail page
+    res_detail = client.get(f"/history/{rec_id}")
+    assert res_detail.status_code == 200
+    html = res_detail.data.decode("utf-8")
+    assert f"Historical Assessment #{rec_id}" in html
+    assert "Module 1: Soil Fertility" in html
+    assert "Module 3: Smart Irrigation" in html
+    assert "Module 4: Fertilizer Plan" in html
+
+    # Download PDF directly via /history/<id>/pdf
+    res_pdf = client.get(f"/history/{rec_id}/pdf")
+    assert res_pdf.status_code == 200
+    assert res_pdf.mimetype == "application/pdf"
+    assert res_pdf.data.startswith(b"%PDF-")
+
+
+def test_history_sqlite_closed_connections(valid_farm_payload):
+    # Verify multiple writes and reads execute cleanly without file lock contention
+    clear_history()
+    dummy_pred = {"recommended_crop": "rice", "confidence": 91.0}
+    dummy_adv = {"soil": {}, "irrigation": {}, "fertilizer": {}, "risks": {}}
+
+    for i in range(15):
+        save_prediction_record(valid_farm_payload, dummy_pred, dummy_adv)
+        recs = get_recent_predictions(limit=5)
+        assert len(recs) == min(i + 1, 5)

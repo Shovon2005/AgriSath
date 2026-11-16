@@ -162,7 +162,11 @@ def download_report():
         sanitized = validate_farm_input(raw_data)
         predictor = get_predictor()
         prediction = predictor.predict(sanitized)
-        advisory = generate_full_advisory(sanitized, prediction["recommended_crop"])
+        advisory = generate_full_advisory(
+            sanitized,
+            prediction["recommended_crop"],
+            top_crops=prediction.get("top_three"),
+        )
 
         pdf_bytes = generate_pdf_advisory_report(prediction, advisory)
 
@@ -203,4 +207,35 @@ def history_detail(record_id: int):
         flash(f"Historical report #{record_id} not found.", "warning")
         return redirect(url_for("views.history"))
     return render_template("history.html", history=[record], active_crop="", selected_record=record)
+
+
+@views_bp.route("/history/<int:record_id>/pdf")
+def history_pdf(record_id: int):
+    """Download PDF advisory report for a specific historical assessment."""
+    record = get_prediction_by_id(record_id)
+    if not record or not record.get("inputs"):
+        flash(f"Historical record #{record_id} inputs could not be loaded for PDF export.", "warning")
+        return redirect(url_for("views.history"))
+
+    try:
+        sanitized = validate_farm_input(record["inputs"], allow_defaults=True)
+        predictor = get_predictor()
+        prediction = predictor.predict(sanitized)
+        advisory = generate_full_advisory(
+            sanitized,
+            prediction["recommended_crop"],
+            top_crops=prediction.get("top_three"),
+        )
+        pdf_bytes = generate_pdf_advisory_report(prediction, advisory)
+
+        return send_file(
+            io.BytesIO(pdf_bytes),
+            mimetype="application/pdf",
+            as_attachment=True,
+            download_name=f"AgriSathi_Advisory_Report_{record_id}_{prediction['recommended_crop']}.pdf",
+        )
+    except Exception as e:
+        logger.error("Failed to generate PDF for historical record %s: %s", record_id, e)
+        flash(f"Failed to generate historical report PDF: {e}", "danger")
+        return redirect(url_for("views.history_detail", record_id=record_id))
 

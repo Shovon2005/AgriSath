@@ -6,6 +6,7 @@ and observe sensitivity shifts in crop recommendations.
 
 from typing import Dict, Any, List
 from agrisathi.core.validator import validate_farm_input, FEATURE_NAMES
+from agrisathi.core.schemas import EXTENDED_FEATURE_DEFINITIONS
 from agrisathi.ml.predictor import get_predictor
 
 
@@ -27,8 +28,10 @@ def simulate_what_if(
     modified_data = dict(sanitized_base)
     applied_changes: List[Dict[str, Any]] = []
 
+    supported_fields = set(FEATURE_NAMES) | {s.name for s in EXTENDED_FEATURE_DEFINITIONS}
+
     for field, new_val in adjustments.items():
-        if field in FEATURE_NAMES and new_val is not None:
+        if field in supported_fields and new_val is not None:
             old_val = sanitized_base.get(field)
             try:
                 if isinstance(old_val, (int, float)) and isinstance(new_val, (int, float, str)):

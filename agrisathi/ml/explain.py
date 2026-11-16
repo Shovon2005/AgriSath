@@ -3,6 +3,7 @@ Explainable AI (XAI) engine using SHAP TreeExplainer for local feature contribut
 """
 
 from typing import Dict, Any, List
+import html
 import numpy as np
 import pandas as pd
 import shap
@@ -404,18 +405,19 @@ def generate_waterfall_svg(waterfall_data: Dict[str, Any]) -> str:
     max_val = min(1.0, max(all_vals) + 0.05)
     span = (max_val - min_val) or 1.0
 
-    chart_x = 220
-    chart_width = width - chart_x - 60
+    chart_x = 230
+    chart_width = width - chart_x - 55
 
     def val_to_x(val: float) -> float:
         ratio = (val - min_val) / span
         return chart_x + ratio * chart_width
 
+    crop_title = html.escape(str(waterfall_data.get("crop", "Target Crop")))
     svg_lines = [
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {total_height}" width="100%" height="{total_height}" style="font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; background: #ffffff; border-radius: 8px;">',
         '<!-- Header -->',
         f'<text x="20" y="30" font-size="15" font-weight="700" fill="#1b5e20">SHAP Waterfall Plot — Local Feature Contributions</text>',
-        f'<text x="20" y="48" font-size="11" fill="#666666">Base prior E[f(x)] = {waterfall_data.get("base_value", 0.0):.3f} → Prediction f(x) = {waterfall_data.get("final_value", 1.0):.3f} ({waterfall_data.get("crop", "Target Crop")})</text>',
+        f'<text x="20" y="48" font-size="11" fill="#666666">Base prior E[f(x)] = {waterfall_data.get("base_value", 0.0):.3f} → Prediction f(x) = {waterfall_data.get("final_value", 1.0):.3f} ({crop_title})</text>',
     ]
 
     # Draw grid baseline
@@ -440,7 +442,8 @@ def generate_waterfall_svg(waterfall_data: Dict[str, Any]) -> str:
             svg_lines.append(f'<line x1="{prev_end_x}" y1="{y + 12}" x2="{start_x}" y2="{y + 12}" stroke="#bdbdbd" stroke-dasharray="2,2" stroke-width="1" />')
 
         # Feature Label
-        svg_lines.append(f'<text x="20" y="{y + 16}" font-size="12" font-weight="600" fill="#333333">{step["feature"][:28]}</text>')
+        feat_label = html.escape(str(step["feature"])[:30])
+        svg_lines.append(f'<text x="20" y="{y + 16}" font-size="12" font-weight="600" fill="#333333">{feat_label}</text>')
 
         # Step Bar
         svg_lines.append(f'<rect x="{bar_x:.1f}" y="{y:.1f}" width="{bar_w:.1f}" height="22" rx="4" fill="{color}" opacity="0.9" />')

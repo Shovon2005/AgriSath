@@ -162,7 +162,11 @@ def generate_report():
         sanitized = validate_farm_input(payload)
         predictor = get_predictor()
         prediction = predictor.predict(sanitized)
-        advisory = generate_full_advisory(sanitized, prediction["recommended_crop"])
+        advisory = generate_full_advisory(
+            sanitized,
+            prediction["recommended_crop"],
+            top_crops=prediction.get("top_three"),
+        )
 
         pdf_bytes = generate_pdf_advisory_report(prediction, advisory)
 

@@ -134,7 +134,9 @@ def test_history_pages_flow(client, valid_farm_payload):
         first_id = data["history"][0]["id"]
         detail_res = client.get(f"/history/{first_id}")
         assert detail_res.status_code == 200
-        assert f"Report #{first_id}" in detail_res.data.decode("utf-8") or "Historical" in detail_res.data.decode("utf-8")
+        detail_html = detail_res.data.decode("utf-8")
+        assert f"Historical Assessment #{first_id}" in detail_html
+        assert "Module 1: Soil Fertility" in detail_html
 
 
 def test_pdf_report_export_complete_data(valid_farm_payload):
