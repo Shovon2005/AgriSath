@@ -141,8 +141,6 @@ def canonical_season(val: Any) -> str:
 def area_to_hectares(area: float, unit: str = "hectare") -> float:
     """Convert agricultural farm area in any unit (hectares, acres, bighas) to standard hectares."""
     val = safe_float(area, 1.0)
-    if val <= 0:
-        return 1.0
     u = str(unit or "hectare").strip().lower()
     if "acre" in u:
         return max(0.01, round(val * 0.404686, 4))

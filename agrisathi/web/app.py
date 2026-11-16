@@ -4,11 +4,15 @@ Flask Application Factory for AgriSathi.
 
 from flask import Flask, render_template, jsonify, request
 from agrisathi.config import Config, config
+from agrisathi.core.schemas import FEATURE_NAMES
+from agrisathi.advisory.profiles import get_crop_profiles
+from agrisathi.data.scenarios import get_farm_scenarios
 from agrisathi.web.routes.views import views_bp
 from agrisathi.web.routes.api import api_bp
 from agrisathi.utils.logger import get_logger
 
 logger = get_logger("agrisathi.web")
+_FEATURE_COUNT = len(FEATURE_NAMES)
 
 
 def create_app(config_name: str = "default") -> Flask:
@@ -32,10 +36,6 @@ def create_app(config_name: str = "default") -> Flask:
 
     @app.context_processor
     def inject_defaults():
-        from agrisathi.data.scenarios import get_farm_scenarios
-        from agrisathi.advisory.profiles import get_crop_profiles
-        from agrisathi.core.schemas import FEATURE_NAMES
-
         scenarios = get_farm_scenarios()
         try:
             crop_count = len(get_crop_profiles())
@@ -48,7 +48,7 @@ def create_app(config_name: str = "default") -> Flask:
             "form_data": {},
             "scenarios": scenarios,
             "crop_count": crop_count,
-            "feature_count": len(FEATURE_NAMES),
+            "feature_count": _FEATURE_COUNT,
         }
 
     # Custom Error Handlers

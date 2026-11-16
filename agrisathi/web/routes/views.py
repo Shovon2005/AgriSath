@@ -43,6 +43,22 @@ class _DynamicPresetsProxy(dict):
 DEMO_PRESETS = _DynamicPresetsProxy()
 
 
+def _build_display_inputs(sanitized: dict) -> dict:
+    """Build formatted human-readable farm input dictionary for result template display."""
+    inputs = {
+        FEATURE_MAP[name].display_name: f"{sanitized.get(f'{name}_label', sanitized.get(name))}{' ' + FEATURE_MAP[name].unit if FEATURE_MAP[name].unit else ''}"
+        for name in FEATURE_NAMES
+    }
+    inputs.update({
+        "Farm Location": sanitized.get("location", "Local Farm"),
+        "Cropping Season": sanitized.get("season", "Whole Year"),
+        "Farm Area": f"{sanitized.get('farm_area', 1.0)} {sanitized.get('farm_area_unit', 'hectare')}",
+        "Electrical Conductivity (EC)": f"{sanitized.get('electrical_conductivity', 0.6)} dS/m",
+        "Organic Carbon (OC)": f"{sanitized.get('organic_carbon', 0.75)} %",
+    })
+    return inputs
+
+
 @views_bp.route("/")
 def home():
     """Render farm parameter input form with dynamic scenarios."""
@@ -69,21 +85,7 @@ def predict():
     try:
         sanitized, prediction, advisory = run_full_pipeline(raw_data)
         record_id = save_prediction_record(sanitized, prediction, advisory)
-
-        # Clean display dictionary for Farm Input Summary
-        display_inputs = {}
-        for name in FEATURE_NAMES:
-            spec = FEATURE_MAP[name]
-            label_val = sanitized.get(f"{name}_label", sanitized.get(name))
-            unit_str = f" {spec.unit}" if spec.unit else ""
-            display_inputs[spec.display_name] = f"{label_val}{unit_str}"
-
-        # Add extended parameter entries to summary
-        display_inputs["Farm Location"] = sanitized.get("location", "Local Farm")
-        display_inputs["Cropping Season"] = sanitized.get("season", "Whole Year")
-        display_inputs["Farm Area"] = f"{sanitized.get('farm_area', 1.0)} {sanitized.get('farm_area_unit', 'hectare')}"
-        display_inputs["Electrical Conductivity (EC)"] = f"{sanitized.get('electrical_conductivity', 0.6)} dS/m"
-        display_inputs["Organic Carbon (OC)"] = f"{sanitized.get('organic_carbon', 0.75)} %"
+        display_inputs = _build_display_inputs(sanitized)
 
         return render_template(
             "result.html",

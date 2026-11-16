@@ -52,6 +52,10 @@ def simulate_what_if(
         # Remove cached display label to prevent stale label shadowing
         modified_data.pop(f"{field}_label", None)
 
+        if isinstance(new_val, bool):
+            modified_data[field] = new_val
+            continue
+
         if field in _CANONICAL_CATEGORICAL_MAP:
             canon_fn, default_val = _CANONICAL_CATEGORICAL_MAP[field]
             old_display = sanitized_base.get(f"{field}_label") or canon_fn(sanitized_base.get(field, default_val))

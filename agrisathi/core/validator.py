@@ -95,11 +95,10 @@ def validate_farm_input(raw_data: Dict[str, Any], allow_defaults: bool = False) 
         # Auto-derive organic_matter from organic_carbon if omitted or empty
         if name == "organic_matter" and (val is None or (isinstance(val, str) and not val.strip())):
             raw_oc_cand = raw_data.get("organic_carbon") or raw_data.get("oc")
-            if raw_oc_cand is not None and str(raw_oc_cand).strip() != "":
-                try:
-                    val = round(float(raw_oc_cand) * 1.724, 2)
-                except (ValueError, TypeError):
-                    pass
+            if raw_oc_cand is not None and not isinstance(raw_oc_cand, bool) and str(raw_oc_cand).strip() != "":
+                parsed_oc = safe_float(raw_oc_cand, -1.0)
+                if parsed_oc >= 0.0:
+                    val = round(parsed_oc * 1.724, 2)
 
         if val is None or (isinstance(val, str) and not val.strip()):
             if allow_defaults:
@@ -107,8 +106,6 @@ def validate_farm_input(raw_data: Dict[str, Any], allow_defaults: bool = False) 
             else:
                 errors[name] = f"Missing required parameter '{name}'." if name not in raw_data else f"Field '{name}' cannot be empty."
                 continue
-
-        spec = FEATURE_MAP[name]
 
         if name in CATEGORICAL_FEATURES:
             try:
