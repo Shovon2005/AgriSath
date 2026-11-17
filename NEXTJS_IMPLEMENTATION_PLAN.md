@@ -115,10 +115,10 @@
 - [x] **Step 59**: Commit Phase 10 Home Page integration to branch `sayan`.
 
 ### Phase 11: Result Dashboard — Crop Recommendation & Top-3 Suitability (Steps 60 – 63)
-- [ ] **Step 60**: Create `frontend/src/app/result/page.tsx` displaying Top Crop hero card, confidence score, and suitability.
-- [ ] **Step 61**: Implement Top-3 Crop Suitability Comparison Matrix table with attribute badges.
-- [ ] **Step 62**: Implement 4 Agronomic Advisory Cards: Soil Health, Smart Irrigation, Fertilizer Schedule, and Risk Matrix.
-- [ ] **Step 63**: Commit Phase 11 Result Dashboard to branch `sayan`.
+- [x] **Step 60**: Create `frontend/src/app/result/page.tsx` displaying Top Crop hero card, confidence score, and suitability.
+- [x] **Step 61**: Implement Top-3 Crop Suitability Comparison Matrix table with attribute badges.
+- [x] **Step 62**: Implement 4 Agronomic Advisory Cards: Soil Health, Smart Irrigation, Fertilizer Schedule, and Risk Matrix.
+- [x] **Step 63**: Commit Phase 11 Result Dashboard to branch `sayan`.
 
 ### Phase 12: Explainable AI (SHAP Waterfall) & What-If Simulator (Steps 64 – 66)
 - [ ] **Step 64**: Create `frontend/src/components/xai/ShapWaterfallChart.tsx` using Recharts for directional feature attributions.
