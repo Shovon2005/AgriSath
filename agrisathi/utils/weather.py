@@ -1,7 +1,7 @@
 """
 Weather Service Client for AgriSathi.
 Fetches real-time agro-meteorological data and short-term precipitation forecasts via Open-Meteo.
-Includes robust offline fallback presets.
+Backs regional baselines via dynamic configuration file (data/regional_weather_baselines.json).
 """
 
 from typing import Dict, Any, Optional
@@ -13,15 +13,69 @@ from agrisathi.utils.logger import get_logger
 
 logger = get_logger("agrisathi.utils.weather")
 
-# Fallback regional agro-climatic presets
-DEFAULT_REGIONAL_PRESETS = {
-    "punjab": {"temperature": 22.0, "humidity": 65.0, "rainfall": 45.0, "wind_speed": 3.8, "expected_rain": 2.0},
-    "bengal": {"temperature": 27.5, "humidity": 82.0, "rainfall": 210.0, "wind_speed": 4.2, "expected_rain": 12.0},
-    "maharashtra": {"temperature": 29.0, "humidity": 55.0, "rainfall": 75.0, "wind_speed": 3.5, "expected_rain": 0.0},
-    "kerala": {"temperature": 28.0, "humidity": 85.0, "rainfall": 240.0, "wind_speed": 4.0, "expected_rain": 25.0},
-    "rajasthan": {"temperature": 32.0, "humidity": 30.0, "rainfall": 25.0, "wind_speed": 5.5, "expected_rain": 0.0},
-    "default": {"temperature": 25.0, "humidity": 70.0, "rainfall": 120.0, "wind_speed": 3.5, "expected_rain": 5.0},
+_DEFAULT_FALLBACK_PRESETS = {
+    "punjab": {"temperature": 22.0, "humidity": 65.0, "rainfall": 45.0, "wind_speed": 3.8, "expected_rain": 2.0, "latitude": 30.9, "longitude": 75.8},
+    "bengal": {"temperature": 27.5, "humidity": 82.0, "rainfall": 210.0, "wind_speed": 4.2, "expected_rain": 12.0, "latitude": 22.57, "longitude": 88.36},
+    "maharashtra": {"temperature": 29.0, "humidity": 55.0, "rainfall": 75.0, "wind_speed": 3.5, "expected_rain": 0.0, "latitude": 19.75, "longitude": 75.71},
+    "kerala": {"temperature": 28.0, "humidity": 85.0, "rainfall": 240.0, "wind_speed": 4.0, "expected_rain": 25.0, "latitude": 10.85, "longitude": 76.27},
+    "rajasthan": {"temperature": 32.0, "humidity": 30.0, "rainfall": 25.0, "wind_speed": 5.5, "expected_rain": 0.0, "latitude": 27.02, "longitude": 74.22},
+    "default": {"temperature": 25.0, "humidity": 70.0, "rainfall": 120.0, "wind_speed": 3.5, "expected_rain": 5.0, "latitude": 20.59, "longitude": 78.96},
 }
+
+_BASELINES_CACHE: Optional[Dict[str, Any]] = None
+
+
+def reload_weather_baselines() -> Dict[str, Any]:
+    """Force reload of dynamic regional weather baselines from JSON file."""
+    global _BASELINES_CACHE
+    path = Config.REGIONAL_WEATHER_PATH
+    if path.exists():
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                _BASELINES_CACHE = data.get("regions", _DEFAULT_FALLBACK_PRESETS)
+        except Exception as e:
+            logger.warning("Failed loading regional weather baselines: %s; using defaults.", e)
+            _BASELINES_CACHE = _DEFAULT_FALLBACK_PRESETS
+    else:
+        _BASELINES_CACHE = _DEFAULT_FALLBACK_PRESETS
+
+    DEFAULT_REGIONAL_PRESETS.clear()
+    DEFAULT_REGIONAL_PRESETS.update(_BASELINES_CACHE)
+    return _BASELINES_CACHE
+
+
+def get_regional_weather_baselines() -> Dict[str, Any]:
+    """Retrieve dynamic regional agro-climatic baseline normals."""
+    global _BASELINES_CACHE
+    if _BASELINES_CACHE is None:
+        reload_weather_baselines()
+    return _BASELINES_CACHE
+
+
+def update_weather_baselines(new_baselines: Dict[str, Any]) -> Dict[str, Any]:
+    """Dynamically update regional weather baselines and persist to configuration JSON."""
+    global _BASELINES_CACHE
+    current_baselines = get_regional_weather_baselines()
+    current_baselines.update(new_baselines)
+
+    path = Config.REGIONAL_WEATHER_PATH
+    payload = {
+        "version": "1.0",
+        "description": "Agro-climatic regional baseline normals for offline fallback & baseline reference",
+        "regions": current_baselines,
+    }
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2)
+
+    _BASELINES_CACHE = current_baselines
+    reload_weather_baselines()
+    return _BASELINES_CACHE
+
+
+# Exported dictionary for backward-compatibility
+DEFAULT_REGIONAL_PRESETS: Dict[str, Any] = dict(_DEFAULT_FALLBACK_PRESETS)
+reload_weather_baselines()
 
 
 def geocode_location(location_name: str, timeout: float = 3.0) -> Optional[Dict[str, float]]:
@@ -58,7 +112,7 @@ def fetch_weather_data(
 ) -> Dict[str, Any]:
     """
     Fetch current weather and 48-hour rainfall forecast from Open-Meteo.
-    Gracefully falls back to representative agro-climatic presets on network failure or timeout.
+    Gracefully falls back to dynamic regional agro-climatic baselines on network failure or offline mode.
     """
     loc_clean = (location or "Local Farm").strip()
     lat = latitude
@@ -105,22 +159,19 @@ def fetch_weather_data(
                     "expected_rainfall_24h": round(expected_rain_24h, 1),
                 }
         except Exception as e:
-            logger.debug("Live weather fetch failed: %s; using regional fallback.", e)
+            logger.debug("Live weather fetch failed: %s; using dynamic regional baseline.", e)
 
-    # Regional Fallback Preset
+    # Dynamic Regional Baseline Matching
+    baselines = get_regional_weather_baselines()
     loc_lower = loc_clean.lower()
-    preset = DEFAULT_REGIONAL_PRESETS["default"]
-    for k, v in DEFAULT_REGIONAL_PRESETS.items():
-        if k in loc_lower:
-            preset = v
-            break
+    preset = next((v for k, v in baselines.items() if k in loc_lower), baselines.get("default", _DEFAULT_FALLBACK_PRESETS["default"]))
 
     return {
         "status": "cached_fallback",
-        "source": "AgriSathi Agro-Climatic Baseline",
+        "source": "AgriSathi Regional Agro-Climatic Baseline",
         "location": loc_clean,
-        "latitude": lat or 28.6,
-        "longitude": lon or 77.2,
+        "latitude": lat if lat is not None else preset.get("latitude", 20.59),
+        "longitude": lon if lon is not None else preset.get("longitude", 78.96),
         "temperature": preset["temperature"],
         "humidity": preset["humidity"],
         "rainfall": preset["rainfall"],

@@ -6,7 +6,20 @@ and observe sensitivity shifts in crop recommendations.
 
 from typing import Dict, Any, List
 from agrisathi.core.validator import validate_farm_input, FEATURE_NAMES
+from agrisathi.core.schemas import (
+    EXTENDED_FEATURE_DEFINITIONS,
+    canonical_soil_type,
+    canonical_growth_stage,
+    canonical_water_source,
+)
 from agrisathi.ml.predictor import get_predictor
+
+
+_CANONICAL_CATEGORICAL_MAP = {
+    "soil_type": (canonical_soil_type, 2),
+    "growth_stage": (canonical_growth_stage, 2),
+    "water_source_type": (canonical_water_source, 1),
+}
 
 
 def simulate_what_if(
@@ -27,26 +40,46 @@ def simulate_what_if(
     modified_data = dict(sanitized_base)
     applied_changes: List[Dict[str, Any]] = []
 
+    supported_fields = set(FEATURE_NAMES) | {s.name for s in EXTENDED_FEATURE_DEFINITIONS}
+
     for field, new_val in adjustments.items():
-        if field in FEATURE_NAMES and new_val is not None:
+        if field not in supported_fields or new_val is None:
+            continue
+
+        if isinstance(new_val, str) and not new_val.strip():
+            continue
+
+        # Remove cached display label to prevent stale label shadowing
+        modified_data.pop(f"{field}_label", None)
+
+        if isinstance(new_val, bool):
+            modified_data[field] = new_val
+            continue
+
+        if field in _CANONICAL_CATEGORICAL_MAP:
+            canon_fn, default_val = _CANONICAL_CATEGORICAL_MAP[field]
+            old_display = sanitized_base.get(f"{field}_label") or canon_fn(sanitized_base.get(field, default_val))
+            new_display = canon_fn(new_val)
+
+            if old_display != new_display:
+                modified_data[field] = new_display
+                applied_changes.append({
+                    "field": field,
+                    "old_value": old_display,
+                    "new_value": new_display,
+                    "delta": 0.0,
+                })
+        else:
             old_val = sanitized_base.get(field)
             try:
-                if isinstance(old_val, (int, float)) and isinstance(new_val, (int, float, str)):
-                    num_new = float(new_val)
-                    modified_data[field] = num_new
+                num_new = float(new_val)
+                modified_data[field] = num_new
+                if old_val is None or abs(num_new - float(old_val)) > 1e-4:
                     applied_changes.append({
                         "field": field,
                         "old_value": old_val,
                         "new_value": num_new,
-                        "delta": round(num_new - old_val, 2),
-                    })
-                else:
-                    modified_data[field] = new_val
-                    applied_changes.append({
-                        "field": field,
-                        "old_value": old_val,
-                        "new_value": new_val,
-                        "delta": 0.0,
+                        "delta": round(num_new - float(old_val), 2) if old_val is not None else 0.0,
                     })
             except (ValueError, TypeError):
                 modified_data[field] = new_val
@@ -87,7 +120,7 @@ def simulate_what_if(
             sign = "+" if ch["delta"] > 0 else ""
             change_summaries.append(f"{field_name} by {sign}{ch['delta']}")
         else:
-            change_summaries.append(f"{field_name} to {ch['new_value']}")
+            change_summaries.append(f"{field_name} from {ch['old_value']} to {ch['new_value']}")
 
     changes_text = ", ".join(change_summaries) if change_summaries else "selected parameters"
 

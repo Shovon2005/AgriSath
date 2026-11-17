@@ -2,6 +2,7 @@
 Domain schemas, feature definitions, and categorical mappings for AgriSathi.
 """
 
+import math
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Any, List
@@ -76,50 +77,53 @@ CODE_TO_WATER_SOURCE: Dict[int, str] = {
 }
 
 
+def _build_canonical_map(str_to_code: Dict[str, int], code_to_str: Dict[int, str]) -> Dict[str, str]:
+    m = {str(k): v for k, v in code_to_str.items()}
+    for s, code in str_to_code.items():
+        m[s] = code_to_str[code]
+    return m
+
+
+_SOIL_MAP = _build_canonical_map(SOIL_TYPE_TO_CODE, CODE_TO_SOIL_TYPE)
+_STAGE_MAP = _build_canonical_map(GROWTH_STAGE_TO_CODE, CODE_TO_GROWTH_STAGE)
+_SOURCE_MAP = _build_canonical_map(WATER_SOURCE_TO_CODE, CODE_TO_WATER_SOURCE)
+
+
+def _clean_str(val: Any) -> str:
+    s = str(val).strip().lower()
+    return s[:-2] if s.endswith(".0") else s
+
+
+def safe_float(val: Any, default: float = 0.0) -> float:
+    """Null-safe float parser respecting valid 0.0 values and percentage strings."""
+    if val is None or isinstance(val, bool):
+        return default
+    if isinstance(val, str):
+        val = val.strip()
+        if not val:
+            return default
+        if val.endswith("%"):
+            val = val[:-1].strip()
+    try:
+        f = float(val)
+        return default if (math.isnan(f) or math.isinf(f)) else f
+    except (ValueError, TypeError):
+        return default
+
+
 def canonical_soil_type(val: Any) -> str:
     """Normalize any soil type representation (code, string, float) to 'Clay' | 'Loamy' | 'Sandy'."""
-    s = str(val).strip().lower()
-    if s.endswith(".0"):
-        s = s[:-2]
-    if s in ("1", "clay"):
-        return "Clay"
-    if s in ("2", "loamy"):
-        return "Loamy"
-    if s in ("3", "sandy"):
-        return "Sandy"
-    return "Loamy"
+    return _SOIL_MAP.get(_clean_str(val), "Loamy")
 
 
 def canonical_growth_stage(val: Any) -> str:
     """Normalize any growth stage representation to 'Seedling' | 'Vegetative' | 'Flowering' | 'Maturity'."""
-    s = str(val).strip().lower()
-    if s.endswith(".0"):
-        s = s[:-2]
-    if s in ("1", "seedling"):
-        return "Seedling"
-    if s in ("2", "vegetative"):
-        return "Vegetative"
-    if s in ("3", "flowering"):
-        return "Flowering"
-    if s in ("4", "maturity"):
-        return "Maturity"
-    return "Vegetative"
+    return _STAGE_MAP.get(_clean_str(val), "Vegetative")
 
 
 def canonical_water_source(val: Any) -> str:
     """Normalize any water source representation to 'Groundwater' | 'Rainwater' | 'Canal' | 'River'."""
-    s = str(val).strip().lower()
-    if s.endswith(".0"):
-        s = s[:-2]
-    if s in ("1", "groundwater"):
-        return "Groundwater"
-    if s in ("2", "rainwater"):
-        return "Rainwater"
-    if s in ("3", "canal"):
-        return "Canal"
-    if s in ("4", "river"):
-        return "River"
-    return "Groundwater"
+    return _SOURCE_MAP.get(_clean_str(val), "Groundwater")
 
 
 def canonical_season(val: Any) -> str:
@@ -136,10 +140,7 @@ def canonical_season(val: Any) -> str:
 
 def area_to_hectares(area: float, unit: str = "hectare") -> float:
     """Convert agricultural farm area in any unit (hectares, acres, bighas) to standard hectares."""
-    try:
-        val = float(area)
-    except (ValueError, TypeError):
-        return 1.0
+    val = safe_float(area, 1.0)
     u = str(unit or "hectare").strip().lower()
     if "acre" in u:
         return max(0.01, round(val * 0.404686, 4))

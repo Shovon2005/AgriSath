@@ -1,11 +1,12 @@
 """
 Multi-Hazard Environmental Risk Assessment Engine.
-Monitors frost risk, pest pressure, heat/drought stress, fungal susceptibility, and urban interface factors.
+Monitors frost risk, pest pressure, heat/drought stress, fungal susceptibility, and urban interface factors
+using dynamic agronomic risk thresholds.
 """
 
 from typing import Dict, Any, List
-from agrisathi.advisory.profiles import get_crop_profile
-from agrisathi.core.schemas import canonical_soil_type
+from agrisathi.advisory.profiles import get_risk_rules, resolve_crop_profile
+from agrisathi.core.schemas import canonical_soil_type, safe_float as _safe_float
 
 
 def assess_environmental_risks(
@@ -16,33 +17,36 @@ def assess_environmental_risks(
     """
     Evaluates biological, meteorological, and environmental hazards threatening crop production.
     Accepts crop_name (str) and/or crop_profile (dict or str).
+    Uses dynamic agronomic risk thresholds.
     """
-    if isinstance(crop_name, dict) and crop_profile is None:
-        crop_profile = crop_name
-        crop_name = None
+    farm_data = farm_data or {}
+    crop_name, crop_profile = resolve_crop_profile(crop_name, crop_profile, default_crop="rice")
 
-    if isinstance(crop_profile, str):
-        crop_name = crop_profile
-        crop_profile = None
+    rules = get_risk_rules()
+    r_frost = rules.get("frost", {})
+    r_pest = rules.get("pest", {})
+    r_fungal = rules.get("fungal", {})
+    r_heat = rules.get("heat", {})
+    r_drought = rules.get("drought", {})
+    r_waterlog = rules.get("waterlogging", {})
+    r_wind = rules.get("wind", {})
+    r_urban = rules.get("urban_proximity", {})
 
-    if crop_profile is None:
-        crop_profile = get_crop_profile(crop_name or "rice")
-
-    frost_risk = float(farm_data.get("frost_risk", 10.0))
-    pest_pressure = float(farm_data.get("pest_pressure", 20.0))
-    temperature = float(farm_data.get("temperature", 25.0))
-    humidity = float(farm_data.get("humidity", 70.0))
-    wind_speed = float(farm_data.get("wind_speed", 3.0))
-    rainfall = float(farm_data.get("rainfall", 100.0))
-    soil_moisture = float(farm_data.get("soil_moisture", 30.0))
-    urban_dist = float(farm_data.get("urban_area_proximity", 25.0))
+    frost_risk = _safe_float(farm_data.get("frost_risk"), 10.0)
+    pest_pressure = _safe_float(farm_data.get("pest_pressure"), 20.0)
+    temperature = _safe_float(farm_data.get("temperature"), 25.0)
+    humidity = _safe_float(farm_data.get("humidity"), 70.0)
+    wind_speed = _safe_float(farm_data.get("wind_speed"), 3.0)
+    rainfall = _safe_float(farm_data.get("rainfall"), 100.0)
+    soil_moisture = _safe_float(farm_data.get("soil_moisture"), 30.0)
+    urban_dist = _safe_float(farm_data.get("urban_area_proximity"), 25.0)
     raw_soil = farm_data.get("soil_type_label") or farm_data.get("soil_type", "Loamy")
     soil_type = canonical_soil_type(raw_soil)
 
     crop_title = crop_profile.get("display_name", crop_name or "Target Crop")
     is_frost_sensitive = crop_profile.get("frost_sensitive", True)
-    min_temp = float(crop_profile.get("min_temp", 10.0))
-    max_temp = float(crop_profile.get("max_temp", 38.0))
+    min_temp = _safe_float(crop_profile.get("min_temp"), 10.0)
+    max_temp = _safe_float(crop_profile.get("max_temp"), 38.0)
     water_demand = crop_profile.get("water_demand", "Medium")
 
     legacy_risks: List[str] = []
@@ -51,7 +55,12 @@ def assess_environmental_risks(
     high_risk_count = 0
 
     # 1. Frost & Cold Injury Hazards
-    if frost_risk > 60.0 or temperature < 4.0:
+    th_frost_sev = _safe_float(r_frost.get("severe_frost_index"), 60.0)
+    th_frost_sev_temp = _safe_float(r_frost.get("severe_temp_c"), 4.0)
+    th_frost_mod = _safe_float(r_frost.get("moderate_frost_index"), 35.0)
+    th_frost_mod_temp = _safe_float(r_frost.get("moderate_temp_c"), 8.0)
+
+    if frost_risk > th_frost_sev or temperature < th_frost_sev_temp:
         high_risk_count += 1
         msg = f"High frost/chilling risk indicator (frost index: {frost_risk:.1f}%, temp: {temperature:.1f}°C)."
         if is_frost_sensitive:
@@ -63,7 +72,7 @@ def assess_environmental_risks(
             "impact": "Cellular rupture, seedling dieback, blossom freeze.",
             "mitigation": "Install anti-frost sprinkler systems, smoke generation, or row-cover fleece blankets.",
         })
-    elif frost_risk > 35.0 or temperature < 8.0:
+    elif frost_risk > th_frost_mod or temperature < th_frost_mod_temp:
         legacy_risks.append(f"Moderate frost/chilling hazard (temp: {temperature:.1f}°C, index: {frost_risk:.1f}%).")
         matrix.append({
             "hazard": "Frost / Cold Stress",
@@ -83,7 +92,10 @@ def assess_environmental_risks(
         })
 
     # 2. Pest & Pathogen Pressure
-    if pest_pressure > 65.0:
+    th_pest_sev = _safe_float(r_pest.get("severe_pest_index"), 65.0)
+    th_pest_mod = _safe_float(r_pest.get("moderate_pest_index"), 35.0)
+
+    if pest_pressure > th_pest_sev:
         high_risk_count += 1
         legacy_risks.append(f"High pest-pressure indicator ({pest_pressure:.1f}%).")
         matrix.append({
@@ -92,7 +104,7 @@ def assess_environmental_risks(
             "impact": "Extensive defoliation, sucking injury, virus transmission.",
             "mitigation": "Implement Integrated Pest Management (IPM), deploy pheromone/sticky traps, and apply targeted bio-pesticides (e.g. neem oil / Beauveria bassiana).",
         })
-    elif pest_pressure > 35.0:
+    elif pest_pressure > th_pest_mod:
         legacy_risks.append(f"Moderate pest pressure ({pest_pressure:.1f}%).")
         matrix.append({
             "hazard": "Pest Activity",
@@ -102,7 +114,10 @@ def assess_environmental_risks(
         })
 
     # 3. Fungal Pathogen Index
-    if humidity > 85.0 and temperature > 24.0:
+    th_fung_hum = _safe_float(r_fungal.get("high_humidity"), 85.0)
+    th_fung_temp = _safe_float(r_fungal.get("warm_temp_c"), 24.0)
+
+    if humidity > th_fung_hum and temperature > th_fung_temp:
         legacy_risks.append("Elevated fungal disease incubation hazard (high humidity + warm canopy).")
         matrix.append({
             "hazard": "Fungal Blight / Mildew",
@@ -112,8 +127,11 @@ def assess_environmental_risks(
         })
 
     # 4. Thermal Extremes & Heat Stress
-    if temperature > 38.0:
-        high_risk = temperature > 42.0
+    th_heat_high = _safe_float(r_heat.get("high_temp_c"), 38.0)
+    th_heat_ext = _safe_float(r_heat.get("extreme_temp_c"), 42.0)
+
+    if temperature > th_heat_high:
+        high_risk = temperature > th_heat_ext
         if high_risk:
             high_risk_count += 1
         legacy_risks.append(f"Thermal stress warning: ambient temperature {temperature:.1f}°C exceeds threshold.")
@@ -135,7 +153,14 @@ def assess_environmental_risks(
         })
 
     # 5. Agricultural Drought & Waterlogging
-    if soil_moisture < 12.0 and rainfall < 50.0:
+    th_dr_crit_moist = _safe_float(r_drought.get("critical_moisture"), 12.0)
+    th_dr_crit_rain = _safe_float(r_drought.get("critical_rainfall"), 50.0)
+    th_dr_mod_moist = _safe_float(r_drought.get("moderate_moisture"), 16.0)
+    th_dr_mod_rain = _safe_float(r_drought.get("moderate_rainfall"), 80.0)
+    th_wl_rain = _safe_float(r_waterlog.get("excessive_rainfall"), 300.0)
+    th_wl_moist = _safe_float(r_waterlog.get("high_moisture"), 40.0)
+
+    if soil_moisture < th_dr_crit_moist and rainfall < th_dr_crit_rain:
         high_risk_count += 1
         legacy_risks.append(f"Severe agricultural drought hazard (moisture: {soil_moisture:.1f}%, seasonal rainfall: {rainfall:.1f} mm).")
         matrix.append({
@@ -144,7 +169,7 @@ def assess_environmental_risks(
             "impact": "Severe moisture stress approaching permanent wilting point; acute yield penalty.",
             "mitigation": "Apply conservation tillage, organic mulch, and prioritize emergency drip irrigation.",
         })
-    elif soil_moisture < 16.0 and rainfall < 80.0:
+    elif soil_moisture < th_dr_mod_moist and rainfall < th_dr_mod_rain:
         legacy_risks.append(f"Moderate moisture deficit hazard (moisture: {soil_moisture:.1f}%).")
         matrix.append({
             "hazard": "Moisture Deficit",
@@ -152,7 +177,7 @@ def assess_environmental_risks(
             "impact": "Stomatal closure, reduced photosynthetic rate, stunted biomass.",
             "mitigation": "Schedule deficit irrigation during cooler periods and suppress weed competition.",
         })
-    elif rainfall > 300.0 or (soil_moisture > 40.0 and soil_type == "Clay" and water_demand != "High"):
+    elif rainfall > th_wl_rain or (soil_moisture > th_wl_moist and soil_type == "Clay" and water_demand != "High"):
         legacy_risks.append(f"Excessive moisture / waterlogging hazard (rainfall: {rainfall:.1f} mm, moisture: {soil_moisture:.1f}%).")
         matrix.append({
             "hazard": "Waterlogging / Hypoxia",
@@ -162,7 +187,8 @@ def assess_environmental_risks(
         })
 
     # 6. Wind & Lodging
-    if wind_speed > 14.0:
+    th_wind = _safe_float(r_wind.get("lodging_speed_mps"), 14.0)
+    if wind_speed > th_wind:
         legacy_risks.append(f"High wind velocity ({wind_speed:.1f} m/s) poses lodging danger.")
         matrix.append({
             "hazard": "Wind Lodging",
@@ -172,7 +198,8 @@ def assess_environmental_risks(
         })
 
     # 7. Urban Proximity
-    if urban_dist < 5.0:
+    th_urban = _safe_float(r_urban.get("peri_urban_distance_km"), 5.0)
+    if urban_dist < th_urban:
         matrix.append({
             "hazard": "Peri-Urban Encroachment",
             "level": "Low",

@@ -23,6 +23,7 @@ from agrisathi.core.schemas import (
     canonical_soil_type,
     canonical_growth_stage,
     canonical_water_source,
+    safe_float,
 )
 
 __all__ = [
@@ -46,4 +47,5 @@ __all__ = [
     "canonical_soil_type",
     "canonical_growth_stage",
     "canonical_water_source",
+    "safe_float",
 ]

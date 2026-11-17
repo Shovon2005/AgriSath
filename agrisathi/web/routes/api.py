@@ -5,14 +5,31 @@ RESTful JSON API Blueprint for AgriSathi.
 import io
 from flask import Blueprint, request, jsonify, send_file
 from agrisathi import __version__
-from agrisathi.core.validator import validate_farm_input
+from agrisathi.core.schemas import safe_float
 from agrisathi.core.exceptions import ValidationError, AgriSathiError
 from agrisathi.ml.predictor import get_predictor
 from agrisathi.ml.whatif import simulate_what_if
-from agrisathi.advisory.profiles import get_crop_profiles
-from agrisathi.advisory.engine import generate_full_advisory
+from agrisathi.advisory.profiles import (
+    get_crop_profiles,
+    update_crop_profile,
+    get_agronomic_rules,
+    update_agronomic_rules,
+    reload_agronomic_rules,
+)
+from agrisathi.advisory.engine import run_full_pipeline
 from agrisathi.reports.pdf_generator import generate_pdf_advisory_report
-from agrisathi.utils.weather import fetch_weather_data
+from agrisathi.utils.weather import (
+    fetch_weather_data,
+    get_regional_weather_baselines,
+    update_weather_baselines,
+    reload_weather_baselines,
+)
+from agrisathi.data.scenarios import (
+    get_farm_scenarios,
+    get_farm_scenario,
+    save_farm_scenario,
+    delete_farm_scenario,
+)
 from agrisathi.data.history import (
     save_prediction_record,
     get_recent_predictions,
@@ -69,6 +86,120 @@ def get_crop(crop_name: str):
     }), 200
 
 
+@api_bp.route("/crops/<crop_name>", methods=["POST", "PUT"])
+def update_crop(crop_name: str):
+    """Dynamically update or register a crop agronomic profile."""
+    payload = request.get_json(silent=True)
+    if not payload:
+        return jsonify({"error": "Bad Request", "message": "Missing JSON body."}), 400
+
+    updated = update_crop_profile(crop_name, payload)
+    return jsonify({
+        "status": "success",
+        "crop": crop_name.lower(),
+        "profile": updated,
+    }), 200
+
+
+@api_bp.route("/rules", methods=["GET"])
+def list_rules():
+    """Retrieve dynamic agronomic rules, conversion ratios, and thresholds."""
+    rules = get_agronomic_rules()
+    return jsonify({
+        "status": "success",
+        "rules": rules,
+    }), 200
+
+
+@api_bp.route("/rules", methods=["POST", "PUT"])
+def update_rules():
+    """Dynamically update agronomic rules and conversion factors."""
+    payload = request.get_json(silent=True)
+    if not payload or not isinstance(payload, dict):
+        return jsonify({"error": "Bad Request", "message": "Missing or invalid JSON body."}), 400
+
+    updated = update_agronomic_rules(payload)
+    return jsonify({
+        "status": "success",
+        "message": "Dynamic agronomic rules updated successfully.",
+        "rules": updated,
+    }), 200
+
+
+@api_bp.route("/rules/reload", methods=["POST"])
+def reload_rules():
+    """Reload dynamic agronomic rules from configuration storage."""
+    rules = reload_agronomic_rules()
+    return jsonify({
+        "status": "success",
+        "message": "Dynamic agronomic rules reloaded successfully.",
+        "rules": rules,
+    }), 200
+
+
+@api_bp.route("/scenarios", methods=["GET"])
+def list_scenarios():
+    """List all dynamic farm scenarios and simulation presets."""
+    scenarios = get_farm_scenarios()
+    return jsonify({
+        "status": "success",
+        "count": len(scenarios),
+        "scenarios": scenarios,
+    }), 200
+
+
+@api_bp.route("/scenarios/<key>", methods=["GET"])
+def get_scenario(key: str):
+    """Retrieve single farm scenario by key."""
+    sc = get_farm_scenario(key)
+    if not sc:
+        return jsonify({
+            "error": "Scenario Not Found",
+            "message": f"Scenario '{key}' not found."
+        }), 404
+    return jsonify({
+        "status": "success",
+        "scenario": sc,
+    }), 200
+
+
+@api_bp.route("/scenarios", methods=["POST"])
+def add_or_update_scenario():
+    """Dynamically save a new or modified farm scenario preset."""
+    payload = request.get_json(silent=True)
+    if not payload or not isinstance(payload, dict) or "key" not in payload:
+        return jsonify({"error": "Bad Request", "message": "Missing 'key' or payload."}), 400
+
+    try:
+        saved = save_farm_scenario(payload["key"], payload)
+        return jsonify({
+            "status": "success",
+            "scenario": saved,
+        }), 201
+    except ValidationError as e:
+        return jsonify({
+            "error": "Validation Error",
+            "message": e.message,
+            "details": e.details,
+        }), 422
+
+
+@api_bp.route("/scenarios/<key>", methods=["DELETE"])
+def remove_scenario(key: str):
+    """Dynamically remove a farm scenario."""
+    deleted = delete_farm_scenario(key)
+    if not deleted:
+        return jsonify({
+            "error": "Not Found",
+            "message": f"Scenario '{key}' not found or could not be deleted.",
+        }), 404
+
+    return jsonify({
+        "status": "success",
+        "message": f"Scenario '{key}' deleted successfully.",
+    }), 200
+
+
 @api_bp.route("/predict", methods=["POST"])
 def predict():
     """Execute prediction and agronomic advisory from JSON payload."""
@@ -80,14 +211,7 @@ def predict():
         }), 400
 
     try:
-        sanitized = validate_farm_input(payload)
-        predictor = get_predictor()
-        prediction = predictor.predict(sanitized)
-        advisory = generate_full_advisory(
-            sanitized,
-            prediction["recommended_crop"],
-            top_crops=prediction.get("top_three"),
-        )
+        sanitized, prediction, advisory = run_full_pipeline(payload, predictor=get_predictor())
         record_id = save_prediction_record(sanitized, prediction, advisory)
 
         return jsonify({
@@ -159,11 +283,7 @@ def generate_report():
         }), 400
 
     try:
-        sanitized = validate_farm_input(payload)
-        predictor = get_predictor()
-        prediction = predictor.predict(sanitized)
-        advisory = generate_full_advisory(sanitized, prediction["recommended_crop"])
-
+        _, prediction, advisory = run_full_pipeline(payload, predictor=get_predictor())
         pdf_bytes = generate_pdf_advisory_report(prediction, advisory)
 
         return send_file(
@@ -196,8 +316,8 @@ def get_weather():
     lat = request.args.get("lat") or request.args.get("latitude")
     lon = request.args.get("lon") or request.args.get("longitude")
 
-    lat_val = float(lat) if lat is not None else None
-    lon_val = float(lon) if lon is not None else None
+    lat_val = safe_float(lat, None) if lat is not None else None
+    lon_val = safe_float(lon, None) if lon is not None else None
 
     weather = fetch_weather_data(location=location, latitude=lat_val, longitude=lon_val)
     return jsonify({
@@ -206,10 +326,50 @@ def get_weather():
     }), 200
 
 
+@api_bp.route("/weather/baselines", methods=["GET"])
+def list_weather_baselines():
+    """Retrieve dynamic regional weather baselines."""
+    baselines = get_regional_weather_baselines()
+    return jsonify({
+        "status": "success",
+        "count": len(baselines),
+        "baselines": baselines,
+    }), 200
+
+
+@api_bp.route("/weather/baselines", methods=["POST", "PUT"])
+def update_baselines():
+    """Dynamically update or register regional agro-climatic weather baselines."""
+    payload = request.get_json(silent=True)
+    if not payload or not isinstance(payload, dict):
+        return jsonify({"error": "Bad Request", "message": "Missing or invalid JSON body."}), 400
+
+    updated = update_weather_baselines(payload)
+    return jsonify({
+        "status": "success",
+        "message": "Regional weather baselines updated successfully.",
+        "baselines": updated,
+    }), 200
+
+
+@api_bp.route("/weather/baselines/reload", methods=["POST"])
+def reload_baselines():
+    """Reload regional agro-climatic weather baselines from configuration storage."""
+    baselines = reload_weather_baselines()
+    return jsonify({
+        "status": "success",
+        "message": "Regional weather baselines reloaded successfully.",
+        "baselines": baselines,
+    }), 200
+
+
 @api_bp.route("/history", methods=["GET"])
 def list_history():
     """List historical prediction reports with optional crop filter."""
-    limit = int(request.args.get("limit", 20))
+    try:
+        limit = int(request.args.get("limit", 20))
+    except (ValueError, TypeError):
+        limit = 20
     crop_filter = request.args.get("crop")
     records = get_recent_predictions(limit=limit, crop_filter=crop_filter)
     return jsonify({

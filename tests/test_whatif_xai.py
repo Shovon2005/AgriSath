@@ -3,9 +3,8 @@ Unit tests for Explainable AI (Module 5): SHAP Waterfall plot and What-If analys
 Verifies waterfall step calculations, natural language synthesis, and interactive simulation.
 """
 
-import pytest
 from agrisathi.ml.predictor import get_predictor
-from agrisathi.ml.explain import generate_shap_waterfall, synthesize_explanation_narrative
+from agrisathi.ml.explain import synthesize_explanation_narrative
 from agrisathi.ml.whatif import simulate_what_if
 
 
@@ -71,3 +70,16 @@ def test_what_if_api_endpoint(client, valid_farm_payload):
     assert data["status"] == "success"
     assert "simulation" in data
     assert "probability_shifts" in data["simulation"]
+
+
+def test_what_if_categorical_adjustment(valid_farm_payload):
+    """Verify that changing categorical variables in what-if correctly updates prediction."""
+    baseline = valid_farm_payload.copy()
+    baseline["soil_type"] = 1  # Clay
+    baseline["soil_type_label"] = "Clay"
+
+    result = simulate_what_if(baseline, {"soil_type": "Sandy"})
+    assert len(result["changes_applied"]) == 1
+    assert result["changes_applied"][0]["field"] == "soil_type"
+    assert result["changes_applied"][0]["new_value"] == "Sandy"
+

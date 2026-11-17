@@ -3,7 +3,7 @@ Unified Advisory Engine.
 Orchestrates soil health, fertilizer dosing, irrigation scheduling, and multi-hazard risk assessment.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from agrisathi.advisory.profiles import get_crop_profile
 from agrisathi.advisory.soil import assess_soil_health
 from agrisathi.advisory.fertilizer import calculate_fertilizer_guidance
@@ -40,4 +40,25 @@ def generate_full_advisory(
         "risks": risks,
         "crop_comparison": comparison,
     }
+
+
+def run_full_pipeline(
+    raw_data: Dict[str, Any],
+    allow_defaults: bool = False,
+    predictor: Any = None,
+) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+    """Unified pipeline executing input validation, ML crop inference, and complete agronomic advisory."""
+    from agrisathi.core.validator import validate_farm_input
+    from agrisathi.ml.predictor import get_predictor
+
+    sanitized = validate_farm_input(raw_data, allow_defaults=allow_defaults)
+    pred_engine = predictor if predictor is not None else get_predictor()
+    prediction = pred_engine.predict(sanitized)
+    advisory = generate_full_advisory(
+        sanitized,
+        prediction["recommended_crop"],
+        top_crops=prediction.get("top_three"),
+    )
+    return sanitized, prediction, advisory
+
 

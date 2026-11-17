@@ -10,7 +10,6 @@ from agrisathi.config import Config
 from agrisathi.core.exceptions import ValidationError
 from agrisathi.core.schemas import (
     FEATURE_NAMES,
-    CATEGORICAL_FEATURES,
     canonical_soil_type,
     canonical_growth_stage,
     canonical_water_source,

@@ -4,7 +4,6 @@ Verifies crop water requirement (ETc in mm/day), farm water volume in litres,
 rainfall suppression, and next irrigation time scheduling.
 """
 
-import pytest
 from agrisathi.advisory.irrigation import calculate_irrigation_advisory
 
 

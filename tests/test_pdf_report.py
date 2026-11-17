@@ -176,3 +176,23 @@ def test_generate_pdf_string_percentage_parsing():
     decomp = zlib.decompress(base64.a85decode(raw, adobe=True))
     assert b"87.4" in decomp
 
+
+def test_generate_pdf_includes_crop_comparison_and_xai(valid_farm_payload):
+    import base64, zlib
+    sanitized = validate_farm_input(valid_farm_payload)
+    predictor = get_predictor()
+    pred = predictor.predict(sanitized)
+    top_three = pred.get("top_three", [])
+    adv = generate_full_advisory(sanitized, pred["recommended_crop"], top_crops=top_three)
+
+    pdf_bytes = generate_pdf_advisory_report(pred, adv)
+    assert isinstance(pdf_bytes, bytes)
+    assert pdf_bytes.startswith(b"%PDF-")
+
+    pos = pdf_bytes.find(b"stream\n") + 7
+    end = pdf_bytes.find(b"~>endstream") + 2
+    raw = pdf_bytes[pos:end]
+    decomp = zlib.decompress(base64.a85decode(raw, adobe=True))
+    assert b"Top-3 Crop Recommendations" in decomp
+    assert b"Explainable AI Feature Attribution" in decomp
+

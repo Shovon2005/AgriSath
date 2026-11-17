@@ -1,10 +1,16 @@
 """
 Crop-Specific Fertilizer Recommendation Engine.
-Calculates NPK nutritional deficits and commercial fertilizer dosages (Urea, DAP, MOP).
+Calculates NPK nutritional deficits and commercial fertilizer dosages (Urea, DAP, SSP, MOP)
+using dynamic agronomic conversion rates and organic alternatives.
 """
 
 from typing import Dict, Any, List
-from agrisathi.advisory.profiles import FERTILIZER_CONVERSIONS, get_crop_profile
+from agrisathi.advisory.profiles import (
+    get_fertilizer_conversions,
+    get_organic_guidelines,
+    resolve_crop_profile,
+)
+from agrisathi.core.schemas import safe_float as _safe_float
 
 
 def calculate_fertilizer_guidance(
@@ -15,25 +21,29 @@ def calculate_fertilizer_guidance(
     """
     Computes precise fertilizer guidance based on current soil NPK and target crop requirements.
     Accepts crop_name (str) and/or crop_profile (dict or str).
+    Uses dynamic conversions and organic guidelines.
     """
-    if isinstance(crop_name, dict) and crop_profile is None:
-        crop_profile = crop_name
-        crop_name = None
+    farm_data = farm_data or {}
+    crop_name, crop_profile = resolve_crop_profile(crop_name, crop_profile, default_crop="rice")
 
-    if isinstance(crop_profile, str):
-        crop_name = crop_profile
-        crop_profile = None
+    conversions = get_fertilizer_conversions()
+    guidelines = get_organic_guidelines()
 
-    if crop_profile is None:
-        crop_profile = get_crop_profile(crop_name or "rice")
+    urea_n_fraction = _safe_float(conversions.get("urea_n_fraction"), 0.46)
+    dap_n_fraction = _safe_float(conversions.get("dap_n_fraction"), 0.18)
+    dap_p_fraction = _safe_float(conversions.get("dap_p_fraction"), 0.46)
+    ssp_p_fraction = _safe_float(conversions.get("ssp_p_fraction"), 0.16)
+    mop_k_fraction = _safe_float(conversions.get("mop_k_fraction"), 0.60)
+    bag_weight = _safe_float(conversions.get("commercial_bag_weight_kg"), 50.0)
+    surplus_mult = _safe_float(conversions.get("surplus_multiplier"), 1.5)
 
-    current_n = float(farm_data.get("N", 50))
-    current_p = float(farm_data.get("P", 50))
-    current_k = float(farm_data.get("K", 50))
+    current_n = _safe_float(farm_data.get("N"), 50.0)
+    current_p = _safe_float(farm_data.get("P"), 50.0)
+    current_k = _safe_float(farm_data.get("K"), 50.0)
 
-    opt_n = float(crop_profile.get("opt_n", 80))
-    opt_p = float(crop_profile.get("opt_p", 40))
-    opt_k = float(crop_profile.get("opt_k", 40))
+    opt_n = _safe_float(crop_profile.get("opt_n"), 80.0)
+    opt_p = _safe_float(crop_profile.get("opt_p"), 40.0)
+    opt_k = _safe_float(crop_profile.get("opt_k"), 40.0)
 
     crop_title = crop_profile.get("display_name", crop_name or "Target Crop")
 
@@ -45,21 +55,20 @@ def calculate_fertilizer_guidance(
     # 1. Calculate DAP needed for Phosphorus deficit
     # DAP: 18% N, 46% P2O5
     if deficit_p > 0.0:
-        dap_kg_ha = deficit_p / FERTILIZER_CONVERSIONS["dap_p_fraction"]
-        n_supplied_by_dap = dap_kg_ha * FERTILIZER_CONVERSIONS["dap_n_fraction"]
+        dap_kg_ha = deficit_p / dap_p_fraction
+        n_supplied_by_dap = dap_kg_ha * dap_n_fraction
     else:
         dap_kg_ha = 0.0
         n_supplied_by_dap = 0.0
 
     # 2. Remaining Nitrogen supplied via Urea (46% N)
     remaining_n = max(0.0, deficit_n - n_supplied_by_dap)
-    urea_kg_ha = remaining_n / FERTILIZER_CONVERSIONS["urea_n_fraction"] if remaining_n > 0.0 else 0.0
+    urea_kg_ha = remaining_n / urea_n_fraction if remaining_n > 0.0 else 0.0
 
     # 3. Potassium supplied via MOP (60% K2O)
-    mop_kg_ha = deficit_k / FERTILIZER_CONVERSIONS["mop_k_fraction"] if deficit_k > 0.0 else 0.0
+    mop_kg_ha = deficit_k / mop_k_fraction if deficit_k > 0.0 else 0.0
 
     # 4. Alternative Phosphorus source: SSP (Single Superphosphate, 16% P2O5)
-    ssp_p_fraction = FERTILIZER_CONVERSIONS.get("ssp_p_fraction", 0.16)
     ssp_kg_ha = deficit_p / ssp_p_fraction if deficit_p > 0.0 else 0.0
 
     urea_rounded = round(urea_kg_ha, 1)
@@ -67,32 +76,31 @@ def calculate_fertilizer_guidance(
     ssp_rounded = round(ssp_kg_ha, 1)
     mop_rounded = round(mop_kg_ha, 1)
 
-    # 5. Farm Area Scaling (Total kg & 50-kg commercial bags)
-    raw_area_ha = float(farm_data.get("farm_area_ha") or 1.0)
+    # 5. Farm Area Scaling (Total kg & commercial bags)
+    raw_area_ha = _safe_float(farm_data.get("farm_area_ha"), 1.0)
     farm_area_ha = max(0.01, raw_area_ha)
 
-    total_urea_kg = round(urea_rounded * farm_area_ha, 1)
-    total_dap_kg = round(dap_rounded * farm_area_ha, 1)
-    total_ssp_kg = round(ssp_rounded * farm_area_ha, 1)
-    total_mop_kg = round(mop_rounded * farm_area_ha, 1)
-
-    urea_bags = round(total_urea_kg / 50.0, 1)
-    dap_bags = round(total_dap_kg / 50.0, 1)
-    ssp_bags = round(total_ssp_kg / 50.0, 1)
-    mop_bags = round(total_mop_kg / 50.0, 1)
+    rates = {"urea": urea_rounded, "dap": dap_rounded, "ssp": ssp_rounded, "mop": mop_rounded}
+    totals = {k: round(v * farm_area_ha, 1) for k, v in rates.items()}
+    bags = {k: round(v / bag_weight, 1) for k, v in totals.items()}
 
     # 6. Organic Alternatives and Bio-fertilizers
     crop_category = crop_profile.get("category", "General")
-    ph = float(farm_data.get("ph", 6.5))
+    ph = _safe_float(farm_data.get("ph"), 6.5)
+
+    fym_rate = _safe_float(guidelines.get("fym", {}).get("rate_per_ha_tonnes"), 10.0)
+    vermicompost_rate = _safe_float(guidelines.get("vermicompost", {}).get("rate_per_ha_tonnes"), 3.0)
+    neem_rate = _safe_float(guidelines.get("neem_cake", {}).get("rate_per_ha_kg"), 250.0)
+    bio_text = guidelines.get("biofertilizers", {})
 
     organic_alternatives = {
-        "compost_fym_tonnes": round(10.0 * farm_area_ha, 1),
-        "vermicompost_tonnes": round(3.0 * farm_area_ha, 1),
-        "neem_cake_kg": round(250.0 * farm_area_ha, 1),
+        "compost_fym_tonnes": round(fym_rate * farm_area_ha, 1),
+        "vermicompost_tonnes": round(vermicompost_rate * farm_area_ha, 1),
+        "neem_cake_kg": round(neem_rate * farm_area_ha, 1),
         "biofertilizer": (
-            "Rhizobium leguminosarum (200 g/10 kg seed) + Phosphate Solubilizing Bacteria (PSB 2 kg/ha) for symbiotic nitrogen fixation."
+            bio_text.get("pulses", "Rhizobium leguminosarum (200 g/10 kg seed) + PSB (2 kg/ha) for symbiotic nitrogen fixation.")
             if crop_category == "Pulses"
-            else "Azotobacter / Azospirillum (2 kg/ha) + PSB (2 kg/ha) incorporated with organic manure to boost natural nutrient cycling."
+            else bio_text.get("cereals", "Azotobacter / Azospirillum (2 kg/ha) + PSB (2 kg/ha) incorporated with organic manure.")
         ),
         "soil_conditioning": (
             "Soil is slightly acidic; SSP is preferred over DAP as it delivers 11% essential sulfur and 19% calcium."
@@ -102,7 +110,6 @@ def calculate_fertilizer_guidance(
     }
 
     recommendations: List[str] = []
-
 
     if deficit_n > 0.0:
         recommendations.append(
@@ -133,9 +140,8 @@ def calculate_fertilizer_guidance(
             f"DAP: {dap_rounded:.1f} kg/ha, MOP: {mop_rounded:.1f} kg/ha."
         )
 
-    # Surplus checks
-    if current_n > opt_n * 1.5 and opt_n > 0:
-        crop_category = crop_profile.get("category", "")
+    # Surplus checks using dynamic surplus multiplier
+    if current_n > opt_n * surplus_mult and opt_n > 0:
         if crop_category == "Pulses":
             recommendations.append(
                 f"Soil Nitrogen ({current_n:.0f} mg/kg) exceeds pulse demand ({opt_n:.0f} mg/kg); "
@@ -147,13 +153,13 @@ def calculate_fertilizer_guidance(
                 "avoid nitrogenous fertilizers to prevent vegetative lodging and delayed harvest."
             )
 
-    if current_p > opt_p * 1.5 and opt_p > 0:
+    if current_p > opt_p * surplus_mult and opt_p > 0:
         recommendations.append(
             f"Soil Phosphorus ({current_p:.0f} mg/kg) is in notable surplus over target ({opt_p:.0f} mg/kg); "
             "omit phosphate applications to avoid zinc and iron micronutrient lockup."
         )
 
-    if current_k > opt_k * 1.5 and opt_k > 0:
+    if current_k > opt_k * surplus_mult and opt_k > 0:
         recommendations.append(
             f"Soil Potassium ({current_k:.0f} mg/kg) is in notable surplus over target ({opt_k:.0f} mg/kg); "
             "avoid potash applications to prevent cation antagonism with magnesium uptake."
@@ -171,39 +177,27 @@ def calculate_fertilizer_guidance(
         if mop_rounded > 0.0:
             basal_parts.append(f"100% of MOP ({mop_rounded:.1f} kg/ha)")
 
-        # Handle Urea application splits:
-        # If urea dosage is minimal (< 1.5 kg/ha) or split doses would round to 0.0 kg/ha,
-        # apply entire urea dosage as basal to avoid meaningless 0.0 kg/ha splits.
         split_urea_1 = round(urea_rounded * 0.33, 1)
         split_urea_2 = round(urea_rounded * 0.33, 1)
         split_urea_3 = round(urea_rounded - split_urea_1 - split_urea_2, 1)
 
         if urea_rounded > 0.0 and (urea_rounded < 1.5 or split_urea_1 == 0.0):
             basal_parts.append(f"100% of Urea ({urea_rounded:.1f} kg/ha)")
-            schedule = [
-                f"Basal Application (at sowing): Apply {', '.join(basal_parts)}."
-            ]
-            schedule.append(
+            top_dressing = [
                 "Top-Dressing: No split top-dressing required for minimal nitrogen dosage; full requirement satisfied at basal application."
-            )
+            ]
         elif urea_rounded > 0.0:
             basal_parts.append(f"33% of Urea ({split_urea_1:.1f} kg/ha)")
-            schedule = [
-                f"Basal Application (at sowing): Apply {', '.join(basal_parts)}."
+            top_dressing = [
+                f"First Top-Dressing (active vegetative stage): Apply 33% of Urea ({split_urea_2:.1f} kg/ha) with light irrigation.",
+                f"Second Top-Dressing (panicle/flowering initiation): Apply remaining {split_urea_3:.1f} kg/ha of Urea.",
             ]
-            schedule.append(
-                f"First Top-Dressing (active vegetative stage): Apply 33% of Urea ({split_urea_2:.1f} kg/ha) with light irrigation."
-            )
-            schedule.append(
-                f"Second Top-Dressing (panicle/flowering initiation): Apply remaining {split_urea_3:.1f} kg/ha of Urea."
-            )
         else:
-            schedule = [
-                f"Basal Application (at sowing): Apply {', '.join(basal_parts)}."
-            ]
-            schedule.append(
+            top_dressing = [
                 "Top-Dressing: No synthetic nitrogen top-dressing required as baseline soil nitrogen is sufficient."
-            )
+            ]
+
+        schedule = [f"Basal Application (at sowing): Apply {', '.join(basal_parts)}."] + top_dressing
 
     return {
         "crop": crop_title,
@@ -222,17 +216,17 @@ def calculate_fertilizer_guidance(
             "mop_kg_ha": mop_rounded,
         },
         "farm_area_ha": farm_area_ha,
+        "commercial_bag_weight_kg": bag_weight,
         "total_farm_requirements": {
-            "urea_kg": total_urea_kg,
-            "urea_bags_50kg": urea_bags,
-            "dap_kg": total_dap_kg,
-            "dap_bags_50kg": dap_bags,
-            "ssp_kg": total_ssp_kg,
-            "ssp_bags_50kg": ssp_bags,
-            "mop_kg": total_mop_kg,
-            "mop_bags_50kg": mop_bags,
+            "urea_kg": totals["urea"],
+            "urea_bags_50kg": bags["urea"],
+            "dap_kg": totals["dap"],
+            "dap_bags_50kg": bags["dap"],
+            "ssp_kg": totals["ssp"],
+            "ssp_bags_50kg": bags["ssp"],
+            "mop_kg": totals["mop"],
+            "mop_bags_50kg": bags["mop"],
         },
         "organic_alternatives": organic_alternatives,
         "application_schedule": schedule,
     }
-

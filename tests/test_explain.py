@@ -80,7 +80,7 @@ def test_explain_local_prediction_with_integer_categoricals(valid_farm_payload):
 
 
 def test_reset_explainer_cache():
-    from agrisathi.ml.explain import get_tree_explainer, reset_explainer_cache, _EXPLAINER_CACHE
+    from agrisathi.ml.explain import get_tree_explainer, reset_explainer_cache
     predictor = get_predictor()
     rf = predictor.pipeline.named_steps["model"]
     get_tree_explainer(rf)

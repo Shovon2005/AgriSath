@@ -2,8 +2,6 @@
 Unit and integration tests for ML pipeline and training.
 """
 
-from pathlib import Path
-import pandas as pd
 from agrisathi.config import Config
 from agrisathi.ml.dataset import load_dataset
 from agrisathi.ml.pipeline import build_pipeline
@@ -65,6 +63,7 @@ def test_load_dataset_with_mixed_categoricals(tmp_path):
     sample_df.to_csv(csv_file, index=False)
 
     X_loaded, y_loaded = load_dataset(csv_file)
+    assert len(y_loaded) == len(X_loaded)
     assert X_loaded["soil_type"].iloc[0] == "Clay"
     assert X_loaded["soil_type"].iloc[1] == "Loamy"
     assert X_loaded["soil_type"].iloc[2] == "Sandy"

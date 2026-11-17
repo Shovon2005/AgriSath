@@ -9,7 +9,7 @@ from agrisathi.ml.train import train_and_evaluate
 
 def main():
     print("=== AgriSathi Model Training ===")
-    pipeline, metrics = train_and_evaluate()
+    _, metrics = train_and_evaluate()
     print(f"Training succeeded with Test Accuracy: {metrics['accuracy'] * 100:.2f}%")
     sys.exit(0)
 

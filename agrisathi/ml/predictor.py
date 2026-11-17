@@ -2,7 +2,7 @@
 High-precision crop prediction service.
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any
 from pathlib import Path
 import threading
 import joblib
@@ -12,14 +12,16 @@ from agrisathi.config import Config
 from agrisathi.core.exceptions import ModelNotFoundError, PredictionError
 from agrisathi.core.schemas import (
     FEATURE_NAMES,
-    CODE_TO_SOIL_TYPE,
-    CODE_TO_GROWTH_STAGE,
-    CODE_TO_WATER_SOURCE,
     canonical_soil_type,
     canonical_growth_stage,
     canonical_water_source,
 )
-from agrisathi.ml.explain import explain_local_prediction, generate_shap_waterfall
+from agrisathi.ml.explain import (
+    explain_local_prediction,
+    generate_shap_waterfall,
+    get_tree_explainer,
+    _canonicalize_df,
+)
 from agrisathi.utils.logger import get_logger
 
 logger = get_logger("agrisathi.ml.predictor")
@@ -87,11 +89,11 @@ class CropPredictor:
             for col in FEATURE_NAMES:
                 val = sanitized_data[col]
                 if col == "soil_type":
-                    val = canonical_soil_type(sanitized_data.get("soil_type_label", val))
+                    val = canonical_soil_type(val)
                 elif col == "growth_stage":
-                    val = canonical_growth_stage(sanitized_data.get("growth_stage_label", val))
+                    val = canonical_growth_stage(val)
                 elif col == "water_source_type":
-                    val = canonical_water_source(sanitized_data.get("water_source_type_label", val))
+                    val = canonical_water_source(val)
                 row[col] = val
 
             input_df = pd.DataFrame([row], columns=FEATURE_NAMES)
@@ -121,12 +123,22 @@ class CropPredictor:
             # Primary confidence
             confidence = top_probabilities[0]["percentage"] if top_probabilities else 100.0
 
-            # Local Explainability (SHAP)
+            # Local Explainability (SHAP computed once)
+            explanation = None
+            try:
+                preprocessor = self.pipeline.named_steps["preprocessor"]
+                rf_model = self.pipeline.named_steps["model"]
+                Xt = preprocessor.transform(_canonicalize_df(input_df))
+                explanation = get_tree_explainer(rf_model)(Xt)
+            except Exception:
+                explanation = None
+
             explanations = explain_local_prediction(
                 pipeline=self.pipeline,
                 input_df=input_df,
                 predicted_crop=predicted_crop,
                 top_k=top_k,
+                explanation=explanation,
             )
 
             # SHAP Waterfall data and narrative
@@ -136,6 +148,7 @@ class CropPredictor:
                 predicted_crop=predicted_crop,
                 top_k=top_k,
                 farm_data=sanitized_data,
+                explanation=explanation,
             )
 
             return {
@@ -148,9 +161,6 @@ class CropPredictor:
                 "explanation_narrative": waterfall.get("natural_language_explanation", ""),
                 "input_data": sanitized_data,
             }
-
-
-
         except Exception as e:
             logger.error("Inference failed: %s", e, exc_info=True)
             raise PredictionError(f"Prediction engine failed: {e}") from e

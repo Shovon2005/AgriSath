@@ -622,8 +622,20 @@
                 <input type="number" id="whatif_N" value="{{ input_data.get('N', 90) }}">
             </div>
             <div class="whatif-item">
+                <label>Phosphorus (mg/kg):</label>
+                <input type="number" id="whatif_P" value="{{ input_data.get('P', 42) }}">
+            </div>
+            <div class="whatif-item">
+                <label>Potassium (mg/kg):</label>
+                <input type="number" id="whatif_K" value="{{ input_data.get('K', 43) }}">
+            </div>
+            <div class="whatif-item">
                 <label>Temperature (°C):</label>
                 <input type="number" id="whatif_temperature" value="{{ input_data.get('temperature', 25) }}">
+            </div>
+            <div class="whatif-item">
+                <label>Humidity (%):</label>
+                <input type="number" id="whatif_humidity" value="{{ input_data.get('humidity', 80) }}">
             </div>
             <div class="whatif-item">
                 <label>Soil pH:</label>
@@ -723,17 +735,22 @@
 const baselineData = {{ input_data|tojson }};
 
 document.getElementById('btn_run_whatif')?.addEventListener('click', function() {
-    const rain = parseFloat(document.getElementById('whatif_rainfall').value);
-    const n = parseFloat(document.getElementById('whatif_N').value);
-    const temp = parseFloat(document.getElementById('whatif_temperature').value);
-    const ph = parseFloat(document.getElementById('whatif_ph').value);
+    const rain = parseFloat(document.getElementById('whatif_rainfall')?.value);
+    const n = parseFloat(document.getElementById('whatif_N')?.value);
+    const p = parseFloat(document.getElementById('whatif_P')?.value);
+    const k = parseFloat(document.getElementById('whatif_K')?.value);
+    const temp = parseFloat(document.getElementById('whatif_temperature')?.value);
+    const hum = parseFloat(document.getElementById('whatif_humidity')?.value);
+    const ph = parseFloat(document.getElementById('whatif_ph')?.value);
 
-    const adjustments = {
-        rainfall: rain,
-        N: n,
-        temperature: temp,
-        ph: ph
-    };
+    const adjustments = {};
+    if (!isNaN(rain)) adjustments.rainfall = rain;
+    if (!isNaN(n)) adjustments.N = n;
+    if (!isNaN(p)) adjustments.P = p;
+    if (!isNaN(k)) adjustments.K = k;
+    if (!isNaN(temp)) adjustments.temperature = temp;
+    if (!isNaN(hum)) adjustments.humidity = hum;
+    if (!isNaN(ph)) adjustments.ph = ph;
 
     const container = document.getElementById('whatif_result_container');
     const heading = document.getElementById('whatif_heading');

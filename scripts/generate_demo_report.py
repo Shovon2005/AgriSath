@@ -4,22 +4,17 @@ CLI script to generate a sample PDF Agronomic Advisory Report to disk.
 """
 
 from pathlib import Path
-from agrisathi.core.validator import validate_farm_input
-from agrisathi.ml.predictor import get_predictor
-from agrisathi.advisory.engine import generate_full_advisory
+from agrisathi.advisory.engine import run_full_pipeline
 from agrisathi.reports.pdf_generator import generate_pdf_advisory_report
-from agrisathi.web.routes.views import DEMO_PRESETS
+from agrisathi.data.scenarios import get_scenario_parameters_map
 
 
 def main():
     print("=== Generating Sample PDF Advisory Report ===")
-    sample_payload = DEMO_PRESETS["rice"]
+    scenarios = get_scenario_parameters_map()
+    sample_payload = scenarios.get("rice", {})
 
-    sanitized = validate_farm_input(sample_payload)
-    predictor = get_predictor()
-    prediction = predictor.predict(sanitized)
-    advisory = generate_full_advisory(sanitized, prediction["recommended_crop"])
-
+    _, prediction, advisory = run_full_pipeline(sample_payload)
     pdf_bytes = generate_pdf_advisory_report(prediction, advisory)
 
     out_file = Path("demo_advisory_report.pdf")

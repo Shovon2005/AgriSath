@@ -4,7 +4,6 @@ Verifies Top-3 ranking, attribute evaluation (season, soil, pH, thermal fit),
 and comparison matrix generation.
 """
 
-import pytest
 from agrisathi.advisory.comparison import build_crop_comparison_matrix
 from agrisathi.advisory.engine import generate_full_advisory
 
