@@ -60,12 +60,12 @@
 - [x] **Step 18**: Commit Phase 3 TypeScript interfaces to branch `sayan`.
 
 ### Phase 4: API Service Layer & HTTP Client (Steps 19 – 24)
-- [ ] **Step 19**: Create modular HTTP client `frontend/src/lib/api.ts` with error handling, timeouts, and JSON parsing.
-- [ ] **Step 20**: Implement `predictCrop(params)` service method in `frontend/src/lib/api.ts`.
-- [ ] **Step 21**: Implement `fetchLiveWeather(location)` service method in `frontend/src/lib/api.ts`.
-- [ ] **Step 22**: Implement `simulateWhatIf(baseline, perturbations)` service method in `frontend/src/lib/api.ts`.
-- [ ] **Step 23**: Implement `fetchHistory()` and `fetchHistoryDetail(id)` service methods in `frontend/src/lib/api.ts`.
-- [ ] **Step 24**: Commit Phase 4 API service layer to branch `sayan`.
+- [x] **Step 19**: Create modular HTTP client `frontend/src/lib/api.ts` with error handling, timeouts, and JSON parsing.
+- [x] **Step 20**: Implement `predictCrop(params)` service method in `frontend/src/lib/api.ts`.
+- [x] **Step 21**: Implement `fetchLiveWeather(location)` service method in `frontend/src/lib/api.ts`.
+- [x] **Step 22**: Implement `simulateWhatIf(baseline, perturbations)` service method in `frontend/src/lib/api.ts`.
+- [x] **Step 23**: Implement `fetchHistory()` and `fetchHistoryDetail(id)` service methods in `frontend/src/lib/api.ts`.
+- [x] **Step 24**: Commit Phase 4 API service layer to branch `sayan`.
 
 ### Phase 5: Reusable UI Component Library (Steps 25 – 32)
 - [ ] **Step 25**: Create `frontend/src/components/ui/Button.tsx` supporting variants (`primary`, `outline`, `ghost`, `danger`) and loading state.
