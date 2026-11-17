@@ -78,12 +78,12 @@
 - [x] **Step 32**: Commit Phase 5 UI component library to branch `sayan`.
 
 ### Phase 6: Farm Input Form — Section 1: Soil Parameters (Steps 33 – 38)
-- [ ] **Step 33**: Create `frontend/src/components/form/SoilParametersSection.tsx` with 3x3 responsive grid.
-- [ ] **Step 34**: Implement Nitrogen, Phosphorus, Potassium input fields with `mg/kg` units and client-side bounds check.
-- [ ] **Step 35**: Implement Soil pH (`pH`), Soil Moisture (`%`), and Soil Type dropdown (`Loamy`, `Clay`, `Sandy`).
-- [ ] **Step 36**: Implement Organic Carbon (`%`), Organic Matter (`%`), and Electrical Conductivity (`dS/m`).
-- [ ] **Step 37**: Add automatic conversion helper between Organic Carbon (OC) and Organic Matter (OM = 1.724 * OC).
-- [ ] **Step 38**: Commit Phase 6 Soil Parameters component to branch `sayan`.
+- [x] **Step 33**: Create `frontend/src/components/form/SoilParametersSection.tsx` with 3x3 responsive grid.
+- [x] **Step 34**: Implement Nitrogen, Phosphorus, Potassium input fields with `mg/kg` units and client-side bounds check.
+- [x] **Step 35**: Implement Soil pH (`pH`), Soil Moisture (`%`), and Soil Type dropdown (`Loamy`, `Clay`, `Sandy`).
+- [x] **Step 36**: Implement Organic Carbon (`%`), Organic Matter (`%`), and Electrical Conductivity (`dS/m`).
+- [x] **Step 37**: Add automatic conversion helper between Organic Carbon (OC) and Organic Matter (OM = 1.724 * OC).
+- [x] **Step 38**: Commit Phase 6 Soil Parameters component to branch `sayan`.
 
 ### Phase 7: Farm Input Form — Section 2: Farm Scale & Location Context (Steps 39 – 43)
 - [ ] **Step 39**: Create `frontend/src/components/form/FarmContextSection.tsx` with location input and season select.
