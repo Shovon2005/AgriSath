@@ -93,11 +93,11 @@
 - [x] **Step 43**: Commit Phase 7 Farm Context component to branch `sayan`.
 
 ### Phase 8: Farm Input Form — Section 3: Environmental Conditions (Steps 44 – 48)
-- [ ] **Step 44**: Create `frontend/src/components/form/EnvironmentalSection.tsx`.
-- [ ] **Step 45**: Implement Temperature (`°C`), Humidity (`%`), and Rainfall (`mm`) inputs.
-- [ ] **Step 46**: Implement Sunlight Exposure (`hours`), Wind Speed (`m/s`), and CO2 Concentration (`ppm`) inputs.
-- [ ] **Step 47**: Implement Frost Risk (`%`) input and telemetry info callout card to maintain 3x3 grid symmetry.
-- [ ] **Step 48**: Commit Phase 8 Environmental Conditions component to branch `sayan`.
+- [x] **Step 44**: Create `frontend/src/components/form/EnvironmentalSection.tsx`.
+- [x] **Step 45**: Implement Temperature (`°C`), Humidity (`%`), and Rainfall (`mm`) inputs.
+- [x] **Step 46**: Implement Sunlight Exposure (`hours`), Wind Speed (`m/s`), and CO2 Concentration (`ppm`) inputs.
+- [x] **Step 47**: Implement Frost Risk (`%`) input and telemetry info callout card to maintain 3x3 grid symmetry.
+- [x] **Step 48**: Commit Phase 8 Environmental Conditions component to branch `sayan`.
 
 ### Phase 9: Farm Input Form — Section 4: Farm Management & Scenario Presets (Steps 49 – 54)
 - [ ] **Step 49**: Create `frontend/src/components/form/FarmManagementSection.tsx` with 8 parameters and decision matrix card.
