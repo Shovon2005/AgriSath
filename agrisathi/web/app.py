@@ -34,6 +34,36 @@ def create_app(config_name: str = "default") -> Flask:
     app.register_blueprint(views_bp)
     app.register_blueprint(api_bp)
 
+    # CORS handling for Next.js frontend
+    allowed_origins = getattr(app_config, "CORS_ORIGINS", ["*"])
+
+    def _get_origin():
+        req_origin = request.headers.get("Origin")
+        if not req_origin or "*" in allowed_origins:
+            return req_origin or "*"
+        return req_origin if req_origin in allowed_origins else allowed_origins[0]
+
+    @app.before_request
+    def handle_cors_preflight():
+        if request.method == "OPTIONS":
+            response = app.make_default_options_response()
+            origin = _get_origin()
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With, Accept"
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Max-Age"] = "86400"
+            return response
+
+    @app.after_request
+    def add_cors_headers(response):
+        origin = _get_origin()
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With, Accept"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        return response
+
     @app.context_processor
     def inject_defaults():
         scenarios = get_farm_scenarios()

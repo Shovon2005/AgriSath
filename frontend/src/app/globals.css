@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 15, 23, 42;
+  --background-start-rgb: 243, 250, 245;
+  --background-end-rgb: 255, 255, 255;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 50%, #ecfdf5 100%);
+  min-height: 100vh;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+@keyframes highlightField {
+  0% {
+    background-color: #dcfce7;
+    border-color: #16a34a;
+  }
+  100% {
+    background-color: #ffffff;
+    border-color: #cbd5e1;
+  }
+}
+
+.animate-field-update {
+  animation: highlightField 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+}
