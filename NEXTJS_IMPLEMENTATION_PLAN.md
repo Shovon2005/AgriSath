@@ -68,14 +68,14 @@
 - [x] **Step 24**: Commit Phase 4 API service layer to branch `sayan`.
 
 ### Phase 5: Reusable UI Component Library (Steps 25 – 32)
-- [ ] **Step 25**: Create `frontend/src/components/ui/Button.tsx` supporting variants (`primary`, `outline`, `ghost`, `danger`) and loading state.
-- [ ] **Step 26**: Create `frontend/src/components/ui/InputWithUnit.tsx` supporting embedded right-side unit badges and error styling.
-- [ ] **Step 27**: Create `frontend/src/components/ui/Select.tsx` with customized dropdown styling and focus states.
-- [ ] **Step 28**: Create `frontend/src/components/ui/Card.tsx` with header, title, icon bubble, and body wrappers.
-- [ ] **Step 29**: Create `frontend/src/components/ui/Badge.tsx` for status indicators (High, Medium, Low, Alerts).
-- [ ] **Step 30**: Create `frontend/src/components/ui/ProgressBar.tsx` for confidence meters and soil fertility scores.
-- [ ] **Step 31**: Create `frontend/src/components/ui/Navbar.tsx` and `Footer.tsx` matching AgriSathi branding.
-- [ ] **Step 32**: Commit Phase 5 UI component library to branch `sayan`.
+- [x] **Step 25**: Create `frontend/src/components/ui/Button.tsx` supporting variants (`primary`, `outline`, `ghost`, `danger`) and loading state.
+- [x] **Step 26**: Create `frontend/src/components/ui/InputWithUnit.tsx` supporting embedded right-side unit badges and error styling.
+- [x] **Step 27**: Create `frontend/src/components/ui/Select.tsx` with customized dropdown styling and focus states.
+- [x] **Step 28**: Create `frontend/src/components/ui/Card.tsx` with header, title, icon bubble, and body wrappers.
+- [x] **Step 29**: Create `frontend/src/components/ui/Badge.tsx` for status indicators (High, Medium, Low, Alerts).
+- [x] **Step 30**: Create `frontend/src/components/ui/ProgressBar.tsx` for confidence meters and soil fertility scores.
+- [x] **Step 31**: Create `frontend/src/components/ui/Navbar.tsx` and `Footer.tsx` matching AgriSathi branding.
+- [x] **Step 32**: Commit Phase 5 UI component library to branch `sayan`.
 
 ### Phase 6: Farm Input Form — Section 1: Soil Parameters (Steps 33 – 38)
 - [ ] **Step 33**: Create `frontend/src/components/form/SoilParametersSection.tsx` with 3x3 responsive grid.
