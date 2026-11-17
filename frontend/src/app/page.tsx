@@ -45,7 +45,7 @@ const BASELINE_RICE_PARAMS: Partial<FarmInputs> = {
   water_usage_efficiency: 1.2,
 };
 
-export default function HomePage() {
+function HomePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -274,5 +274,20 @@ export default function HomePage() {
         <PredictActionBar isLoading={isLoading} />
       </form>
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="py-24 text-center text-slate-500 flex flex-col items-center justify-center gap-2">
+          <Loader2 className="w-8 h-8 animate-spin text-agri-600" />
+          <span className="text-xs font-semibold">Initializing Decision Engine...</span>
+        </div>
+      }
+    >
+      <HomePageContent />
+    </React.Suspense>
   );
 }

@@ -1,4 +1,5 @@
 import { FarmInputs } from './schemas';
+export type { FarmInputs };
 
 export interface ProbabilityItem {
   crop: string;

@@ -3,8 +3,8 @@
  * Provides type-safe async functions to communicate with the Flask Python backend.
  */
 
+import { FarmInputs } from '@/types/schemas';
 import {
-  FarmInputs,
   PredictResponse,
   WhatIfResponse,
   WeatherResponse,

@@ -130,5 +130,5 @@
 - [x] **Step 68**: Commit Phase 13 History Archive & PDF integration to branch `sayan`.
 
 ### Phase 14: End-to-End Verification, Build & Integration (Steps 69 – 70)
-- [ ] **Step 69**: Run Next.js production build (`npm run build`) and verify TypeScript compilation and bundle health.
-- [ ] **Step 70**: Run full backend pytest suite (161 tests) and commit complete Next.js frontend solution to branch `sayan`.
+- [x] **Step 69**: Run Next.js production build (`npm run build`) and verify TypeScript compilation and bundle health.
+- [x] **Step 70**: Run full backend pytest suite (164 tests) and commit complete Next.js frontend solution to branch `sayan`.
