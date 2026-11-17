@@ -52,12 +52,12 @@
 - [x] **Step 12**: Commit Phase 2 project scaffolding to branch `sayan`.
 
 ### Phase 3: TypeScript Types & Domain Interfaces (Steps 13 – 18)
-- [ ] **Step 13**: Create `frontend/src/types/schemas.ts` defining all 22 farm input parameters with units, bounds, and defaults.
-- [ ] **Step 14**: Define TypeScript interfaces for ML predictions (`TopCrop`, `ProbabilityItem`, `FeatureImportanceItem`).
-- [ ] **Step 15**: Define TypeScript interfaces for agronomic advisory (`SoilHealthResult`, `IrrigationResult`, `FertilizerResult`, `HazardRiskResult`).
-- [ ] **Step 16**: Define TypeScript interfaces for What-If simulation payloads and response deltas.
-- [ ] **Step 17**: Define TypeScript interfaces for historical records and weather telemetry payloads.
-- [ ] **Step 18**: Commit Phase 3 TypeScript interfaces to branch `sayan`.
+- [x] **Step 13**: Create `frontend/src/types/schemas.ts` defining all 22 farm input parameters with units, bounds, and defaults.
+- [x] **Step 14**: Define TypeScript interfaces for ML predictions (`TopCrop`, `ProbabilityItem`, `FeatureImportanceItem`).
+- [x] **Step 15**: Define TypeScript interfaces for agronomic advisory (`SoilHealthResult`, `IrrigationResult`, `FertilizerResult`, `HazardRiskResult`).
+- [x] **Step 16**: Define TypeScript interfaces for What-If simulation payloads and response deltas.
+- [x] **Step 17**: Define TypeScript interfaces for historical records and weather telemetry payloads.
+- [x] **Step 18**: Commit Phase 3 TypeScript interfaces to branch `sayan`.
 
 ### Phase 4: API Service Layer & HTTP Client (Steps 19 – 24)
 - [ ] **Step 19**: Create modular HTTP client `frontend/src/lib/api.ts` with error handling, timeouts, and JSON parsing.
