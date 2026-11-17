@@ -126,8 +126,8 @@
 - [x] **Step 66**: Commit Phase 12 XAI & What-If Simulator to branch `sayan`.
 
 ### Phase 13: History Archive Page & PDF Export (Steps 67 – 68)
-- [ ] **Step 67**: Create `frontend/src/app/history/page.tsx` with live search, crop filter pills, and direct PDF download links.
-- [ ] **Step 68**: Commit Phase 13 History Archive & PDF integration to branch `sayan`.
+- [x] **Step 67**: Create `frontend/src/app/history/page.tsx` with live search, crop filter pills, and direct PDF download links.
+- [x] **Step 68**: Commit Phase 13 History Archive & PDF integration to branch `sayan`.
 
 ### Phase 14: End-to-End Verification, Build & Integration (Steps 69 – 70)
 - [ ] **Step 69**: Run Next.js production build (`npm run build`) and verify TypeScript compilation and bundle health.
