@@ -219,6 +219,7 @@ def predict():
             "prediction": prediction,
             "advisory": advisory,
             "record_id": record_id,
+            "sanitized_inputs": sanitized,
         }), 200
 
 

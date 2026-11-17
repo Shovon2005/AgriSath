@@ -38,7 +38,7 @@
 ### Phase 1: Backend API Preparation & CORS Configuration (Steps 1 – 6)
 - [x] **Step 1**: Add CORS headers and preflight `OPTIONS` handling in `agrisathi/web/app.py` for headless frontend support.
 - [x] **Step 2**: Add `FLASK_CORS_ORIGINS` configuration in `agrisathi/config.py`.
-- [ ] **Step 3**: Verify backend API JSON serialization for all endpoints (`/api/v1/predict`, `/api/v1/weather`, `/api/v1/history`, `/api/v1/what-if`).
+- [x] **Step 3**: Verify backend API JSON serialization for all endpoints (`/api/v1/predict`, `/api/v1/weather`, `/api/v1/history`, `/api/v1/what-if`).
 - [ ] **Step 4**: Write unit tests for CORS and API response schemas in `tests/test_api_cors.py`.
 - [ ] **Step 5**: Run pytest suite to ensure zero regressions across all 161 existing tests.
 - [ ] **Step 6**: Commit Phase 1 backend updates to branch `sayan`.
