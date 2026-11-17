@@ -86,11 +86,11 @@
 - [x] **Step 38**: Commit Phase 6 Soil Parameters component to branch `sayan`.
 
 ### Phase 7: Farm Input Form — Section 2: Farm Scale & Location Context (Steps 39 – 43)
-- [ ] **Step 39**: Create `frontend/src/components/form/FarmContextSection.tsx` with location input and season select.
-- [ ] **Step 40**: Implement interactive Live Weather button with animated fetching state.
-- [ ] **Step 41**: Add Live Telemetry Badge displaying synchronized temperature, humidity, rainfall, and forecast.
-- [ ] **Step 42**: Implement Farm Area Size, Area Unit (`hectare`, `acre`), and Expected Rainfall inputs.
-- [ ] **Step 43**: Commit Phase 7 Farm Context component to branch `sayan`.
+- [x] **Step 39**: Create `frontend/src/components/form/FarmContextSection.tsx` with location input and season select.
+- [x] **Step 40**: Implement interactive Live Weather button with animated fetching state.
+- [x] **Step 41**: Add Live Telemetry Badge displaying synchronized temperature, humidity, rainfall, and forecast.
+- [x] **Step 42**: Implement Farm Area Size, Area Unit (`hectare`, `acre`), and Expected Rainfall inputs.
+- [x] **Step 43**: Commit Phase 7 Farm Context component to branch `sayan`.
 
 ### Phase 8: Farm Input Form — Section 3: Environmental Conditions (Steps 44 – 48)
 - [ ] **Step 44**: Create `frontend/src/components/form/EnvironmentalSection.tsx`.
