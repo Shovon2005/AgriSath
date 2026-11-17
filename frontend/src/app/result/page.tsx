@@ -21,6 +21,8 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Button } from '@/components/ui/Button';
 import { PredictResponse } from '@/types/api';
 import { api } from '@/lib/api';
+import { ShapWaterfallChart } from '@/components/xai/ShapWaterfallChart';
+import { WhatIfSimulator } from '@/components/xai/WhatIfSimulator';
 
 export default function ResultPage() {
   const [data, setData] = useState<PredictResponse | null>(null);
@@ -353,6 +355,19 @@ export default function ResultPage() {
           </Card>
         )}
       </div>
+
+      {/* Module 6: Explainable AI SHAP Waterfall Chart */}
+      <ShapWaterfallChart
+        cropName={prediction.recommended_crop}
+        importantFeatures={prediction.important_features}
+        waterfall={prediction.waterfall}
+      />
+
+      {/* Module 7: Interactive What-If Simulation */}
+      <WhatIfSimulator
+        baselineInputs={inputs}
+        currentCrop={prediction.recommended_crop}
+      />
     </div>
   );
 }

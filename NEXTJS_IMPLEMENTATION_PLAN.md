@@ -121,9 +121,9 @@
 - [x] **Step 63**: Commit Phase 11 Result Dashboard to branch `sayan`.
 
 ### Phase 12: Explainable AI (SHAP Waterfall) & What-If Simulator (Steps 64 – 66)
-- [ ] **Step 64**: Create `frontend/src/components/xai/ShapWaterfallChart.tsx` using Recharts for directional feature attributions.
-- [ ] **Step 65**: Create `frontend/src/components/xai/WhatIfSimulator.tsx` allowing interactive perturbation testing with real-time API feedback.
-- [ ] **Step 66**: Commit Phase 12 XAI & What-If Simulator to branch `sayan`.
+- [x] **Step 64**: Create `frontend/src/components/xai/ShapWaterfallChart.tsx` using Recharts for directional feature attributions.
+- [x] **Step 65**: Create `frontend/src/components/xai/WhatIfSimulator.tsx` allowing interactive perturbation testing with real-time API feedback.
+- [x] **Step 66**: Commit Phase 12 XAI & What-If Simulator to branch `sayan`.
 
 ### Phase 13: History Archive Page & PDF Export (Steps 67 – 68)
 - [ ] **Step 67**: Create `frontend/src/app/history/page.tsx` with live search, crop filter pills, and direct PDF download links.
