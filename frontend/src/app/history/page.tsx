@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   History,
   Search,
@@ -13,6 +14,13 @@ import {
   Sprout,
   PlusCircle,
   RotateCcw,
+  X,
+  ChevronRight,
+  Droplets,
+  Mountain,
+  FlaskConical,
+  AlertCircle,
+  Sliders,
 } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -24,11 +32,14 @@ import { api } from '@/lib/api';
 const CROP_PILLS = ['All Crops', 'Rice', 'Chickpea', 'Cotton', 'Maize', 'Papaya', 'Jute'];
 
 export default function HistoryPage() {
+  const router = useRouter();
   const [records, setRecords] = useState<HistoryRecord[]>([]);
   const [selectedCrop, setSelectedCrop] = useState<string>('All Crops');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<HistoryRecord | null>(null);
+  const [isOpeningResult, setIsOpeningResult] = useState<boolean>(false);
 
   const loadHistory = async (cropFilter?: string) => {
     setIsLoading(true);
@@ -61,6 +72,28 @@ export default function HistoryPage() {
       alert(`Download failed: ${err.message}`);
     } finally {
       setDownloadingId(null);
+    }
+  };
+
+  const handleInspectInDashboard = async (item: HistoryRecord) => {
+    if (!item.inputs) {
+      alert('Record farm parameters not available.');
+      return;
+    }
+    setIsOpeningResult(true);
+    try {
+      const res = await api.predictCrop(item.inputs as any);
+      if (res.status === 'success') {
+        sessionStorage.setItem('agrisathi_latest_prediction', JSON.stringify(res));
+        sessionStorage.setItem('agrisathi_latest_inputs', JSON.stringify(res.sanitized_inputs || item.inputs));
+        router.push('/result');
+      } else {
+        alert('Could not inspect advisory: ' + (res.message || 'Unknown error'));
+      }
+    } catch (err: any) {
+      alert('Failed to load assessment in dashboard: ' + err.message);
+    } finally {
+      setIsOpeningResult(false);
     }
   };
 
@@ -241,6 +274,15 @@ export default function HistoryPage() {
                     <td className="py-3.5 px-4 text-center whitespace-nowrap">
                       <div className="inline-flex items-center gap-2">
                         <Button
+                          variant="outline"
+                          size="sm"
+                          leftIcon={<Eye className="w-3.5 h-3.5 text-sky-600" />}
+                          onClick={() => setSelectedRecord(item)}
+                          className="hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700"
+                        >
+                          Details
+                        </Button>
+                        <Button
                           variant="primary"
                           size="sm"
                           isLoading={downloadingId === item.id}
@@ -260,9 +302,174 @@ export default function HistoryPage() {
 
         <div className="pt-4 mt-4 border-t border-slate-100 flex flex-wrap justify-between items-center text-xs text-slate-500">
           <span>Showing <strong>{filteredRecords.length}</strong> of {records.length} saved assessments</span>
-          <span>Click "PDF" to export official publication-grade report</span>
+          <span>Click <strong>Details</strong> to inspect agronomic breakdown or <strong>PDF</strong> for official report</span>
         </div>
       </Card>
+
+      {/* Historical Record Details Modal */}
+      {selectedRecord && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+            {/* Modal Header */}
+            <div className="px-6 py-4 bg-gradient-to-r from-agri-900 via-agri-800 to-emerald-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
+                  <Sprout className="w-6 h-6 text-emerald-300" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-black tracking-tight capitalize">
+                      Assessment #{selectedRecord.id} — {selectedRecord.crop}
+                    </h3>
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/30">
+                      {selectedRecord.confidence.toFixed(1)}% Confidence
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 flex items-center gap-2 mt-0.5">
+                    <span>{selectedRecord.location}</span>
+                    <span>•</span>
+                    <span>{selectedRecord.season}</span>
+                    <span>•</span>
+                    <span>{selectedRecord.farm_area} ha</span>
+                    <span>•</span>
+                    <span>{selectedRecord.timestamp.slice(0, 16)}</span>
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedRecord(null)}
+                className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Scrollable Body */}
+            <div className="p-6 overflow-y-auto space-y-6">
+              {/* Top Overview Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Soil Health */}
+                <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200 flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs">
+                    <Mountain className="w-4 h-4 text-emerald-600" />
+                    <span>Soil Fertility Index</span>
+                  </div>
+                  <div className="text-2xl font-black text-emerald-900">
+                    {selectedRecord.soil_score} <span className="text-xs font-medium text-emerald-700">/ 100</span>
+                  </div>
+                  <Badge variant={selectedRecord.fertility_class === 'High' ? 'high' : selectedRecord.fertility_class === 'Medium' ? 'medium' : 'low'}>
+                    {selectedRecord.fertility_class} Fertility
+                  </Badge>
+                </div>
+
+                {/* Irrigation */}
+                <div className="p-4 rounded-xl bg-sky-50/70 border border-sky-200 flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2 text-sky-800 font-bold text-xs">
+                    <Droplets className="w-4 h-4 text-sky-600" />
+                    <span>Irrigation Demand</span>
+                  </div>
+                  <div className="text-2xl font-black text-sky-900">
+                    {selectedRecord.irrigation_priority}
+                  </div>
+                  <Badge variant={selectedRecord.irrigation_priority === 'High' ? 'low' : selectedRecord.irrigation_priority === 'Medium' ? 'medium' : 'high'}>
+                    Priority Demand
+                  </Badge>
+                </div>
+
+                {/* AI Confidence */}
+                <div className="p-4 rounded-xl bg-purple-50/70 border border-purple-200 flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2 text-purple-800 font-bold text-xs">
+                    <FlaskConical className="w-4 h-4 text-purple-600" />
+                    <span>Model Confidence</span>
+                  </div>
+                  <div className="text-2xl font-black text-purple-900">
+                    {selectedRecord.confidence.toFixed(1)}%
+                  </div>
+                  <ProgressBar value={selectedRecord.confidence} variant="blue" />
+                </div>
+              </div>
+
+              {/* Farm Input Parameters Table */}
+              {selectedRecord.inputs && Object.keys(selectedRecord.inputs).length > 0 && (
+                <div>
+                  <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-2">
+                    <Sliders className="w-4 h-4 text-slate-500" />
+                    Recorded Field Parameters
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                    {Object.entries(selectedRecord.inputs).map(([key, val]) => (
+                      <div key={key} className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex flex-col">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase truncate">
+                          {key.replace(/_/g, ' ')}
+                        </span>
+                        <span className="text-xs font-extrabold text-slate-900 mt-0.5">
+                          {val !== null && val !== undefined ? String(val) : '—'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Advisory Summary Notes if present */}
+              {selectedRecord.advisory_summary && (
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                  <h4 className="font-extrabold text-slate-800 mb-2 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-agri-600" />
+                    Agronomic Strategy Summary
+                  </h4>
+                  <div className="text-slate-600 space-y-1">
+                    {selectedRecord.advisory_summary.soil_recommendation && (
+                      <p><strong>Soil:</strong> {selectedRecord.advisory_summary.soil_recommendation}</p>
+                    )}
+                    {selectedRecord.advisory_summary.irrigation_advice && (
+                      <p><strong>Irrigation:</strong> {selectedRecord.advisory_summary.irrigation_advice}</p>
+                    )}
+                    {selectedRecord.advisory_summary.fertilizer_recommendation && (
+                      <p><strong>Fertilizer:</strong> {selectedRecord.advisory_summary.fertilizer_recommendation}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+              <Button
+                variant="outline"
+                size="md"
+                onClick={() => setSelectedRecord(null)}
+              >
+                Close
+              </Button>
+
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="md"
+                  isLoading={downloadingId === selectedRecord.id}
+                  leftIcon={<FileDown className="w-4 h-4" />}
+                  onClick={() => handleDownloadPdf(selectedRecord)}
+                >
+                  Download PDF
+                </Button>
+
+                <Button
+                  variant="primary"
+                  size="md"
+                  isLoading={isOpeningResult}
+                  rightIcon={<ChevronRight className="w-4 h-4" />}
+                  onClick={() => handleInspectInDashboard(selectedRecord)}
+                >
+                  Open in Result Dashboard
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
