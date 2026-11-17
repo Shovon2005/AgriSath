@@ -40,8 +40,8 @@
 - [x] **Step 2**: Add `FLASK_CORS_ORIGINS` configuration in `agrisathi/config.py`.
 - [x] **Step 3**: Verify backend API JSON serialization for all endpoints (`/api/v1/predict`, `/api/v1/weather`, `/api/v1/history`, `/api/v1/what-if`).
 - [x] **Step 4**: Write unit tests for CORS and API response schemas in `tests/test_api_cors.py`.
-- [ ] **Step 5**: Run pytest suite to ensure zero regressions across all 161 existing tests.
-- [ ] **Step 6**: Commit Phase 1 backend updates to branch `sayan`.
+- [x] **Step 5**: Run pytest suite to ensure zero regressions across all 164 existing tests.
+- [x] **Step 6**: Commit Phase 1 backend updates to branch `sayan`.
 
 ### Phase 2: Next.js Project Scaffolding & Setup (Steps 7 – 12)
 - [ ] **Step 7**: Initialize Next.js 14+ app with TypeScript and Tailwind CSS in directory `frontend/`.
