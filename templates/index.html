@@ -12,6 +12,536 @@
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        /* =========================================================
+           INDEX FORM ENHANCEMENTS - MODERN HIGH-DENSITY AGRONOMIC UI
+           ========================================================= */
+
+        .container {
+            width: 95%;
+            max-width: 1240px;
+            margin: auto;
+        }
+
+        /* Preset Toolbar Card */
+        .presets-card {
+            background: #ffffff;
+            border: 1px solid #bbf7d0;
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin: 15px auto 32px;
+            box-shadow: 0 4px 20px -3px rgba(22, 163, 74, 0.08);
+        }
+
+        .presets-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f0fdf4;
+        }
+
+        .presets-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #166534;
+        }
+
+        .presets-title i {
+            color: #15803d;
+            font-size: 1.1rem;
+        }
+
+        .presets-subtitle {
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .presets-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .presets-chips-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+            align-items: center;
+        }
+
+        .preset-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.83rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1.5px solid #bbf7d0;
+            background: #f8fbf8;
+            color: #166534;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .preset-pill:hover {
+            background: #dcfce7;
+            border-color: #16a34a;
+            transform: translateY(-1.5px);
+            box-shadow: 0 3px 8px rgba(22, 163, 74, 0.15);
+        }
+
+        .preset-pill.active {
+            background: #166534;
+            color: #ffffff;
+            border-color: #166534;
+            box-shadow: 0 3px 10px rgba(22, 101, 52, 0.25);
+        }
+
+        .preset-pill.preset-alert {
+            border-color: #fecaca;
+            background: #fff5f5;
+            color: #b91c1c;
+        }
+
+        .preset-pill.preset-alert:hover {
+            background: #fee2e2;
+            border-color: #dc2626;
+        }
+
+        .preset-pill.preset-alert.active {
+            background: #dc2626;
+            color: #ffffff;
+            border-color: #dc2626;
+        }
+
+        .btn-preset-util {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 13px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn-fill-baseline {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+
+        .btn-fill-baseline:hover {
+            background: #1d4ed8;
+            color: #ffffff;
+            border-color: #1d4ed8;
+        }
+
+        .btn-reset-form {
+            background: #f8fafc;
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+        }
+
+        .btn-reset-form:hover {
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        /* Modern Form Section Cards */
+        .form-section {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 28px 32px;
+            margin-bottom: 28px;
+            box-shadow: 0 4px 20px -3px rgba(15, 23, 42, 0.05);
+        }
+
+        .section-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .section-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .section-icon-bubble {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .icon-soil { background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #166534; }
+        .icon-location { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1d4ed8; }
+        .icon-env { background: linear-gradient(135deg, #ccfbf1, #99f6e4); color: #0f766e; }
+        .icon-mgmt { background: linear-gradient(135deg, #ecfdf5, #a7f3d0); color: #047857; }
+
+        .section-text h3 {
+            margin: 0;
+            font-size: 1.22rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.01em;
+        }
+
+        .section-text p {
+            margin: 3px 0 0;
+            font-size: 0.84rem;
+            color: #64748b;
+        }
+
+        .section-badge {
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: #475569;
+            background: #f1f5f9;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* 3-Column Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 960px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Input Group & Units */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            position: relative;
+        }
+
+        .input-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #1e3a29;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+
+        .input-label .req-star {
+            color: #e11d48;
+            font-size: 0.8rem;
+            margin-left: 2px;
+        }
+
+        .input-label .opt-tag {
+            font-size: 0.72rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .input-unit-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .input-unit-wrapper input {
+            width: 100%;
+            height: 48px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 11px;
+            background: #ffffff;
+            padding: 0 68px 0 14px;
+            font-size: 0.92rem;
+            color: #0f172a;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-sizing: border-box;
+        }
+
+        .input-unit-wrapper input:focus {
+            border-color: #16a34a;
+            background: #ffffff;
+            box-shadow: 0 0 0 3.5px rgba(22, 163, 74, 0.15);
+        }
+
+        .input-unit-wrapper input::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+            font-size: 0.88rem;
+        }
+
+        .input-unit-wrapper select {
+            width: 100%;
+            height: 48px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 11px;
+            background: #ffffff;
+            padding: 0 14px;
+            font-size: 0.92rem;
+            color: #0f172a;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+
+        .input-unit-wrapper select:focus {
+            border-color: #16a34a;
+            box-shadow: 0 0 0 3.5px rgba(22, 163, 74, 0.15);
+        }
+
+        .unit-tag {
+            position: absolute;
+            right: 10px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: #475569;
+            background: #f1f5f9;
+            padding: 3px 8px;
+            border-radius: 6px;
+            pointer-events: none;
+            border: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        /* Validation invalid style */
+        .input-invalid {
+            border-color: #ef4444 !important;
+            background: #fff5f5 !important;
+            box-shadow: 0 0 0 3.5px rgba(239, 68, 68, 0.15) !important;
+        }
+
+        .field-highlight {
+            animation: fieldPop 0.8s ease-out;
+        }
+
+        @keyframes fieldPop {
+            0% { background: #dcfce7; border-color: #22c55e; }
+            100% { background: #ffffff; border-color: #cbd5e1; }
+        }
+
+        /* Context Info Cards (Fills empty grid slots cleanly) */
+        .context-info-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .info-card-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .info-card-body h4 {
+            margin: 0 0 3px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .info-card-body p {
+            margin: 0;
+            font-size: 0.78rem;
+            color: #64748b;
+            line-height: 1.45;
+        }
+
+        /* Live Weather Widget */
+        .weather-control-wrap {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .btn-live-weather {
+            padding: 0 16px;
+            height: 48px;
+            background: linear-gradient(135deg, #1b5e20, #2e7d32);
+            color: white;
+            border: none;
+            border-radius: 11px;
+            cursor: pointer;
+            font-size: 0.84rem;
+            font-weight: 700;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            box-shadow: 0 2px 8px rgba(27, 94, 32, 0.2);
+            transition: all 0.2s;
+        }
+
+        .btn-live-weather:hover {
+            background: linear-gradient(135deg, #155219, #256a29);
+            transform: translateY(-1px);
+        }
+
+        .btn-live-weather:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .weather-pill-badge {
+            margin-top: 6px;
+            font-size: 0.78rem;
+            padding: 6px 12px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+            font-weight: 600;
+        }
+
+        /* Validation Summary Toast */
+        .validation-alert-banner {
+            background: #fef2f2;
+            border: 1.5px solid #f87171;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 25px;
+            color: #991b1b;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.08);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .validation-alert-banner i {
+            font-size: 1.25rem;
+            margin-top: 2px;
+            color: #dc2626;
+        }
+
+        /* Predict CTA Bar */
+        .predict-bar-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 24px 32px;
+            margin: 35px 0 50px;
+            box-shadow: 0 8px 30px -4px rgba(15, 23, 42, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .predict-bar-left {
+            max-width: 580px;
+        }
+
+        .security-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #15803d;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .predict-meta-desc {
+            margin: 0;
+            font-size: 0.82rem;
+            color: #64748b;
+            line-height: 1.45;
+        }
+
+        .predict-cta-btn {
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+            color: #ffffff;
+            padding: 16px 36px;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 25px -4px rgba(27, 94, 32, 0.35);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .predict-cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px -4px rgba(27, 94, 32, 0.45);
+            background: linear-gradient(135deg, #155219 0%, #256a29 100%);
+        }
+
+        .predict-cta-btn:active {
+            transform: translateY(0);
+        }
+
+        .predict-cta-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
 </head>
 
 <body>
@@ -32,7 +562,7 @@
         </div>
 
         <div style="display: flex; gap: 15px; align-items: center;">
-            <a href="/history" style="color: #2e7d32; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+            <a href="/history" style="color: #2e7d32; text-decoration: none; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-clock-rotate-left"></i> Past Reports
             </a>
             <div class="ai-status">
@@ -40,7 +570,6 @@
                 AI System Online
             </div>
         </div>
-
 
     </header>
 
@@ -131,422 +660,602 @@
     <main class="container">
 
         <div class="section-heading">
-
-            <span>AI DECISION ENGINE</span>
-
-            <h2>Enter Farm Parameters</h2>
-
-            <p>
-                Provide your soil and environmental conditions to generate
-                an intelligent agricultural recommendation.
+            <span style="display: inline-block; background: #e8f5e9; color: #1b5e20; font-weight: 700; font-size: 0.76rem; letter-spacing: 0.08em; padding: 4px 10px; border-radius: 20px; border: 1px solid #c8e6c9; margin-bottom: 8px;">
+                AI DECISION ENGINE
+            </span>
+            <h2 style="font-size: 1.85rem; font-weight: 800; color: #0f172a; margin: 4px 0 8px; letter-spacing: -0.02em;">
+                Enter Farm Parameters
+            </h2>
+            <p style="color: #64748b; font-size: 0.92rem; margin: 0;">
+                Provide your soil chemistry and environmental conditions to generate an intelligent agricultural recommendation.
             </p>
-
         </div>
 
-        <!-- Dynamic Farm Scenario Presets -->
-        <div style="margin: 15px auto 30px; text-align: center; background: #f1f8e9; padding: 16px 20px; border-radius: 12px; border: 1px solid #c8e6c9; max-width: 900px;">
-            <div style="font-weight: 600; color: #2e7d32; margin-bottom: 8px;">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> Quick Farm Scenario Presets:
+        <!-- Quick Farm Scenario Presets Card -->
+        <div class="presets-card">
+            <div class="presets-header">
+                <div>
+                    <div class="presets-title">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Quick Farm Scenario Presets</span>
+                    </div>
+                    <div class="presets-subtitle">
+                        Select a verified regional scenario to pre-fill all 22 agronomic parameters instantly, or use the quick-fill baseline.
+                    </div>
+                </div>
+                <div class="presets-actions">
+                    <button type="button" class="btn-preset-util btn-fill-baseline" onclick="fillBaselineValues()" title="Populate healthy default values into empty fields">
+                        <i class="fa-solid fa-bolt"></i> Auto-Fill Baseline
+                    </button>
+                    <button type="button" class="btn-preset-util btn-reset-form" onclick="clearFormValues()" title="Clear all input fields">
+                        <i class="fa-solid fa-rotate-left"></i> Reset
+                    </button>
+                </div>
             </div>
-            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+
+            <div class="presets-chips-wrap">
                 {% if scenarios %}
                     {% for key, sc in scenarios.items() %}
-                    <a href="/?demo={{ key }}" style="display: inline-block; padding: 7px 14px; background: white; border: 1px solid {% if 'alert' in key %}#ef9a9a{% else %}#81c784{% endif %}; border-radius: 20px; color: {% if 'alert' in key %}#c62828{% else %}#1b5e20{% endif %}; text-decoration: none; font-size: 0.85rem; font-weight: 600; {% if active_preset == key %}background: {% if 'alert' in key %}#ffcdd2{% else %}#c8e6c9{% endif %};{% endif %}">
-                        {{ sc.title }}
+                    <a href="/?demo={{ key }}"
+                       class="preset-pill {% if 'alert' in key %}preset-alert{% endif %} {% if active_preset == key %}active{% endif %}"
+                       onclick="handlePresetClick(event, '{{ key }}')">
+                        <span>{{ sc.title }}</span>
                     </a>
                     {% endfor %}
                 {% endif %}
             </div>
         </div>
 
+        <!-- Validation Error Banner (When server-side validation triggers) -->
         {% if error %}
-        <div style="background: #ffebee; border: 1px solid #ef5350; border-radius: 8px; padding: 15px; margin: 0 auto 25px; color: #c62828; max-width: 900px;">
-            <strong><i class="fa-solid fa-triangle-exclamation"></i> Input Validation Notice:</strong> {{ error }}
-            {% if error_details %}
-            <ul style="margin: 8px 0 0 20px; font-size: 0.9rem;">
-                {% for field, msg in error_details.items() %}
-                <li>{{ msg }}</li>
-                {% endfor %}
-            </ul>
-            {% endif %}
+        <div class="validation-alert-banner">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <div>
+                <strong style="font-size: 0.92rem;">Input Validation Notice:</strong>
+                <p style="margin: 4px 0 0; font-size: 0.88rem;">{{ error }}</p>
+                {% if error_details %}
+                <ul style="margin: 8px 0 0 18px; font-size: 0.84rem;">
+                    {% for field, msg in error_details.items() %}
+                    <li><strong>{{ field }}:</strong> {{ msg }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
         </div>
         {% endif %}
 
-        <form action="/predict" method="POST">
+        <!-- Client-Side Form Validation Notice (Hidden by default) -->
+        <div id="clientValidationAlert" class="validation-alert-banner" style="display: none;">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <div>
+                <strong style="font-size: 0.92rem;">Incomplete Farm Parameters:</strong>
+                <p id="clientValidationMsg" style="margin: 4px 0 0; font-size: 0.86rem;">
+                    Please fill in all highlighted required fields before generating the advisory.
+                </p>
+            </div>
+        </div>
 
-            <!-- ================= SOIL ================= -->
+        <!-- ================= MAIN INPUT FORM ================= -->
+        <form id="farmParamForm" action="/predict" method="POST" novalidate>
 
+            <!-- ================= SECTION 1: SOIL PARAMETERS ================= -->
             <section class="form-section">
-
-                <div class="section-title">
-
-                    <div class="title-icon">
-                        <i class="fa-solid fa-mountain"></i>
+                <div class="section-header-row">
+                    <div class="section-title-wrap">
+                        <div class="section-icon-bubble icon-soil">
+                            <i class="fa-solid fa-mountain"></i>
+                        </div>
+                        <div class="section-text">
+                            <h3>Soil Parameters</h3>
+                            <p>Enter the chemical and physical properties of your soil.</p>
+                        </div>
                     </div>
-
-                    <div>
-                        <h3>Soil Parameters</h3>
-                        <p>Enter the chemical and physical properties of your soil.</p>
-                    </div>
-
+                    <span class="section-badge"><i class="fa-solid fa-flask"></i> 9 Parameters</span>
                 </div>
 
                 <div class="form-grid">
-
+                    <!-- Nitrogen -->
                     <div class="input-group">
-                        <label>Nitrogen (N)</label>
-                        <input type="number" step="any" name="N"
-                               value="{{ demo_data.get('N') or (form_data.get('N') if form_data else '') }}"
-                               placeholder="e.g. 90" required>
-                        <span>mg/kg</span>
+                        <label class="input-label" for="field_N">
+                            <span>Nitrogen (N) <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_N" name="N"
+                                   value="{{ demo_data.get('N') if demo_data.get('N') is not none else (form_data.get('N') if form_data and form_data.get('N') is not none else '') }}"
+                                   placeholder="90" required>
+                            <span class="unit-tag">mg/kg</span>
+                        </div>
                     </div>
 
+                    <!-- Phosphorus -->
                     <div class="input-group">
-                        <label>Phosphorus (P)</label>
-                        <input type="number" step="any" name="P"
-                               value="{{ demo_data.get('P') or (form_data.get('P') if form_data else '') }}"
-                               placeholder="e.g. 42" required>
-                        <span>mg/kg</span>
+                        <label class="input-label" for="field_P">
+                            <span>Phosphorus (P) <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_P" name="P"
+                                   value="{{ demo_data.get('P') if demo_data.get('P') is not none else (form_data.get('P') if form_data and form_data.get('P') is not none else '') }}"
+                                   placeholder="42" required>
+                            <span class="unit-tag">mg/kg</span>
+                        </div>
                     </div>
 
+                    <!-- Potassium -->
                     <div class="input-group">
-                        <label>Potassium (K)</label>
-                        <input type="number" step="any" name="K"
-                               value="{{ demo_data.get('K') or (form_data.get('K') if form_data else '') }}"
-                               placeholder="e.g. 43" required>
-                        <span>mg/kg</span>
+                        <label class="input-label" for="field_K">
+                            <span>Potassium (K) <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_K" name="K"
+                                   value="{{ demo_data.get('K') if demo_data.get('K') is not none else (form_data.get('K') if form_data and form_data.get('K') is not none else '') }}"
+                                   placeholder="43" required>
+                            <span class="unit-tag">mg/kg</span>
+                        </div>
                     </div>
 
+                    <!-- Soil pH -->
                     <div class="input-group">
-                        <label>Soil pH</label>
-                        <input type="number" step="0.01" name="ph"
-                               value="{{ demo_data.get('ph') or (form_data.get('ph') if form_data else '') }}"
-                               placeholder="e.g. 6.5" required>
-                        <span>pH</span>
+                        <label class="input-label" for="field_ph">
+                            <span>Soil pH <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="0.01" id="field_ph" name="ph"
+                                   value="{{ demo_data.get('ph') if demo_data.get('ph') is not none else (form_data.get('ph') if form_data and form_data.get('ph') is not none else '') }}"
+                                   placeholder="6.5" required>
+                            <span class="unit-tag">pH</span>
+                        </div>
                     </div>
 
+                    <!-- Soil Moisture (optional) -->
                     <div class="input-group">
-                        <label>Soil Moisture (optional)</label>
-                        <input type="number" step="any" name="soil_moisture"
-                               value="{{ demo_data.get('soil_moisture') or (form_data.get('soil_moisture') if form_data else '') }}"
-                               placeholder="e.g. 35 (defaults to 30%)">
-                        <span>%</span>
+                        <label class="input-label" for="field_soil_moisture">
+                            <span>Soil Moisture <span class="opt-tag">(Optional)</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_soil_moisture" name="soil_moisture"
+                                   value="{{ demo_data.get('soil_moisture') if demo_data.get('soil_moisture') is not none else (form_data.get('soil_moisture') if form_data and form_data.get('soil_moisture') is not none else '') }}"
+                                   placeholder="35 (defaults to 30%)">
+                            <span class="unit-tag">%</span>
+                        </div>
                     </div>
 
+                    <!-- Soil Type -->
                     <div class="input-group">
-                        <label>Organic Matter (or enter OC below)</label>
-                        <input type="number" step="any" name="organic_matter"
-                               value="{{ demo_data.get('organic_matter') or (form_data.get('organic_matter') if form_data else '') }}"
-                               placeholder="e.g. 3.5">
-                        <span>%</span>
+                        <label class="input-label" for="field_soil_type">
+                            <span>Soil Type <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <select id="field_soil_type" name="soil_type" required>
+                                {% set cur_soil = demo_data.get('soil_type') or (form_data.get('soil_type') if form_data else '') %}
+                                <option value="">Select Soil Type</option>
+                                <option value="Loamy" {% if cur_soil == 'Loamy' %}selected{% endif %}>Loamy (Balanced)</option>
+                                <option value="Clay" {% if cur_soil == 'Clay' %}selected{% endif %}>Clay (Heavy / Moisture Retention)</option>
+                                <option value="Sandy" {% if cur_soil == 'Sandy' %}selected{% endif %}>Sandy (Light / High Drainage)</option>
+                            </select>
+                        </div>
                     </div>
 
+                    <!-- Organic Carbon -->
                     <div class="input-group">
-                        <label>Organic Carbon (OC)</label>
-                        <input type="number" step="0.01" name="organic_carbon"
-                               value="{{ demo_data.get('organic_carbon') or (form_data.get('organic_carbon') if form_data else '') }}"
-                               placeholder="e.g. 0.75">
-                        <span>%</span>
+                        <label class="input-label" for="field_organic_carbon">
+                            <span>Organic Carbon (OC)</span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="0.01" id="field_organic_carbon" name="organic_carbon"
+                                   value="{{ demo_data.get('organic_carbon') if demo_data.get('organic_carbon') is not none else (form_data.get('organic_carbon') if form_data and form_data.get('organic_carbon') is not none else '0.75') }}"
+                                   placeholder="0.75">
+                            <span class="unit-tag">%</span>
+                        </div>
                     </div>
 
+                    <!-- Organic Matter -->
                     <div class="input-group">
-                        <label>Electrical Conductivity (EC)</label>
-                        <input type="number" step="0.01" name="electrical_conductivity"
-                               value="{{ demo_data.get('electrical_conductivity') or (form_data.get('electrical_conductivity') if form_data else '0.6') }}"
-                               placeholder="e.g. 0.6">
-                        <span>dS/m</span>
+                        <label class="input-label" for="field_organic_matter">
+                            <span>Organic Matter (OM)</span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_organic_matter" name="organic_matter"
+                                   value="{{ demo_data.get('organic_matter') if demo_data.get('organic_matter') is not none else (form_data.get('organic_matter') if form_data and form_data.get('organic_matter') is not none else '3.5') }}"
+                                   placeholder="3.5">
+                            <span class="unit-tag">%</span>
+                        </div>
                     </div>
 
+                    <!-- Electrical Conductivity -->
                     <div class="input-group">
-
-                        <label>Soil Type</label>
-
-                        <select name="soil_type" required>
-                            {% set cur_soil = demo_data.get('soil_type') or (form_data.get('soil_type') if form_data else '') %}
-                            <option value="">Select Soil Type</option>
-                            <option value="Loamy" {% if cur_soil == 'Loamy' %}selected{% endif %}>Loamy</option>
-                            <option value="Clay" {% if cur_soil == 'Clay' %}selected{% endif %}>Clay</option>
-                            <option value="Sandy" {% if cur_soil == 'Sandy' %}selected{% endif %}>Sandy</option>
-                        </select>
-
+                        <label class="input-label" for="field_electrical_conductivity">
+                            <span>Electrical Conductivity (EC)</span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="0.01" id="field_electrical_conductivity" name="electrical_conductivity"
+                                   value="{{ demo_data.get('electrical_conductivity') if demo_data.get('electrical_conductivity') is not none else (form_data.get('electrical_conductivity') if form_data and form_data.get('electrical_conductivity') is not none else '0.6') }}"
+                                   placeholder="0.6">
+                            <span class="unit-tag">dS/m</span>
+                        </div>
                     </div>
-
                 </div>
-
             </section>
 
 
-            <!-- ================= FARM GEOGRAPHY & SCALE ================= -->
-
+            <!-- ================= SECTION 2: FARM SCALE & LOCATION ================= -->
             <section class="form-section">
-
-                <div class="section-title">
-
-                    <div class="title-icon">
-                        <i class="fa-solid fa-map-location-dot"></i>
+                <div class="section-header-row">
+                    <div class="section-title-wrap">
+                        <div class="section-icon-bubble icon-location">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                        </div>
+                        <div class="section-text">
+                            <h3>Farm Scale &amp; Location Context</h3>
+                            <p>Define your farm size and location for precise fertilizer totals, water volume, and live weather.</p>
+                        </div>
                     </div>
-
-                    <div>
-                        <h3>Farm Scale & Location Context</h3>
-                        <p>Define your farm size and location for precise fertilizer totals, water volume, and live weather.</p>
-                    </div>
-
+                    <span class="section-badge"><i class="fa-solid fa-ruler-combined"></i> 5 Parameters</span>
                 </div>
 
                 <div class="form-grid">
-
+                    <!-- Farm Location (Spans 2 columns) -->
                     <div class="input-group" style="grid-column: span 2;">
-                        <label>Farm Location / District</label>
-                        <div style="display: flex; gap: 8px;">
-                            <input type="text" id="farm_location_input" name="location"
-                                   value="{{ demo_data.get('location') or (form_data.get('location') if form_data else 'Local Farm') }}"
-                                   placeholder="e.g. Punjab, West Bengal, Maharashtra, Delhi" style="flex: 1;">
-                            <button type="button" id="btn_autofill_weather"
-                                    style="padding: 8px 14px; background: #2e7d32; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600; white-space: nowrap;">
-                                <i class="fa-solid fa-cloud-bolt"></i> Live Weather
+                        <label class="input-label" for="farm_location_input">
+                            <span>Farm Location / District <span class="req-star">*</span></span>
+                        </label>
+                        <div class="weather-control-wrap">
+                            <div class="input-unit-wrapper" style="flex: 1;">
+                                <input type="text" id="farm_location_input" name="location"
+                                       value="{{ demo_data.get('location') or (form_data.get('location') if form_data else 'Local Farm') }}"
+                                       placeholder="e.g. Punjab, West Bengal, Maharashtra, Delhi" required>
+                            </div>
+                            <button type="button" id="btn_autofill_weather" class="btn-live-weather">
+                                <i class="fa-solid fa-cloud-bolt"></i>
+                                <span>Live Weather</span>
                             </button>
+                        </div>
+                        <div id="weather_result_pill" class="weather-pill-badge" style="display: none;">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span id="weather_result_text"></span>
                         </div>
                         <span id="weather_status_msg" style="font-size: 0.78rem; color: #2e7d32; margin-top: 4px; display: block;"></span>
                     </div>
 
+                    <!-- Cropping Season (1 column) -->
                     <div class="input-group">
-                        <label>Cropping Season</label>
-                        <select name="season">
-                            {% set cur_season = demo_data.get('season') or (form_data.get('season') if form_data else 'Whole Year') %}
-                            <option value="Kharif" {% if cur_season == 'Kharif' %}selected{% endif %}>Kharif (Monsoon/Autumn)</option>
-                            <option value="Rabi" {% if cur_season == 'Rabi' %}selected{% endif %}>Rabi (Winter/Spring)</option>
-                            <option value="Zaid" {% if cur_season == 'Zaid' %}selected{% endif %}>Zaid (Summer)</option>
-                            <option value="Whole Year" {% if cur_season == 'Whole Year' %}selected{% endif %}>Whole Year / Perennial</option>
-                        </select>
+                        <label class="input-label" for="field_season">
+                            <span>Cropping Season <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <select id="field_season" name="season" required>
+                                {% set cur_season = demo_data.get('season') or (form_data.get('season') if form_data else 'Whole Year') %}
+                                <option value="Kharif" {% if cur_season == 'Kharif' %}selected{% endif %}>Kharif (Monsoon/Autumn)</option>
+                                <option value="Rabi" {% if cur_season == 'Rabi' %}selected{% endif %}>Rabi (Winter/Spring)</option>
+                                <option value="Zaid" {% if cur_season == 'Zaid' %}selected{% endif %}>Zaid (Summer)</option>
+                                <option value="Whole Year" {% if cur_season == 'Whole Year' %}selected{% endif %}>Whole Year / Perennial</option>
+                            </select>
+                        </div>
                     </div>
 
+                    <!-- Farm Area Size -->
                     <div class="input-group">
-                        <label>Farm Area Size</label>
-                        <input type="number" step="0.01" name="farm_area"
-                               value="{{ demo_data.get('farm_area') or (form_data.get('farm_area') if form_data else '1.0') }}"
-                               placeholder="e.g. 2.5" required>
+                        <label class="input-label" for="field_farm_area">
+                            <span>Farm Area Size <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="0.01" id="field_farm_area" name="farm_area"
+                                   value="{{ demo_data.get('farm_area') if demo_data.get('farm_area') is not none else (form_data.get('farm_area') if form_data and form_data.get('farm_area') is not none else '1.0') }}"
+                                   placeholder="1.0" required>
+                        </div>
                     </div>
 
+                    <!-- Area Unit -->
                     <div class="input-group">
-                        <label>Area Unit</label>
-                        <select name="farm_area_unit">
-                            {% set cur_unit = demo_data.get('farm_area_unit') or (form_data.get('farm_area_unit') if form_data else 'hectare') %}
-                            <option value="hectare" {% if cur_unit == 'hectare' %}selected{% endif %}>Hectare (ha)</option>
-                            <option value="acre" {% if cur_unit == 'acre' %}selected{% endif %}>Acre</option>
-                        </select>
+                        <label class="input-label" for="field_farm_area_unit">
+                            <span>Area Unit <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <select id="field_farm_area_unit" name="farm_area_unit" required>
+                                {% set cur_unit = demo_data.get('farm_area_unit') or (form_data.get('farm_area_unit') if form_data else 'hectare') %}
+                                <option value="hectare" {% if cur_unit == 'hectare' %}selected{% endif %}>Hectare (ha)</option>
+                                <option value="acre" {% if cur_unit == 'acre' %}selected{% endif %}>Acre</option>
+                            </select>
+                        </div>
                     </div>
 
+                    <!-- Expected Rain (24-48h) -->
                     <div class="input-group">
-                        <label>Expected Rain (24-48h)</label>
-                        <input type="number" step="any" id="expected_rainfall_input" name="expected_rainfall_24h"
-                               value="{{ demo_data.get('expected_rainfall_24h') or (form_data.get('expected_rainfall_24h') if form_data else '0.0') }}"
-                               placeholder="e.g. 15.0">
-                        <span>mm</span>
+                        <label class="input-label" for="expected_rainfall_input">
+                            <span>Expected Rain (24-48h)</span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="expected_rainfall_input" name="expected_rainfall_24h"
+                                   value="{{ demo_data.get('expected_rainfall_24h') if demo_data.get('expected_rainfall_24h') is not none else (form_data.get('expected_rainfall_24h') if form_data and form_data.get('expected_rainfall_24h') is not none else '0.0') }}"
+                                   placeholder="0.0">
+                            <span class="unit-tag">mm</span>
+                        </div>
                     </div>
-
                 </div>
-
             </section>
 
 
-
-            <!-- ================= WEATHER ================= -->
-
+            <!-- ================= SECTION 3: ENVIRONMENTAL CONDITIONS ================= -->
             <section class="form-section">
-
-                <div class="section-title">
-
-                    <div class="title-icon">
-                        <i class="fa-solid fa-cloud-sun"></i>
+                <div class="section-header-row">
+                    <div class="section-title-wrap">
+                        <div class="section-icon-bubble icon-env">
+                            <i class="fa-solid fa-cloud-sun"></i>
+                        </div>
+                        <div class="section-text">
+                            <h3>Environmental Conditions</h3>
+                            <p>Provide the atmospheric telemetry and micro-climate parameters.</p>
+                        </div>
                     </div>
-
-                    <div>
-                        <h3>Environmental Conditions</h3>
-                        <p>Provide the current environmental conditions.</p>
-                    </div>
-
+                    <span class="section-badge"><i class="fa-solid fa-temperature-half"></i> 7 Parameters</span>
                 </div>
 
                 <div class="form-grid">
-
+                    <!-- Temperature -->
                     <div class="input-group">
-                        <label>Temperature</label>
-                        <input type="number" step="any" name="temperature"
-                               value="{{ demo_data.get('temperature') or (form_data.get('temperature') if form_data else '') }}"
-                               placeholder="e.g. 25" required>
-                        <span>°C</span>
+                        <label class="input-label" for="field_temperature">
+                            <span>Temperature <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_temperature" name="temperature"
+                                   value="{{ demo_data.get('temperature') if demo_data.get('temperature') is not none else (form_data.get('temperature') if form_data and form_data.get('temperature') is not none else '') }}"
+                                   placeholder="25" required>
+                            <span class="unit-tag">°C</span>
+                        </div>
                     </div>
 
+                    <!-- Humidity -->
                     <div class="input-group">
-                        <label>Humidity</label>
-                        <input type="number" step="any" name="humidity"
-                               value="{{ demo_data.get('humidity') or (form_data.get('humidity') if form_data else '') }}"
-                               placeholder="e.g. 80" required>
-                        <span>%</span>
+                        <label class="input-label" for="field_humidity">
+                            <span>Humidity <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_humidity" name="humidity"
+                                   value="{{ demo_data.get('humidity') if demo_data.get('humidity') is not none else (form_data.get('humidity') if form_data and form_data.get('humidity') is not none else '') }}"
+                                   placeholder="80" required>
+                            <span class="unit-tag">%</span>
+                        </div>
                     </div>
 
+                    <!-- Rainfall -->
                     <div class="input-group">
-                        <label>Rainfall</label>
-                        <input type="number" step="any" name="rainfall"
-                               value="{{ demo_data.get('rainfall') or (form_data.get('rainfall') if form_data else '') }}"
-                               placeholder="e.g. 200" required>
-                        <span>mm</span>
+                        <label class="input-label" for="field_rainfall">
+                            <span>Rainfall <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_rainfall" name="rainfall"
+                                   value="{{ demo_data.get('rainfall') if demo_data.get('rainfall') is not none else (form_data.get('rainfall') if form_data and form_data.get('rainfall') is not none else '') }}"
+                                   placeholder="200" required>
+                            <span class="unit-tag">mm</span>
+                        </div>
                     </div>
 
+                    <!-- Sunlight Exposure -->
                     <div class="input-group">
-                        <label>Sunlight Exposure</label>
-                        <input type="number" step="any" name="sunlight_exposure"
-                               value="{{ demo_data.get('sunlight_exposure') or (form_data.get('sunlight_exposure') if form_data else '') }}"
-                               placeholder="e.g. 8" required>
-                        <span>hours</span>
+                        <label class="input-label" for="field_sunlight_exposure">
+                            <span>Sunlight Exposure <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_sunlight_exposure" name="sunlight_exposure"
+                                   value="{{ demo_data.get('sunlight_exposure') if demo_data.get('sunlight_exposure') is not none else (form_data.get('sunlight_exposure') if form_data and form_data.get('sunlight_exposure') is not none else '') }}"
+                                   placeholder="8" required>
+                            <span class="unit-tag">hours</span>
+                        </div>
                     </div>
 
+                    <!-- Wind Speed -->
                     <div class="input-group">
-                        <label>Wind Speed</label>
-                        <input type="number" step="any" name="wind_speed"
-                               value="{{ demo_data.get('wind_speed') or (form_data.get('wind_speed') if form_data else '') }}"
-                               placeholder="e.g. 3" required>
-                        <span>m/s</span>
+                        <label class="input-label" for="field_wind_speed">
+                            <span>Wind Speed <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_wind_speed" name="wind_speed"
+                                   value="{{ demo_data.get('wind_speed') if demo_data.get('wind_speed') is not none else (form_data.get('wind_speed') if form_data and form_data.get('wind_speed') is not none else '') }}"
+                                   placeholder="3.5" required>
+                            <span class="unit-tag">m/s</span>
+                        </div>
                     </div>
 
+                    <!-- CO2 Concentration -->
                     <div class="input-group">
-                        <label>CO₂ Concentration</label>
-                        <input type="number" step="any" name="co2_concentration"
-                               value="{{ demo_data.get('co2_concentration') or (form_data.get('co2_concentration') if form_data else '') }}"
-                               placeholder="e.g. 400" required>
-                        <span>ppm</span>
+                        <label class="input-label" for="field_co2_concentration">
+                            <span>CO₂ Concentration <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_co2_concentration" name="co2_concentration"
+                                   value="{{ demo_data.get('co2_concentration') if demo_data.get('co2_concentration') is not none else (form_data.get('co2_concentration') if form_data and form_data.get('co2_concentration') is not none else '') }}"
+                                   placeholder="400" required>
+                            <span class="unit-tag">ppm</span>
+                        </div>
                     </div>
 
+                    <!-- Frost Risk (Col 1) -->
                     <div class="input-group">
-                        <label>Frost Risk</label>
-                        <input type="number" step="any" name="frost_risk"
-                               value="{{ demo_data.get('frost_risk') or (form_data.get('frost_risk') if form_data else '') }}"
-                               placeholder="e.g. 5" required>
-                        <span>%</span>
+                        <label class="input-label" for="field_frost_risk">
+                            <span>Frost Risk <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_frost_risk" name="frost_risk"
+                                   value="{{ demo_data.get('frost_risk') if demo_data.get('frost_risk') is not none else (form_data.get('frost_risk') if form_data and form_data.get('frost_risk') is not none else '') }}"
+                                   placeholder="5" required>
+                            <span class="unit-tag">%</span>
+                        </div>
                     </div>
 
+                    <!-- Live Weather Telemetry Info Card (Spans Cols 2 and 3 to fill grid seamlessly) -->
+                    <div class="context-info-card" style="grid-column: span 2;">
+                        <div class="info-card-icon">
+                            <i class="fa-solid fa-satellite-dish"></i>
+                        </div>
+                        <div class="info-card-body">
+                            <h4>Real-Time Weather Telemetry</h4>
+                            <p>Temperature, humidity, wind, and rainfall can be synchronized live from the Open-Meteo API using the <strong>Live Weather</strong> button in the Farm Context section above.</p>
+                        </div>
+                    </div>
                 </div>
-
             </section>
 
 
-            <!-- ================= FARM ================= -->
-
+            <!-- ================= SECTION 4: FARM MANAGEMENT ================= -->
             <section class="form-section">
-
-                <div class="section-title">
-
-                    <div class="title-icon">
-                        <i class="fa-solid fa-tractor"></i>
+                <div class="section-header-row">
+                    <div class="section-title-wrap">
+                        <div class="section-icon-bubble icon-mgmt">
+                            <i class="fa-solid fa-tractor"></i>
+                        </div>
+                        <div class="section-text">
+                            <h3>Farm Management</h3>
+                            <p>Configure farming practices and resource management parameters.</p>
+                        </div>
                     </div>
-
-                    <div>
-                        <h3>Farm Management</h3>
-                        <p>Configure farming and resource management parameters.</p>
-                    </div>
-
+                    <span class="section-badge"><i class="fa-solid fa-sliders"></i> 8 Parameters</span>
                 </div>
 
                 <div class="form-grid">
-
+                    <!-- Irrigation Frequency -->
                     <div class="input-group">
-                        <label>Irrigation Frequency</label>
-                        <input type="number" step="any" name="irrigation_frequency"
-                               value="{{ demo_data.get('irrigation_frequency') or (form_data.get('irrigation_frequency') if form_data else '') }}"
-                               placeholder="e.g. 3" required>
-                        <span>times</span>
+                        <label class="input-label" for="field_irrigation_frequency">
+                            <span>Irrigation Frequency <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_irrigation_frequency" name="irrigation_frequency"
+                                   value="{{ demo_data.get('irrigation_frequency') if demo_data.get('irrigation_frequency') is not none else (form_data.get('irrigation_frequency') if form_data and form_data.get('irrigation_frequency') is not none else '') }}"
+                                   placeholder="3" required>
+                            <span class="unit-tag">times/wk</span>
+                        </div>
                     </div>
 
+                    <!-- Crop Density -->
                     <div class="input-group">
-                        <label>Crop Density</label>
-                        <input type="number" step="any" name="crop_density"
-                               value="{{ demo_data.get('crop_density') or (form_data.get('crop_density') if form_data else '') }}"
-                               placeholder="e.g. 70" required>
-                        <span>%</span>
+                        <label class="input-label" for="field_crop_density">
+                            <span>Crop Density <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_crop_density" name="crop_density"
+                                   value="{{ demo_data.get('crop_density') if demo_data.get('crop_density') is not none else (form_data.get('crop_density') if form_data and form_data.get('crop_density') is not none else '') }}"
+                                   placeholder="70" required>
+                            <span class="unit-tag">%</span>
+                        </div>
                     </div>
 
+                    <!-- Pest Pressure -->
                     <div class="input-group">
-                        <label>Pest Pressure</label>
-                        <input type="number" step="any" name="pest_pressure"
-                               value="{{ demo_data.get('pest_pressure') or (form_data.get('pest_pressure') if form_data else '') }}"
-                               placeholder="e.g. 20" required>
-                        <span>%</span>
+                        <label class="input-label" for="field_pest_pressure">
+                            <span>Pest Pressure <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_pest_pressure" name="pest_pressure"
+                                   value="{{ demo_data.get('pest_pressure') if demo_data.get('pest_pressure') is not none else (form_data.get('pest_pressure') if form_data and form_data.get('pest_pressure') is not none else '') }}"
+                                   placeholder="20" required>
+                            <span class="unit-tag">%</span>
+                        </div>
                     </div>
 
+                    <!-- Fertilizer Usage -->
                     <div class="input-group">
-                        <label>Fertilizer Usage</label>
-                        <input type="number" step="any" name="fertilizer_usage"
-                               value="{{ demo_data.get('fertilizer_usage') or (form_data.get('fertilizer_usage') if form_data else '') }}"
-                               placeholder="e.g. 50" required>
-                        <span>kg/ha</span>
+                        <label class="input-label" for="field_fertilizer_usage">
+                            <span>Fertilizer Usage <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_fertilizer_usage" name="fertilizer_usage"
+                                   value="{{ demo_data.get('fertilizer_usage') if demo_data.get('fertilizer_usage') is not none else (form_data.get('fertilizer_usage') if form_data and form_data.get('fertilizer_usage') is not none else '') }}"
+                                   placeholder="50" required>
+                            <span class="unit-tag">kg/ha</span>
+                        </div>
                     </div>
 
+                    <!-- Growth Stage -->
                     <div class="input-group">
-
-                        <label>Growth Stage</label>
-
-                        <select name="growth_stage" required>
-                            {% set cur_stage = demo_data.get('growth_stage') or (form_data.get('growth_stage') if form_data else '') %}
-                            <option value="">Select Growth Stage</option>
-                            <option value="Seedling" {% if cur_stage == 'Seedling' %}selected{% endif %}>Seedling</option>
-                            <option value="Vegetative" {% if cur_stage == 'Vegetative' %}selected{% endif %}>Vegetative</option>
-                            <option value="Flowering" {% if cur_stage == 'Flowering' %}selected{% endif %}>Flowering</option>
-                            <option value="Maturity" {% if cur_stage == 'Maturity' %}selected{% endif %}>Maturity</option>
-                        </select>
-
+                        <label class="input-label" for="field_growth_stage">
+                            <span>Growth Stage <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <select id="field_growth_stage" name="growth_stage" required>
+                                {% set cur_stage = demo_data.get('growth_stage') or (form_data.get('growth_stage') if form_data else '') %}
+                                <option value="">Select Growth Stage</option>
+                                <option value="Seedling" {% if cur_stage == 'Seedling' %}selected{% endif %}>Seedling</option>
+                                <option value="Vegetative" {% if cur_stage == 'Vegetative' %}selected{% endif %}>Vegetative</option>
+                                <option value="Flowering" {% if cur_stage == 'Flowering' %}selected{% endif %}>Flowering</option>
+                                <option value="Maturity" {% if cur_stage == 'Maturity' %}selected{% endif %}>Maturity</option>
+                            </select>
+                        </div>
                     </div>
 
+                    <!-- Water Source Type -->
                     <div class="input-group">
-
-                        <label>Water Source Type</label>
-
-                        <select name="water_source_type" required>
-                            {% set cur_ws = demo_data.get('water_source_type') or (form_data.get('water_source_type') if form_data else '') %}
-                            <option value="">Select Water Source</option>
-                            <option value="Groundwater" {% if cur_ws == 'Groundwater' %}selected{% endif %}>Groundwater</option>
-                            <option value="Rainwater" {% if cur_ws == 'Rainwater' %}selected{% endif %}>Rainwater</option>
-                            <option value="Canal" {% if cur_ws == 'Canal' %}selected{% endif %}>Canal</option>
-                            <option value="River" {% if cur_ws == 'River' %}selected{% endif %}>River</option>
-                        </select>
-
+                        <label class="input-label" for="field_water_source_type">
+                            <span>Water Source Type <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <select id="field_water_source_type" name="water_source_type" required>
+                                {% set cur_ws = demo_data.get('water_source_type') or (form_data.get('water_source_type') if form_data else '') %}
+                                <option value="">Select Water Source</option>
+                                <option value="Groundwater" {% if cur_ws == 'Groundwater' %}selected{% endif %}>Groundwater (Tubewell / Borewell)</option>
+                                <option value="Rainwater" {% if cur_ws == 'Rainwater' %}selected{% endif %}>Rainwater Harvesting</option>
+                                <option value="Canal" {% if cur_ws == 'Canal' %}selected{% endif %}>Canal Irrigation</option>
+                                <option value="River" {% if cur_ws == 'River' %}selected{% endif %}>River / Surface Water</option>
+                            </select>
+                        </div>
                     </div>
 
+                    <!-- Urban Area Proximity -->
                     <div class="input-group">
-                        <label>Urban Area Proximity</label>
-                        <input type="number" step="any" name="urban_area_proximity"
-                               value="{{ demo_data.get('urban_area_proximity') or (form_data.get('urban_area_proximity') if form_data else '') }}"
-                               placeholder="e.g. 10" required>
-                        <span>km</span>
+                        <label class="input-label" for="field_urban_area_proximity">
+                            <span>Urban Area Proximity <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_urban_area_proximity" name="urban_area_proximity"
+                                   value="{{ demo_data.get('urban_area_proximity') if demo_data.get('urban_area_proximity') is not none else (form_data.get('urban_area_proximity') if form_data and form_data.get('urban_area_proximity') is not none else '') }}"
+                                   placeholder="10" required>
+                            <span class="unit-tag">km</span>
+                        </div>
                     </div>
 
+                    <!-- Water Usage Efficiency -->
                     <div class="input-group">
-                        <label>Water Usage Efficiency</label>
-                        <input type="number" step="any" name="water_usage_efficiency"
-                               value="{{ demo_data.get('water_usage_efficiency') or (form_data.get('water_usage_efficiency') if form_data else '') }}"
-                               placeholder="e.g. 80" required>
-                        <span>ratio</span>
+                        <label class="input-label" for="field_water_usage_efficiency">
+                            <span>Water Usage Efficiency <span class="req-star">*</span></span>
+                        </label>
+                        <div class="input-unit-wrapper">
+                            <input type="number" step="any" id="field_water_usage_efficiency" name="water_usage_efficiency"
+                                   value="{{ demo_data.get('water_usage_efficiency') if demo_data.get('water_usage_efficiency') is not none else (form_data.get('water_usage_efficiency') if form_data and form_data.get('water_usage_efficiency') is not none else '') }}"
+                                   placeholder="80" required>
+                            <span class="unit-tag">ratio</span>
+                        </div>
                     </div>
 
+                    <!-- Management Decision Matrix Info Card (Fills Col 3 seamlessly) -->
+                    <div class="context-info-card">
+                        <div class="info-card-icon" style="background: #e0f2fe; color: #0284c7;">
+                            <i class="fa-solid fa-calculator"></i>
+                        </div>
+                        <div class="info-card-body">
+                            <h4>Agronomic Calibration</h4>
+                            <p>Growth stage and water efficiency calibrate commercial fertilizer splits, irrigation ETc, and localized risk scores.</p>
+                        </div>
+                    </div>
                 </div>
-
             </section>
 
 
-            <!-- ================= PREDICT BUTTON ================= -->
-
-            <div class="predict-area">
-
-                <div class="privacy-note">
-                    <i class="fa-solid fa-shield-halved"></i>
-                    Your farm parameters are processed securely for precision advisory recommendations.
+            <!-- ================= PREDICT / SUBMIT BAR ================= -->
+            <div class="predict-bar-card">
+                <div class="predict-bar-left">
+                    <div class="security-chip">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Secure AI Inference &amp; TreeExplainer XAI</span>
+                    </div>
+                    <p class="predict-meta-desc">
+                        All 22 parameters are validated against boundary envelopes before triggering Random Forest inference and multi-module agronomic calculations.
+                    </p>
                 </div>
 
-                <button type="submit" class="predict-btn">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    Generate AI Advisory
-                    <i class="fa-solid fa-arrow-right"></i>
-                </button>
-
+                <div class="predict-bar-right">
+                    <button type="submit" id="btnSubmitPredict" class="predict-cta-btn">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span id="btnSubmitText">Generate AI Advisory</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
             </div>
 
         </form>
@@ -557,7 +1266,6 @@
     <!-- ================= FOOTER ================= -->
 
     <footer>
-
         <div>
             <i class="fa-solid fa-seedling"></i>
             AgriSathi
@@ -571,19 +1279,157 @@
         <span>
             © 2026 AgriSathi
         </span>
-
     </footer>
 
+    <!-- Scenario Data Payload for Instant Client-Side Switching -->
+    <script id="scenarios-payload" type="application/json">
+        {{ scenarios|tojson if scenarios else '{}' }}
+    </script>
+
+    <!-- Client-Side Form Enhancements & Weather Fetcher -->
     <script>
+    // Parsed scenarios for instant switching
+    let appScenarios = {};
+    try {
+        const payloadElem = document.getElementById('scenarios-payload');
+        if (payloadElem) {
+            appScenarios = JSON.parse(payloadElem.textContent || '{}');
+        }
+    } catch(e) {
+        console.warn("Could not parse scenarios payload:", e);
+    }
+
+    // Default healthy baseline values (Wetland Rice preset as fallback)
+    const baselineDefaults = {
+        N: 90, P: 42, K: 43, ph: 6.5, soil_moisture: 30, soil_type: 'Clay',
+        organic_carbon: 0.85, organic_matter: 3.2, electrical_conductivity: 0.5,
+        location: 'West Bengal, India', season: 'Kharif', farm_area: 2.5, farm_area_unit: 'hectare',
+        expected_rainfall_24h: 0.0, temperature: 21.0, humidity: 82.0, rainfall: 202.0,
+        sunlight_exposure: 8.5, wind_speed: 10.0, co2_concentration: 435.0, frost_risk: 5.0,
+        irrigation_frequency: 4, crop_density: 12.0, pest_pressure: 55.0, fertilizer_usage: 180.0,
+        growth_stage: 'Vegetative', water_source_type: 'Canal', urban_area_proximity: 15.0,
+        water_usage_efficiency: 1.2
+    };
+
+    function populateFormValues(params) {
+        if (!params) return;
+        Object.entries(params).forEach(([key, val]) => {
+            const input = document.querySelector(`[name="${key}"]`);
+            if (input) {
+                input.value = val;
+                input.classList.remove('input-invalid');
+                input.classList.add('field-highlight');
+                setTimeout(() => input.classList.remove('field-highlight'), 800);
+            }
+        });
+        const alertBox = document.getElementById('clientValidationAlert');
+        if (alertBox) alertBox.style.display = 'none';
+    }
+
+    function handlePresetClick(e, scenarioKey) {
+        // If scenario exists in memory, do client-side instant fill without page reload
+        if (appScenarios && appScenarios[scenarioKey] && appScenarios[scenarioKey].parameters) {
+            e.preventDefault();
+            populateFormValues(appScenarios[scenarioKey].parameters);
+
+            // Update active pill state
+            document.querySelectorAll('.preset-pill').forEach(pill => pill.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+
+            // Update URL without reloading
+            if (window.history && window.history.pushState) {
+                window.history.pushState({}, '', `/?demo=${scenarioKey}`);
+            }
+        }
+    }
+
+    function fillBaselineValues() {
+        populateFormValues(baselineDefaults);
+        document.querySelectorAll('.preset-pill').forEach(pill => pill.classList.remove('active'));
+        const ricePill = document.querySelector('a[href*="demo=rice"]');
+        if (ricePill) ricePill.classList.add('active');
+    }
+
+    function clearFormValues() {
+        document.querySelectorAll('#farmParamForm input[type="number"], #farmParamForm input[type="text"]').forEach(input => {
+            input.value = '';
+            input.classList.remove('input-invalid');
+        });
+        document.querySelectorAll('#farmParamForm select').forEach(sel => {
+            sel.selectedIndex = 0;
+            sel.classList.remove('input-invalid');
+        });
+        document.querySelectorAll('.preset-pill').forEach(pill => pill.classList.remove('active'));
+        const alertBox = document.getElementById('clientValidationAlert');
+        if (alertBox) alertBox.style.display = 'none';
+    }
+
+    // Modern Form Validation without ugly browser tooltips
+    document.getElementById('farmParamForm')?.addEventListener('submit', function(e) {
+        const requiredInputs = this.querySelectorAll('[required]');
+        let firstInvalid = null;
+        let missingNames = [];
+
+        requiredInputs.forEach(input => {
+            const val = input.value.trim();
+            if (!val) {
+                input.classList.add('input-invalid');
+                if (!firstInvalid) firstInvalid = input;
+                const labelElem = input.closest('.input-group')?.querySelector('.input-label');
+                missingNames.push(labelElem ? labelElem.innerText.replace('*', '').trim() : input.name);
+            } else {
+                input.classList.remove('input-invalid');
+            }
+        });
+
+        if (firstInvalid) {
+            e.preventDefault();
+            const alertBox = document.getElementById('clientValidationAlert');
+            const alertMsg = document.getElementById('clientValidationMsg');
+            if (alertBox && alertMsg) {
+                alertBox.style.display = 'flex';
+                alertMsg.innerHTML = `Please fill in all required fields (e.g. <strong>${missingNames.slice(0, 3).join(', ')}</strong>) or click <strong>Auto-Fill Baseline</strong> above.`;
+            }
+            firstInvalid.focus();
+            firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return false;
+        }
+
+        // Show loading state on predict button
+        const submitBtn = document.getElementById('btnSubmitPredict');
+        const submitText = document.getElementById('btnSubmitText');
+        if (submitBtn && submitText) {
+            submitBtn.disabled = true;
+            submitText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing Agronomic Models...';
+        }
+    });
+
+    // Remove invalid red border on user input
+    document.querySelectorAll('#farmParamForm input, #farmParamForm select').forEach(el => {
+        el.addEventListener('input', () => el.classList.remove('input-invalid'));
+        el.addEventListener('change', () => el.classList.remove('input-invalid'));
+    });
+
+    // Live Weather Fetcher
     document.getElementById('btn_autofill_weather')?.addEventListener('click', function() {
         const loc = document.getElementById('farm_location_input').value.trim();
+        const btn = this;
         const statusMsg = document.getElementById('weather_status_msg');
+        const resultPill = document.getElementById('weather_result_pill');
+        const resultText = document.getElementById('weather_result_text');
+
+        const originalBtnHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Fetching...';
         statusMsg.textContent = "Connecting to Open-Meteo live API...";
         statusMsg.style.color = "#1565c0";
 
         fetch(`/api/v1/weather?location=${encodeURIComponent(loc || 'Local Farm')}`)
             .then(r => r.json())
             .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnHTML;
+
                 if (data.status === 'success' && data.weather) {
                     const w = data.weather;
                     const tempInput = document.querySelector('input[name="temperature"]');
@@ -598,20 +1444,32 @@
                     if (windInput && w.wind_speed !== undefined) windInput.value = w.wind_speed;
                     if (expRainInput && w.expected_rainfall_24h !== undefined) expRainInput.value = w.expected_rainfall_24h;
 
-                    statusMsg.textContent = `✓ Fetched for ${w.location}: ${w.temperature}°C, ${w.humidity}% RH, Rain: ${w.rainfall}mm, Forecast: ${w.expected_rainfall_24h}mm (${w.source})`;
-                    statusMsg.style.color = "#2e7d32";
+                    // Trigger highlight animation on weather inputs
+                    [tempInput, humInput, rainInput, windInput, expRainInput].forEach(inp => {
+                        if (inp) {
+                            inp.classList.add('field-highlight');
+                            setTimeout(() => inp.classList.remove('field-highlight'), 800);
+                        }
+                    });
+
+                    statusMsg.textContent = "";
+                    if (resultPill && resultText) {
+                        resultText.textContent = `Live Telemetry Synced (${w.location}): ${w.temperature}°C • ${w.humidity}% RH • ${w.rainfall}mm Rain • 24h: ${w.expected_rainfall_24h}mm`;
+                        resultPill.style.display = "inline-flex";
+                    }
                 } else {
                     statusMsg.textContent = "Could not resolve live weather. Please enter values manually.";
                     statusMsg.style.color = "#c62828";
                 }
             })
             .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnHTML;
                 statusMsg.textContent = "Network error connecting to weather service.";
                 statusMsg.style.color = "#c62828";
             });
     });
     </script>
 </body>
-
 
 </html>
