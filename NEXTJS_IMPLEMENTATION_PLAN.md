@@ -100,12 +100,12 @@
 - [x] **Step 48**: Commit Phase 8 Environmental Conditions component to branch `sayan`.
 
 ### Phase 9: Farm Input Form — Section 4: Farm Management & Scenario Presets (Steps 49 – 54)
-- [ ] **Step 49**: Create `frontend/src/components/form/FarmManagementSection.tsx` with 8 parameters and decision matrix card.
-- [ ] **Step 50**: Implement Irrigation Frequency, Crop Density, Pest Pressure, and Fertilizer Usage inputs.
-- [ ] **Step 51**: Implement Growth Stage and Water Source Type dropdowns, Urban Proximity, and Water Usage Efficiency.
-- [ ] **Step 52**: Create `frontend/src/components/form/ScenarioPresetsBar.tsx` with 1-click presets and Auto-Fill Baseline.
-- [ ] **Step 53**: Create `frontend/src/components/form/PredictActionBar.tsx` with security badges and animated submit button.
-- [ ] **Step 54**: Commit Phase 9 Farm Management & Presets components to branch `sayan`.
+- [x] **Step 49**: Create `frontend/src/components/form/FarmManagementSection.tsx` with 8 parameters and decision matrix card.
+- [x] **Step 50**: Implement Irrigation Frequency, Crop Density, Pest Pressure, and Fertilizer Usage inputs.
+- [x] **Step 51**: Implement Growth Stage and Water Source Type dropdowns, Urban Proximity, and Water Usage Efficiency.
+- [x] **Step 52**: Create `frontend/src/components/form/ScenarioPresetsBar.tsx` with 1-click presets and Auto-Fill Baseline.
+- [x] **Step 53**: Create `frontend/src/components/form/PredictActionBar.tsx` with security badges and animated submit button.
+- [x] **Step 54**: Commit Phase 9 Farm Management & Presets components to branch `sayan`.
 
 ### Phase 10: Home Page Integration & State Management (Steps 55 – 59)
 - [ ] **Step 55**: Create `frontend/src/app/page.tsx` integrating presets bar, form sections, and form validation state.
