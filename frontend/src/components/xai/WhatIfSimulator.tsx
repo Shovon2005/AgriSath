@@ -181,7 +181,7 @@ export function WhatIfSimulator({ baselineInputs, currentCrop }: WhatIfSimulator
             ) : (
               <div className="flex flex-col items-center justify-center py-10 text-center text-slate-400">
                 <Sliders className="w-10 h-10 mb-2 stroke-[1.5]" />
-                <p className="text-xs">Adjust sliders and click "Simulate Perturbation" to test model reaction.</p>
+                <p className="text-xs">Adjust sliders and click &ldquo;Simulate Perturbation&rdquo; to test model reaction.</p>
               </div>
             )}
           </div>

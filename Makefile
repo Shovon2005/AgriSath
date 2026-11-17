@@ -1,4 +1,4 @@
-.PHONY: setup venv install test train run run-frontend frontend-install dev clean lint
+.PHONY: setup venv install test train run run-frontend frontend-install dev clean lint frontend-lint frontend-typecheck frontend-build
 
 PYTHON := .venv/bin/python
 PIP := .venv/bin/pip
@@ -32,8 +32,19 @@ run:
 	$(PYTHON) app.py
 
 clean:
-	rm -rf __pycache__ .pytest_cache .coverage htmlcov build dist *.egg-info
+	rm -rf __pycache__ .pytest_cache .coverage htmlcov build dist *.egg-info frontend/.next
 	find . -type d -name "__pycache__" -exec rm -rf {} +
+
+frontend-lint:
+	cd frontend && npm run lint
+
+frontend-typecheck:
+	cd frontend && npx tsc --noEmit
+
+frontend-build:
+	cd frontend && npm run build
 
 lint:
 	$(PYTHON) -c "import ast, glob; [ast.parse(open(f).read(), filename=f) for f in glob.glob('**/*.py', recursive=True) if '.venv' not in f]; print('All Python files passed syntax and AST validation.')"
+	cd frontend && npm run lint
+	cd frontend && npx tsc --noEmit
