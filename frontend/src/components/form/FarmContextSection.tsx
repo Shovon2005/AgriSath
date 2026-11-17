@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, CloudSun, CheckCircle2, Loader2 } from 'lucide-react';
+import { MapPin, CloudSun, CheckCircle2 } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { InputWithUnit } from '@/components/ui/InputWithUnit';
 import { Select } from '@/components/ui/Select';

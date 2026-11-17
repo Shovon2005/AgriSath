@@ -71,53 +71,69 @@ AgriSathi is an explainable AI-driven decision support framework engineered for 
 
 ```text
 AgriSath/
-├── IMPLEMENTATION_PLAN.md      # Master 67-step verified implementation plan
-├── Makefile                    # Developer commands (setup, test, train, run)
-├── setup.sh                    # Automated 1-command local setup script
-├── pyproject.toml              # Modern package metadata and dependencies
-├── requirements.txt            # Pinned requirements
+├── Makefile                    # Unified developer commands (lint, test, build, dev)
+├── setup.sh                    # Automated 1-command local environment setup script
+├── pyproject.toml              # Python package metadata and tool configuration
+├── requirements.txt            # Pinned Python requirements
 ├── Crop_recommendationV2.csv   # Agricultural training dataset (22 crops, 22 features)
-├── app.py                      # Backward-compatible web application launcher
+├── app.py                      # Flask REST API server launcher (port 5001)
 ├── train_model.py              # Backward-compatible model training launcher
 ├── recommendation.py           # Backward-compatible advisory wrappers
 ├── explain.py                  # Backward-compatible XAI wrappers
-├── agrisathi/                  # Core package
+├── agrisathi/                  # Core Python backend package
 │   ├── config.py               # Environment configuration & dynamic path resolution
 │   ├── core/                   # Domain schemas, exceptions, and validation
 │   ├── advisory/               # Expert agronomic advisory engines (soil, NPK, water, risk)
 │   ├── ml/                     # ML training, preprocessing, inference & SHAP XAI
 │   ├── reports/                # ReportLab PDF advisory report generator
-│   ├── utils/                  # Structured logging
+│   ├── utils/                  # Structured logging & Open-Meteo weather client
 │   └── web/                    # Modular Flask Application Factory & Blueprints
-├── data/
-│   └── crop_agronomic_profiles.json # Scientific agronomic database for 22 crops
+├── frontend/                   # Decoupled Next.js 14 Frontend Application
+│   ├── src/app/                # App Router pages (/, /history, /result)
+│   ├── src/components/         # Reusable UI & form sections (presets, inputs, cards)
+│   ├── src/components/xai/     # SHAP Waterfall chart & What-If simulator
+│   ├── src/lib/                # Type-safe API client & utilities
+│   └── src/types/              # TypeScript schemas & API response interfaces
+├── data/                       # Dynamic agronomic profiles & rules
+├── docs/plans/                 # Architecture & verified implementation plans
 ├── model/                      # Trained model artifacts & metrics
 ├── scripts/                    # CLI utilities (train, evaluate, generate report, run server)
-├── static/                     # CSS stylesheets & client assets
-├── templates/                  # Jinja2 HTML templates
-└── tests/                      # Automated unit, integration, and route test suite
+├── static/                     # Legacy static assets
+├── templates/                  # Legacy Jinja2 templates
+└── tests/                      # 164 automated unit, integration, and route tests
 ```
 
 ---
 
 ## Quickstart & Local Setup
 
-### Option 1: Automated Script (Recommended)
+### Option 1: Using Makefile (Recommended)
+```bash
+make setup          # Creates .venv, installs Python dependencies and Next.js npm packages
+make lint           # Runs Python AST validation + Next.js ESLint + TypeScript typecheck
+make test           # Runs complete pytest suite (164 tests)
+make run            # Launches Flask backend on http://127.0.0.1:5001
+make run-frontend   # Launches Next.js frontend on http://localhost:3000
+```
+
+### Option 2: Automated Script
 ```bash
 ./setup.sh
 ```
 
-### Option 2: Using Makefile
+### Option 3: Manual Execution
 ```bash
-make setup      # Creates .venv and installs dependencies
-make test       # Runs the automated pytest suite (44 tests)
-make train      # Trains and persists model artifacts
-make run        # Launches the local web application
+# 1. Backend (Terminal 1)
+source .venv/bin/activate
+python app.py
+
+# 2. Frontend (Terminal 2)
+cd frontend
+npm run dev
 ```
 
-### Option 3: Manual Installation
-```bash
-# Create virtual environment
+- **Next.js Web UI:** [http://localhost:3000](http://localhost:3000)
+- **Flask REST API:** [http://127.0.0.1:5001](http://127.0.0.1:5001)
 python3 -m venv .venv
 source .venv/bin/activate
 

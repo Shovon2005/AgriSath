@@ -12,8 +12,6 @@ import {
   AlertTriangle,
   Award,
   Layers,
-  Sparkles,
-  RefreshCw,
 } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';

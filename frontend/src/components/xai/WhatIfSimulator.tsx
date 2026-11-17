@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Sliders, RefreshCw, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Sliders, RefreshCw } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
