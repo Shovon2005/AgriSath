@@ -36,7 +36,7 @@
 ## 70-Step Master Execution Checklist
 
 ### Phase 1: Backend API Preparation & CORS Configuration (Steps 1 – 6)
-- [ ] **Step 1**: Add CORS headers and preflight `OPTIONS` handling in `agrisathi/web/app.py` for headless frontend support.
+- [x] **Step 1**: Add CORS headers and preflight `OPTIONS` handling in `agrisathi/web/app.py` for headless frontend support.
 - [ ] **Step 2**: Add `FLASK_CORS_ORIGINS` configuration in `agrisathi/config.py`.
 - [ ] **Step 3**: Verify backend API JSON serialization for all endpoints (`/api/v1/predict`, `/api/v1/weather`, `/api/v1/history`, `/api/v1/what-if`).
 - [ ] **Step 4**: Write unit tests for CORS and API response schemas in `tests/test_api_cors.py`.
