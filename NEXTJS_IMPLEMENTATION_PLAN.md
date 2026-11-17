@@ -44,12 +44,12 @@
 - [x] **Step 6**: Commit Phase 1 backend updates to branch `sayan`.
 
 ### Phase 2: Next.js Project Scaffolding & Setup (Steps 7 – 12)
-- [ ] **Step 7**: Initialize Next.js 14+ app with TypeScript and Tailwind CSS in directory `frontend/`.
-- [ ] **Step 8**: Configure `frontend/next.config.js` with API proxy rewrites to Flask (`http://127.0.0.1:5001`).
-- [ ] **Step 9**: Configure Tailwind theme with AgriSathi brand tokens (emerald, forest greens, neutral slates).
-- [ ] **Step 10**: Install core dependencies (`lucide-react`, `clsx`, `tailwind-merge`, `recharts` for SHAP charts).
-- [ ] **Step 11**: Add NPM scripts and Makefile targets (`make run-frontend`, `make dev`) for unified developer experience.
-- [ ] **Step 12**: Commit Phase 2 project scaffolding to branch `sayan`.
+- [x] **Step 7**: Initialize Next.js 14+ app with TypeScript and Tailwind CSS in directory `frontend/`.
+- [x] **Step 8**: Configure `frontend/next.config.js` with API proxy rewrites to Flask (`http://127.0.0.1:5001`).
+- [x] **Step 9**: Configure Tailwind theme with AgriSathi brand tokens (emerald, forest greens, neutral slates).
+- [x] **Step 10**: Install core dependencies (`lucide-react`, `clsx`, `tailwind-merge`, `recharts` for SHAP charts).
+- [x] **Step 11**: Add NPM scripts and Makefile targets (`make run-frontend`, `make dev`) for unified developer experience.
+- [x] **Step 12**: Commit Phase 2 project scaffolding to branch `sayan`.
 
 ### Phase 3: TypeScript Types & Domain Interfaces (Steps 13 – 18)
 - [ ] **Step 13**: Create `frontend/src/types/schemas.ts` defining all 22 farm input parameters with units, bounds, and defaults.

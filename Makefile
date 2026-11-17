@@ -1,16 +1,26 @@
-.PHONY: setup venv install test train run clean lint
+.PHONY: setup venv install test train run run-frontend frontend-install dev clean lint
 
 PYTHON := .venv/bin/python
 PIP := .venv/bin/pip
 PYTEST := .venv/bin/pytest
 
-setup: venv install
+setup: venv install frontend-install
 
 venv:
 	uv venv .venv --python 3.10
 
 install:
 	uv pip install -r requirements.txt -e .
+
+frontend-install:
+	cd frontend && npm install
+
+run-frontend:
+	cd frontend && npm run dev
+
+dev:
+	@echo "Starting Next.js frontend (requires Flask backend running on port 5001)..."
+	cd frontend && npm run dev
 
 test:
 	$(PYTEST) -v --tb=short tests/
