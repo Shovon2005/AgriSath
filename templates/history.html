@@ -7,40 +7,639 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        .history-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background: #ffffff;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        /* ----------------------------------------------------
+           HISTORICAL ASSESSMENTS PAGE STYLES
+           ---------------------------------------------------- */
+        .history-container {
+            width: 95%;
+            max-width: 1320px;
+            margin: 30px auto 50px;
+            padding: 0 15px;
         }
-        .history-table th {
+
+        /* Unified History Card */
+        .history-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            box-shadow: 0 4px 25px -3px rgba(15, 23, 42, 0.06), 0 2px 6px -2px rgba(15, 23, 42, 0.04);
+            overflow: hidden;
+            margin-top: 24px;
+        }
+
+        /* Card Header & Toolbar */
+        .history-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 22px 28px;
+            background: #ffffff;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .history-header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .history-icon-bubble {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            color: #1b5e20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: 0 2px 8px rgba(27, 94, 32, 0.12);
+            flex-shrink: 0;
+        }
+
+        .history-title-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .history-title {
+            margin: 0;
+            font-size: 1.28rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.01em;
+        }
+
+        .history-count-badge {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+            font-size: 0.8rem;
+            font-weight: 800;
+            padding: 2px 10px;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .history-subtitle {
+            margin: 4px 0 0;
+            font-size: 0.82rem;
+            color: #64748b;
+        }
+
+        .history-header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* Live Search Box */
+        .history-search-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .history-search-input {
+            padding: 8px 32px 8px 36px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.84rem;
+            outline: none;
+            transition: all 0.2s ease;
+            background: #f8fafc;
+            color: #1e293b;
+            width: 220px;
+        }
+
+        .history-search-input:focus {
+            border-color: #2e7d32;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
+            width: 260px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            color: #94a3b8;
+            font-size: 0.82rem;
+            pointer-events: none;
+        }
+
+        .clear-search-btn {
+            position: absolute;
+            right: 8px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 4px;
+            font-size: 0.82rem;
+        }
+
+        .clear-search-btn:hover {
+            color: #475569;
+        }
+
+        /* Filter Pills */
+        .filter-pills-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .filter-pill {
+            padding: 7px 13px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            text-decoration: none;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #475569;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .filter-pill:hover {
+            background: #f1f5f9;
+            color: #1b5e20;
+            border-color: #86efac;
+            transform: translateY(-1px);
+        }
+
+        .filter-pill.active {
             background: #1b5e20;
             color: #ffffff;
-            padding: 12px 14px;
-            font-size: 0.88rem;
-            text-align: left;
+            border-color: #1b5e20;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(27, 94, 32, 0.25);
         }
-        .history-table td {
-            padding: 12px 14px;
-            font-size: 0.85rem;
-            border-bottom: 1px solid #eeeeee;
-            color: #333333;
+
+        /* Responsive Table Container */
+        .table-responsive-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
-        .history-table tr:hover {
-            background: #f9fbe7;
+
+        .table-responsive-wrapper::-webkit-scrollbar {
+            height: 7px;
         }
-        .badge-fert {
-            padding: 4px 8px;
+
+        .table-responsive-wrapper::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
             border-radius: 4px;
+        }
+
+        .table-responsive-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Table Structure */
+        .history-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 980px;
+            text-align: left;
+            background: #ffffff;
+        }
+
+        .history-table thead th {
+            background: linear-gradient(135deg, #1b5e20 0%, #256d2b 100%);
+            color: #ffffff;
+            padding: 14px 16px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: none;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .history-table tbody td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            font-size: 0.86rem;
+            color: #1e293b;
+            background: #ffffff;
+            transition: background 0.15s ease;
+        }
+
+        .history-table tbody tr:hover td {
+            background: #f8fbf8;
+        }
+
+        .history-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ID Badge */
+        .id-badge {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: #475569;
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        /* Datetime Cell */
+        .datetime-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            white-space: nowrap;
+        }
+
+        .date-part {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.84rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .date-part i {
+            color: #64748b;
+            font-size: 0.78rem;
+        }
+
+        .time-part {
+            font-size: 0.76rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .time-part i {
+            font-size: 0.74rem;
+        }
+
+        /* Location Cell */
+        .location-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            white-space: nowrap;
+        }
+
+        .location-title {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 0.86rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .location-title i {
+            color: #16a34a;
+            font-size: 0.8rem;
+        }
+
+        .location-meta {
+            font-size: 0.78rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-dot {
+            color: #cbd5e1;
+        }
+
+        /* Crop Badge Pill */
+        .crop-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 4px 10px 4px 6px;
+            border-radius: 24px;
+            white-space: nowrap;
+        }
+
+        .crop-icon-chip {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #22c55e;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+        }
+
+        .crop-name-label {
+            font-weight: 700;
+            color: #15803d;
+            font-size: 0.88rem;
+        }
+
+        /* Confidence Meter */
+        .confidence-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            width: 92px;
+            margin: 0 auto;
+            white-space: nowrap;
+        }
+
+        .conf-percent {
+            font-weight: 800;
+            font-size: 0.84rem;
+            white-space: nowrap;
+        }
+
+        .conf-val-high { color: #15803d; }
+        .conf-val-med  { color: #b45309; }
+        .conf-val-low  { color: #b91c1c; }
+
+        .conf-bar-track {
+            width: 100%;
+            height: 5px;
+            background: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .conf-bar-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
+
+        .conf-fill-high { background: linear-gradient(90deg, #22c55e, #16a34a); }
+        .conf-fill-med  { background: linear-gradient(90deg, #f59e0b, #d97706); }
+        .conf-fill-low  { background: linear-gradient(90deg, #ef4444, #dc2626); }
+
+        /* Soil Fertility Pill - No awkward wrapping */
+        .fertility-pill {
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.78rem;
+            text-align: center;
+        }
+
+        .fert-pill-high { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+        .fert-pill-med  { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+        .fert-pill-low  { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+        .pill-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .fert-pill-high .pill-dot { background: #10b981; }
+        .fert-pill-med  .pill-dot { background: #f59e0b; }
+        .fert-pill-low  .pill-dot { background: #ef4444; }
+
+        /* Irrigation Demand Pill - No awkward wrapping */
+        .irrig-pill {
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
             font-weight: 700;
             font-size: 0.78rem;
         }
-        .fert-high { background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; }
-        .fert-med { background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
-        .fert-low { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+
+        .irrig-pill-low  { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        .irrig-pill-med  { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+        .irrig-pill-high { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+        /* Action Buttons - Always side-by-side */
+        .action-buttons-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 7px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.18s ease-in-out;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn-details {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+
+        .btn-details:hover {
+            background: #1d4ed8;
+            color: #ffffff;
+            border-color: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(29, 78, 216, 0.25);
+        }
+
+        .btn-pdf {
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+        }
+
+        .btn-pdf:hover {
+            background: #047857;
+            color: #ffffff;
+            border-color: #047857;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(4, 120, 87, 0.25);
+        }
+
+        /* Card Footer */
+        .history-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 28px;
+            background: #f8fafc;
+            border-top: 1px solid #edf2f7;
+            font-size: 0.82rem;
+            color: #64748b;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .active-filter-indicator {
+            margin-left: 8px;
+            color: #1b5e20;
+        }
+
+        .footer-legend {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.78rem;
+        }
+
+        /* No Search Matches */
+        .no-search-results {
+            text-align: center;
+            padding: 50px 20px !important;
+            background: #ffffff !important;
+        }
+
+        .no-match-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: #64748b;
+        }
+
+        .no-match-content i {
+            font-size: 2.2rem;
+            color: #cbd5e1;
+        }
+
+        .btn-reset-filter {
+            padding: 6px 14px;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            color: #1b5e20;
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+
+        .btn-reset-filter:hover {
+            background: #e8f5e9;
+            border-color: #81c784;
+        }
+
+        /* Empty State */
+        .history-empty-state {
+            background: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .empty-icon-wrap {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 16px;
+        }
+
+        .history-empty-state h3 {
+            color: #1e293b;
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+        }
+
+        .history-empty-state p {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+
+        .btn-start-first {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            background: #1b5e20;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(27, 94, 32, 0.25);
+            transition: all 0.2s;
+        }
+
+        .btn-start-first:hover {
+            background: #144a19;
+            transform: translateY(-1px);
+        }
+
+        /* Selected Record Detail Card */
+        .selected-detail-card {
+            background: white;
+            border: 1px solid #86efac;
+            border-radius: 16px;
+            padding: 24px 28px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(27, 94, 32, 0.08);
+        }
+
+        .selected-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+            border-bottom: 1px solid #e8f5e9;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        .module-box {
+            border-radius: 10px;
+            padding: 16px;
+        }
     </style>
 </head>
 <body>
@@ -56,7 +655,7 @@
         </div>
     </div>
     <div style="display: flex; gap: 15px; align-items: center;">
-        <a href="/" style="color: #2e7d32; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+        <a href="/" style="color: #2e7d32; text-decoration: none; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
             <i class="fa-solid fa-plus-circle"></i> New Farm Advisory
         </a>
         <div class="ai-status">
@@ -77,46 +676,50 @@
     </div>
 </section>
 
-<main class="container" style="max-width: 1100px; margin: 30px auto; padding: 0 20px;">
+<main class="history-container">
 
     {% if selected_record %}
     <!-- Detailed View of Selected Assessment -->
-    <div style="background: white; border: 1px solid #81c784; border-radius: 12px; padding: 24px; margin-bottom: 30px; box-shadow: 0 4px 18px rgba(0,0,0,0.06);">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; border-bottom: 1px solid #e8f5e9; padding-bottom: 15px; margin-bottom: 18px;">
+    <div class="selected-detail-card">
+        <div class="selected-header">
             <div>
-                <span style="font-size: 0.8rem; font-weight: 700; color: #2e7d32; text-transform: uppercase; letter-spacing: 0.5px;">Historical Assessment #{{ selected_record.id }}</span>
-                <h2 style="color: #1b5e20; margin: 4px 0 6px; font-size: 1.6rem;">
+                <span style="font-size: 0.78rem; font-weight: 800; color: #166534; text-transform: uppercase; letter-spacing: 0.06em; background: #dcfce7; padding: 3px 10px; border-radius: 4px; display: inline-block;">
+                    Historical Assessment #{{ selected_record.id }}
+                </span>
+                <h2 style="color: #1b5e20; margin: 8px 0 6px; font-size: 1.6rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                     <i class="fa-solid fa-wheat-awn"></i> {{ selected_record.crop }}
                     <span style="font-size: 1rem; color: #2e7d32; font-weight: 600;">({{ selected_record.confidence }}% AI Confidence)</span>
                 </h2>
-                <div style="color: #666; font-size: 0.88rem;">
-                    <i class="fa-solid fa-location-dot"></i> {{ selected_record.location }} | 
-                    <i class="fa-solid fa-calendar"></i> {{ selected_record.season }} ({{ selected_record.farm_area }} ha) | 
-                    <i class="fa-solid fa-clock"></i> {{ selected_record.timestamp[:19]|replace("T", " ") }} UTC
+                <div style="color: #64748b; font-size: 0.88rem; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                    <span><i class="fa-solid fa-location-dot" style="color: #16a34a;"></i> {{ selected_record.location }}</span>
+                    <span><i class="fa-solid fa-calendar" style="color: #64748b;"></i> {{ selected_record.season }} ({{ selected_record.farm_area }} ha)</span>
+                    <span><i class="fa-solid fa-clock" style="color: #64748b;"></i> {{ selected_record.timestamp[:19]|replace("T", " ") }} UTC</span>
                 </div>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
-                <a href="/history/{{ selected_record.id }}/pdf" style="padding: 9px 16px; background: #1b5e20; color: white; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                <a href="/history/{{ selected_record.id }}/pdf" style="padding: 9px 16px; background: #1b5e20; color: white; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(27, 94, 32, 0.2);">
                     <i class="fa-solid fa-file-pdf"></i> Download Official PDF
                 </a>
-                <a href="/history" style="padding: 9px 14px; background: #f5f5f5; color: #333; border: 1px solid #ccc; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                <a href="/history" style="padding: 9px 14px; background: #f8fafc; color: #334155; border: 1px solid #cbd5e1; border-radius: 6px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
                     <i class="fa-solid fa-arrow-left"></i> All Reports
                 </a>
             </div>
         </div>
 
         <!-- 3 Modules Grid Breakdown -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 15px;">
+        <div class="modules-grid">
             <!-- Module 1: Soil Health -->
-            <div style="background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px;">
+            <div class="module-box" style="background: #fafafa; border: 1px solid #e2e8f0;">
                 <h4 style="color: #1b5e20; margin: 0 0 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-mountain"></i> Module 1: Soil Fertility
                 </h4>
-                <div style="margin-bottom: 6px;">
-                    <span class="badge-fert {% if selected_record.fertility_class == 'High' %}fert-high{% elif selected_record.fertility_class == 'Medium' %}fert-med{% else %}fert-low{% endif %}">
+                <div style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                    {% set fclass = selected_record.fertility_class|lower %}
+                    <span class="fertility-pill {% if fclass == 'high' %}fert-pill-high{% elif fclass == 'medium' %}fert-pill-med{% else %}fert-pill-low{% endif %}">
+                        <span class="pill-dot"></span>
                         {{ selected_record.fertility_class }} Fertility
                     </span>
-                    <strong style="margin-left: 6px; font-size: 0.85rem;">Score: {{ selected_record.soil_score }}/100</strong>
+                    <strong style="font-size: 0.85rem; color: #334155;">Score: {{ selected_record.soil_score }}/100</strong>
                 </div>
                 {% if selected_record.inputs %}
                 <div style="font-size: 0.8rem; color: #555; line-height: 1.5;">
@@ -127,12 +730,14 @@
             </div>
 
             <!-- Module 3: Smart Irrigation -->
-            <div style="background: #e0f2f1; border: 1px solid #b2dfdb; border-radius: 8px; padding: 14px;">
+            <div class="module-box" style="background: #e0f2f1; border: 1px solid #b2dfdb;">
                 <h4 style="color: #004d40; margin: 0 0 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-droplet"></i> Module 3: Smart Irrigation
                 </h4>
                 <div style="margin-bottom: 6px;">
-                    <span style="font-weight: 700; color: {% if selected_record.irrigation_priority == 'High' %}#c62828{% elif selected_record.irrigation_priority == 'Medium' %}#f57f17{% else %}#2e7d32{% endif %}; font-size: 0.9rem;">
+                    {% set ipriority = selected_record.irrigation_priority|lower %}
+                    <span class="irrig-pill {% if ipriority == 'high' %}irrig-pill-high{% elif ipriority == 'medium' %}irrig-pill-med{% else %}irrig-pill-low{% endif %}">
+                        <i class="fa-solid fa-droplet"></i>
                         {{ selected_record.irrigation_priority }} Priority
                     </span>
                 </div>
@@ -146,7 +751,7 @@
             </div>
 
             <!-- Module 4: Fertilizer -->
-            <div style="background: #f1f8e9; border: 1px solid #c8e6c9; border-radius: 8px; padding: 14px;">
+            <div class="module-box" style="background: #f1f8e9; border: 1px solid #c8e6c9;">
                 <h4 style="color: #2e7d32; margin: 0 0 8px; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
                     <i class="fa-solid fa-flask"></i> Module 4: Fertilizer Plan
                 </h4>
@@ -166,85 +771,215 @@
     </div>
     {% endif %}
 
-    <!-- Filter / Quick Actions -->
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
-        <div style="font-weight: 700; color: #1b5e20; font-size: 1.1rem;">
-            <i class="fa-solid fa-database"></i> Saved Assessments ({{ history|length }})
-        </div>
-        <div>
-            <a href="/history" style="padding: 6px 12px; background: white; border: 1px solid #81c784; border-radius: 6px; color: #1b5e20; text-decoration: none; font-size: 0.85rem; font-weight: 600; margin-right: 6px;">All Crops</a>
-            <a href="/history?crop=rice" style="padding: 6px 12px; background: white; border: 1px solid #81c784; border-radius: 6px; color: #1b5e20; text-decoration: none; font-size: 0.85rem;">Rice</a>
-            <a href="/history?crop=chickpea" style="padding: 6px 12px; background: white; border: 1px solid #81c784; border-radius: 6px; color: #1b5e20; text-decoration: none; font-size: 0.85rem;">Chickpea</a>
-            <a href="/history?crop=cotton" style="padding: 6px 12px; background: white; border: 1px solid #81c784; border-radius: 6px; color: #1b5e20; text-decoration: none; font-size: 0.85rem;">Cotton</a>
-            <a href="/history?crop=maize" style="padding: 6px 12px; background: white; border: 1px solid #81c784; border-radius: 6px; color: #1b5e20; text-decoration: none; font-size: 0.85rem;">Maize</a>
-        </div>
-    </div>
+    <!-- Unified Saved Assessments Card -->
+    <div class="history-card">
+        <!-- Card Header Toolbar -->
+        <div class="history-card-header">
+            <div class="history-header-left">
+                <div class="history-icon-bubble">
+                    <i class="fa-solid fa-database"></i>
+                </div>
+                <div>
+                    <div class="history-title-row">
+                        <h2 class="history-title">Saved Assessments</h2>
+                        <span class="history-count-badge" id="recordCountBadge">{{ history|length }}</span>
+                    </div>
+                    <p class="history-subtitle">Search, filter, inspect XAI predictions, and download official agronomic advisory PDFs.</p>
+                </div>
+            </div>
 
-    {% if history %}
-    <div style="overflow-x: auto;">
-        <table class="history-table">
-            <thead>
-                <tr>
-                    <th># ID</th>
-                    <th>Date & Time</th>
-                    <th>Location & Season</th>
-                    <th>Recommended Crop</th>
-                    <th>Confidence</th>
-                    <th>Soil Fertility</th>
-                    <th>Irrigation Demand</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in history %}
-                <tr>
-                    <td><strong>#{{ item.id }}</strong></td>
-                    <td>{{ item.timestamp[:16]|replace("T", " ") }}</td>
-                    <td>
-                        <strong>{{ item.location }}</strong><br/>
-                        <small style="color: #666666;">{{ item.season }} ({{ item.farm_area }} ha)</small>
-                    </td>
-                    <td>
-                        <strong style="color: #1b5e20; font-size: 0.95rem;">
-                            <i class="fa-solid fa-wheat-awn"></i> {{ item.crop }}
-                        </strong>
-                    </td>
-                    <td>
-                        <strong>{{ item.confidence }}%</strong>
-                    </td>
-                    <td>
-                        <span class="badge-fert {% if item.fertility_class == 'High' %}fert-high{% elif item.fertility_class == 'Medium' %}fert-med{% else %}fert-low{% endif %}">
-                            {{ item.fertility_class }} ({{ item.soil_score }}/100)
-                        </span>
-                    </td>
-                    <td>
-                        <span style="font-weight: 600; color: {% if item.irrigation_priority == 'High' %}#c62828{% elif item.irrigation_priority == 'Medium' %}#f57f17{% else %}#2e7d32{% endif %};">
-                            {{ item.irrigation_priority }} Priority
-                        </span>
-                    </td>
-                    <td>
-                        <a href="/history/{{ item.id }}" style="padding: 6px 10px; background: #1565c0; color: white; border-radius: 4px; text-decoration: none; font-size: 0.78rem; font-weight: 600; margin-right: 4px; display: inline-block;">
-                            <i class="fa-solid fa-eye"></i> Details
-                        </a>
-                        <a href="/history/{{ item.id }}/pdf" style="padding: 6px 10px; background: #1b5e20; color: white; border-radius: 4px; text-decoration: none; font-size: 0.78rem; font-weight: 600; display: inline-block;">
-                            <i class="fa-solid fa-file-pdf"></i> PDF
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+            <div class="history-header-right">
+                <!-- Live Instant Search Box -->
+                <div class="history-search-wrap">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="historySearchInput" class="history-search-input" placeholder="Search crop, ID, location..." onkeyup="filterHistoryTable()" autocomplete="off">
+                    <button type="button" id="clearSearchBtn" class="clear-search-btn" onclick="clearHistorySearch()" style="display: none;" title="Clear search">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Crop Filter Pills -->
+                <div class="filter-pills-group">
+                    <a href="/history" class="filter-pill {% if not active_crop %}active{% endif %}">
+                        All Crops
+                    </a>
+                    <a href="/history?crop=rice" class="filter-pill {% if active_crop|lower == 'rice' %}active{% endif %}">
+                        Rice
+                    </a>
+                    <a href="/history?crop=chickpea" class="filter-pill {% if active_crop|lower == 'chickpea' %}active{% endif %}">
+                        Chickpea
+                    </a>
+                    <a href="/history?crop=cotton" class="filter-pill {% if active_crop|lower == 'cotton' %}active{% endif %}">
+                        Cotton
+                    </a>
+                    <a href="/history?crop=maize" class="filter-pill {% if active_crop|lower == 'maize' %}active{% endif %}">
+                        Maize
+                    </a>
+                    <a href="/history?crop=papaya" class="filter-pill {% if active_crop|lower == 'papaya' %}active{% endif %}">
+                        Papaya
+                    </a>
+                    <a href="/history?crop=jute" class="filter-pill {% if active_crop|lower == 'jute' %}active{% endif %}">
+                        Jute
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {% if history %}
+        <!-- Table Body -->
+        <div class="table-responsive-wrapper">
+            <table class="history-table" id="historyTable">
+                <thead>
+                    <tr>
+                        <th style="width: 80px; text-align: center;"># ID</th>
+                        <th style="min-width: 135px;">Date &amp; Time</th>
+                        <th style="min-width: 175px;">Location &amp; Season</th>
+                        <th style="min-width: 170px;">Recommended Crop</th>
+                        <th style="min-width: 130px; text-align: center;">Confidence</th>
+                        <th style="min-width: 175px; text-align: center;">Soil Fertility</th>
+                        <th style="min-width: 155px; text-align: center;">Irrigation Demand</th>
+                        <th style="min-width: 170px; text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in history %}
+                    <tr class="history-row" data-crop="{{ item.crop|lower }}" data-id="{{ item.id }}" data-location="{{ item.location|lower }}">
+                        <!-- # ID Column -->
+                        <td style="text-align: center;">
+                            <span class="id-badge">#{{ item.id }}</span>
+                        </td>
+
+                        <!-- Date & Time Column -->
+                        <td>
+                            <div class="datetime-cell">
+                                <span class="date-part">
+                                    <i class="fa-regular fa-calendar-days"></i>
+                                    {{ item.timestamp[:10] }}
+                                </span>
+                                <span class="time-part">
+                                    <i class="fa-regular fa-clock"></i>
+                                    {{ item.timestamp[11:16] }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <!-- Location & Season Column -->
+                        <td>
+                            <div class="location-cell">
+                                <div class="location-title">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    <span>{{ item.location }}</span>
+                                </div>
+                                <div class="location-meta">
+                                    <span>{{ item.season }}</span>
+                                    <span class="meta-dot">•</span>
+                                    <span>{{ item.farm_area }} ha</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Recommended Crop Column -->
+                        <td>
+                            <div class="crop-badge-pill">
+                                <div class="crop-icon-chip">
+                                    <i class="fa-solid fa-seedling"></i>
+                                </div>
+                                <span class="crop-name-label">{{ item.crop }}</span>
+                            </div>
+                        </td>
+
+                        <!-- Confidence Column -->
+                        <td style="text-align: center;">
+                            <div class="confidence-display">
+                                {% set conf_num = item.confidence|float %}
+                                <div class="confidence-header">
+                                    <span class="conf-percent {% if conf_num >= 75 %}conf-val-high{% elif conf_num >= 45 %}conf-val-med{% else %}conf-val-low{% endif %}">
+                                        {{ "%.1f"|format(conf_num) }}%
+                                    </span>
+                                </div>
+                                <div class="conf-bar-track" title="Confidence: {{ '%.1f'|format(conf_num) }}%">
+                                    <div class="conf-bar-fill {% if conf_num >= 75 %}conf-fill-high{% elif conf_num >= 45 %}conf-fill-med{% else %}conf-fill-low{% endif %}" style="width: {{ [conf_num, 100]|min }}%;"></div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Soil Fertility Column (Nowrap Badge) -->
+                        <td style="text-align: center;">
+                            {% set fclass = item.fertility_class|lower %}
+                            <span class="fertility-pill {% if fclass == 'high' %}fert-pill-high{% elif fclass == 'medium' %}fert-pill-med{% else %}fert-pill-low{% endif %}">
+                                <span class="pill-dot"></span>
+                                {{ item.fertility_class }} ({{ item.soil_score }}/100)
+                            </span>
+                        </td>
+
+                        <!-- Irrigation Demand Column (Nowrap Badge) -->
+                        <td style="text-align: center;">
+                            {% set ipriority = item.irrigation_priority|lower %}
+                            <span class="irrig-pill {% if ipriority == 'high' %}irrig-pill-high{% elif ipriority == 'medium' %}irrig-pill-med{% else %}irrig-pill-low{% endif %}">
+                                <i class="fa-solid fa-droplet"></i>
+                                {{ item.irrigation_priority }} Priority
+                            </span>
+                        </td>
+
+                        <!-- Actions Column (Side-by-side buttons) -->
+                        <td style="text-align: center;">
+                            <div class="action-buttons-wrap">
+                                <a href="/history/{{ item.id }}" class="action-btn btn-details" title="Inspect Detailed Agronomic & SHAP Analysis">
+                                    <i class="fa-solid fa-eye"></i>
+                                    <span>Details</span>
+                                </a>
+                                <a href="/history/{{ item.id }}/pdf" class="action-btn btn-pdf" title="Download Official Agronomic Advisory PDF">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                    <span>PDF</span>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    <!-- No Results Match Row (Hidden initially) -->
+                    <tr id="noMatchRow" style="display: none;">
+                        <td colspan="8" class="no-search-results">
+                            <div class="no-match-content">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <strong>No assessments found</strong>
+                                <p style="margin: 0; font-size: 0.85rem;">No historical records matched your search query.</p>
+                                <button type="button" onclick="clearHistorySearch()" class="btn-reset-filter">
+                                    <i class="fa-solid fa-rotate-left"></i> Reset Search Filter
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Card Footer -->
+        <div class="history-card-footer">
+            <div class="footer-stats">
+                Showing <strong id="visibleCount" style="color: #166534;">{{ history|length }}</strong> of {{ history|length }} saved assessments
+                {% if active_crop %}<span class="active-filter-indicator">• Filtered by: <strong>{{ active_crop|title }}</strong></span>{% endif %}
+            </div>
+            <div class="footer-legend">
+                <span><i class="fa-solid fa-circle" style="color: #10b981; font-size: 7px;"></i> High Fertility</span>
+                <span><i class="fa-solid fa-circle" style="color: #f59e0b; font-size: 7px;"></i> Medium</span>
+                <span><i class="fa-solid fa-circle" style="color: #ef4444; font-size: 7px;"></i> Low</span>
+            </div>
+        </div>
+        {% else %}
+        <!-- Empty State When Database Has No Records -->
+        <div class="history-empty-state">
+            <div class="empty-icon-wrap">
+                <i class="fa-solid fa-inbox"></i>
+            </div>
+            <h3>No Historical Records Found</h3>
+            <p>Generate your first precision agriculture recommendation to begin saving assessments.</p>
+            <a href="/" class="btn-start-first">
+                <i class="fa-solid fa-seedling"></i> Start First Assessment
+            </a>
+        </div>
+        {% endif %}
     </div>
-    {% else %}
-    <div style="background: white; padding: 40px; text-align: center; border-radius: 12px; border: 1px dashed #bdbdbd; margin-top: 20px;">
-        <i class="fa-solid fa-inbox" style="font-size: 3rem; color: #bdbdbd; margin-bottom: 12px;"></i>
-        <h3 style="color: #424242; margin-bottom: 8px;">No Historical Records Found</h3>
-        <p style="color: #757575; font-size: 0.9rem; margin-bottom: 20px;">Generate your first precision agriculture recommendation to begin saving assessments.</p>
-        <a href="/" style="display: inline-block; padding: 10px 20px; background: #1b5e20; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">
-            <i class="fa-solid fa-seedling"></i> Start First Assessment
-        </a>
-    </div>
-    {% endif %}
 
 </main>
 
@@ -256,6 +991,49 @@
     <p>Explainable AI-Driven Intelligent Decision Support Framework for Precision Agriculture</p>
     <span>© 2026 AgriSathi</span>
 </footer>
+
+<!-- Interactive Table Filter Script -->
+<script>
+function filterHistoryTable() {
+    const input = document.getElementById("historySearchInput");
+    const clearBtn = document.getElementById("clearSearchBtn");
+    const filter = input.value.trim().toLowerCase();
+    const rows = document.querySelectorAll(".history-row");
+    const visibleCountElem = document.getElementById("visibleCount");
+    const badgeElem = document.getElementById("recordCountBadge");
+    const noMatchRow = document.getElementById("noMatchRow");
+
+    if (clearBtn) {
+        clearBtn.style.display = filter ? "block" : "none";
+    }
+
+    let visibleCount = 0;
+    rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        if (!filter || text.includes(filter)) {
+            row.style.display = "";
+            visibleCount++;
+        } else {
+            row.style.display = "none";
+        }
+    });
+
+    if (visibleCountElem) visibleCountElem.textContent = visibleCount;
+    if (badgeElem && filter) badgeElem.textContent = visibleCount;
+    if (noMatchRow) {
+        noMatchRow.style.display = (visibleCount === 0 && rows.length > 0) ? "" : "none";
+    }
+}
+
+function clearHistorySearch() {
+    const input = document.getElementById("historySearchInput");
+    if (input) {
+        input.value = "";
+        filterHistoryTable();
+        input.focus();
+    }
+}
+</script>
 
 </body>
 </html>
