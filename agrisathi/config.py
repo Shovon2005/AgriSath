@@ -36,6 +36,11 @@ class Config:
     DEBUG = os.getenv("FLASK_DEBUG", "True").lower() in ("true", "1", "yes")
     HOST = os.getenv("FLASK_HOST", "127.0.0.1")
     PORT = int(os.getenv("FLASK_PORT", "5001"))
+    CORS_ORIGINS = [
+        origin.strip()
+        for origin in os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,*").split(",")
+        if origin.strip()
+    ]
 
     # Logging
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
